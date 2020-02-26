@@ -1,0 +1,65 @@
+#include "bios.hpp"
+
+struct System {
+  Node::Object node;
+
+  struct Controls {
+    Node::Object node;
+    Node::Button up;
+    Node::Button down;
+    Node::Button left;
+    Node::Button right;
+    Node::Button b;
+    Node::Button a;
+    Node::Button l;
+    Node::Button r;
+    Node::Button select;
+    Node::Button start;
+    Node::Rumble rumbler;  //Game Boy Player
+
+    auto load(Node::Object, Node::Object) -> void;
+    auto poll() -> void;
+    auto rumble(bool enable) -> void;
+
+    bool yHold = 0;
+    bool upLatch = 0;
+    bool downLatch = 0;
+    bool xHold = 0;
+    bool leftLatch = 0;
+    bool rightLatch = 0;
+  } controls;
+
+  enum class Model : uint { GameBoyAdvance, GameBoyPlayer };
+
+  inline auto model() const -> Model { return information.model; }
+  inline auto frequency() const -> double { return 16 * 1024 * 1024; }
+
+  //system.cpp
+  auto run() -> void;
+  auto runToSave() -> void;
+
+  auto load(Node::Object&, Node::Object) -> void;
+  auto save() -> void;
+  auto unload() -> void;
+  auto power() -> void;
+
+  //serialization.cpp
+  auto serialize() -> serializer;
+  auto unserialize(serializer&) -> bool;
+
+private:
+  struct Information {
+    Model model = Model::GameBoyAdvance;
+    uint32 serializeSize;
+  } information;
+
+  //serialization.cpp
+  auto serialize(serializer&) -> void;
+  auto serializeAll(serializer&) -> void;
+  auto serializeInit() -> void;
+};
+
+extern System system;
+
+auto Model::GameBoyAdvance() -> bool { return system.model() == System::Model::GameBoyAdvance; }
+auto Model::GameBoyPlayer() -> bool { return system.model() == System::Model::GameBoyPlayer; }
