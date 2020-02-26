@@ -1,0 +1,80 @@
+linux-x86_64-binaries_task:
+    container:
+        image: ubuntu:latest
+
+    setup_script:
+        - apt-get update && apt-get -y install build-essential libgtk2.0-dev libpulse-dev mesa-common-dev libgtksourceview2.0-dev libcairo2-dev libsdl2-dev libxv-dev libao-dev libopenal-dev libudev-dev zip
+
+    compile_script:
+        - make -C higan target=byuu local=false
+
+    package_script:
+        - mkdir byuu-nightly
+        - cp -a higan/out/byuu byuu-nightly/byuu
+        - cp -a icarus/Database byuu-nightly
+        - cp -a icarus/Firmware byuu-nightly
+        - cp -a GPLv3.txt byuu-nightly
+        - zip -r byuu-nightly.zip byuu-nightly
+
+    byuu-nightly_artifacts:
+        path: "byuu-nightly.zip"
+
+freebsd-x86_64-binaries_task:
+    freebsd_instance:
+        image: freebsd-12-0-release-amd64
+
+    setup_script:
+        - pkg install --yes gmake gdb gcc8 pkgconf sdl2 openal-soft gtksourceview2 libXv zip
+
+    compile_script:
+        - gmake -C higan target=byuu local=false
+
+    package_script:
+        - mkdir byuu-nightly
+        - cp -a higan/out/byuu byuu-nightly/byuu
+        - cp -a icarus/Database byuu-nightly
+        - cp -a icarus/Firmware byuu-nightly
+        - cp -a GPLv3.txt byuu-nightly
+        - zip -r byuu-nightly.zip byuu-nightly
+
+    byuu-nightly_artifacts:
+        path: "byuu-nightly.zip"
+
+windows-x86_64-binaries_task:
+    container:
+        image: ubuntu:latest
+
+    setup_script:
+        - apt-get update && apt-get -y install build-essential mingw-w64 zip
+
+    compile_script:
+        - make -C higan target=byuu local=false platform=windows compiler="x86_64-w64-mingw32-g++" windres="x86_64-w64-mingw32-windres"
+
+    package_script:
+        - mkdir byuu-nightly
+        - cp -a higan/out/byuu byuu-nightly/byuu.exe
+        - cp -a icarus/Database byuu-nightly
+        - cp -a icarus/Firmware byuu-nightly
+        - cp -a GPLv3.txt byuu-nightly
+        - zip -r byuu-nightly.zip byuu-nightly
+
+    byuu-nightly_artifacts:
+        path: "byuu-nightly.zip"
+
+macOS-x86_64-binaries_task:
+    osx_instance:
+        image: mojave-base
+
+    compile_script:
+        - make -C higan target=byuu local=false
+
+    package_script:
+        - mkdir byuu-nightly
+        - cp -a higan/out/byuu.app byuu-nightly
+        - cp -a icarus/Database byuu-nightly
+        - cp -a icarus/Firmware byuu-nightly
+        - cp -a GPLv3.txt byuu-nightly
+        - zip -r byuu-nightly.zip byuu-nightly
+
+    byuu-nightly_artifacts:
+        path: "byuu-nightly.zip"
