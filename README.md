@@ -4,7 +4,7 @@ byuu
 ![byuu logo](https://byuu.org/images/byuu/github/byuu-logo.png)
 
 byuu is a multi-system emulator that aims to combine the accuray of
-[higan](https://byuu.org/higan) with the simplicity and performance of
+[higan](https://byuu.org/higan), with the simplicity and performance of
 [bsnes](https://byuu.org/bsnes).
 
 It currently emulates the following systems: Nintendo Entertainment System,
