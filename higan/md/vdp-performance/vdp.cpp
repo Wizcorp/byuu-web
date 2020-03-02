@@ -96,7 +96,7 @@ auto VDP::main() -> void {
 auto VDP::step(uint clocks) -> void {
   state.hcounter += clocks;
 
-  if(!dma.io.enable || dma.io.wait) {
+  if(0) {  //!dma.io.enable || dma.io.wait) {
     Thread::step(clocks);
     Thread::synchronize(cpu, apu);
   } else while(clocks--) {

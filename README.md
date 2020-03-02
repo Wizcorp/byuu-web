@@ -8,11 +8,11 @@ byuu is a multi-system emulator that aims to combine the accuray of
 [bsnes](https://byuu.org/bsnes).
 
 It currently emulates the following systems: Nintendo Entertainment System,
-Super Nintendo Entertainment System, Sega SG-1000, Sega Master System, Sega
-Genesis, NEC TurboGrafx-16, NEC SuperGrafx, MSX, MSX2, Nintendo Game Boy,
-Nintendo Game Boy Color, Nintendo Game Boy Advance, Sega Game Gear, Bandai
-WonderSwan, Bandai WonderSwan Color, Benesse Pocket Challenge V2, SNK Neo Geo
-Pocket, SNK Neo Geo Pocket Color.
+Famicom Disk System, Super Nintendo Entertainment System, Sega SG-1000, Sega
+Master System, Sega Genesis, Sega CD, NEC TurboGrafx-16, NEC SuperGrafx, MSX,
+MSX2, Nintendo Game Boy, Nintendo Game Boy Color, Nintendo Game Boy Advance,
+Sega Game Gear, Bandai WonderSwan, Bandai WonderSwan Color, Benesse Pocket
+Challenge V2, SNK Neo Geo Pocket, SNK Neo Geo Pocket Color.
 
 Development
 -----------
