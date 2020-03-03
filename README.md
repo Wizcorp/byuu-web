@@ -3,7 +3,7 @@ byuu
 
 ![byuu logo](https://byuu.org/images/byuu/github/byuu-logo-small.png)
 
-byuu is a multi-system emulator that aims to combine the accuray of
+byuu is a multi-system emulator that aims to combine the accuracy of
 [higan](https://byuu.org/higan) with the simplicity and performance of
 [bsnes](https://byuu.org/bsnes).
 
