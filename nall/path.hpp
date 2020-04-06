@@ -25,7 +25,11 @@ inline auto real(string_view name) -> string {
 }
 
 inline auto program() -> string {
-  #if defined(PLATFORM_WINDOWS)
+  #if defined(EMSCRIPTEN)
+  // TODO: enable dynamic linking, ship each core in it's own WASM file
+  string result = "/";
+  return result;
+  #elif defined(PLATFORM_WINDOWS)
   wchar_t path[PATH_MAX] = L"";
   GetModuleFileName(nullptr, path, PATH_MAX);
   string result = (const char*)utf8_t(path);
@@ -55,7 +59,9 @@ inline auto root() -> string {
 // /home/username/
 // c:/users/username/
 inline auto user() -> string {
-  #if defined(PLATFORM_WINDOWS)
+  #if defined(EMSCRIPTEN)
+  string result = "/";
+  #elif defined(PLATFORM_WINDOWS)
   wchar_t path[PATH_MAX] = L"";
   SHGetFolderPathW(nullptr, CSIDL_PROFILE | CSIDL_FLAG_CREATE, nullptr, 0, path);
   string result = (const char*)utf8_t(path);

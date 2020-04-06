@@ -4,10 +4,10 @@ namespace nall {
   using uint = unsigned;
 
   enum class Compiler : uint { Clang, GCC, Microsoft, Unknown };
-  enum class Platform : uint { Windows, MacOS, Linux, BSD, Android, Unknown };
+  enum class Platform : uint { Windows, MacOS, Linux, BSD, Android, Web, Unknown };
   enum class API : uint { Windows, Posix, Unknown };
-  enum class DisplayServer : uint { Windows, Quartz, Xorg, Unknown };
-  enum class Architecture : uint { x86, amd64, ARM32, ARM64, PPC32, PPC64, Unknown };
+  enum class DisplayServer : uint { Windows, Quartz, Xorg, Web, Unknown };
+  enum class Architecture : uint { x86, amd64, ARM32, ARM64, PPC32, PPC64, Web, Unknown };
   enum class Endian : uint { LSB, MSB, Unknown };
   enum class Build : uint { Debug, Stable, Size, Release, Performance };
 
@@ -105,6 +105,13 @@ namespace nall {
   constexpr auto platform() -> Platform { return Platform::BSD; }
   constexpr auto api() -> API { return API::Posix; }
   constexpr auto display() -> DisplayServer { return DisplayServer::Xorg; }
+#elif defined(__EMSCRIPTEN__)
+  #define PLATFORM_WEB
+  #define API_POSIX
+  #define DISPLAY_WEB
+  constexpr auto platform() -> Platform { return Platform::Web; }
+  constexpr auto api() -> API { return API::Posix; }
+  constexpr auto display() -> DisplayServer { return DisplayServer::Web; }
 #else
   #warning "unable to detect platform"
   #define PLATFORM_UNKNOWN
@@ -147,6 +154,8 @@ namespace nall {
 #elif defined(__ppc__) || defined(_ARCH_PPC) || defined(_M_PPC)
   #define ARCHITECTURE_PPC32
   constexpr auto architecture() -> Architecture { return Architecture::PPC32; }
+#elif defined(__EMSCRIPTEN__)
+  constexpr auto architecture() -> Architecture { return Architecture::Web; }
 #else
   #warning "unable to detect architecture"
   #define ARCHITECTURE_UNKNOWN
