@@ -21,8 +21,14 @@ auto SMP::wait(bool halve, maybe<uint16> address) -> void {
 
 auto SMP::step(uint clocks) -> void {
   Thread::step(clocks);
+
+#if defined(SCHEDULER_SYNCHRO)
+  // We'll sync the DSP when we jump back
+  Thread::synchronize(cpu);
+#else
   Thread::synchronize(cpu);
   Thread::synchronize(dsp);
+#endif
 }
 
 auto SMP::stepTimers(uint clocks) -> void {

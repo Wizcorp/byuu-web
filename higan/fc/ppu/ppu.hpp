@@ -1,4 +1,20 @@
 struct PPU : Thread {
+  int callcount = 0;
+
+  // State used in renderScanline
+  struct {
+    uint attribute;
+    uint nametable;
+    bool scanlineAfterVBlankCycles;
+    bool skip;
+    uint sprite; 
+    uint spriteY;
+    uint tileaddr;
+    uint tiledataHi;
+    uint tiledataLo;
+    uint vBlankCycles;
+  } renderState;
+
   Node::Component node;
   Node::Screen screen;
   Node::String region;
@@ -12,10 +28,13 @@ struct PPU : Thread {
   auto unload() -> void;
 
   auto main() -> void;
-  auto step(uint clocks) -> void;
-
-  auto scanline() -> void;
-  auto frame() -> void;
+  #if defined(SCHEDULER_SYNCHRO)
+  inline auto step() -> void;
+  #else
+  inline auto step(uint clocks) -> void;
+  #endif
+  inline auto scanline() -> void;
+  inline auto frame() -> void;
   auto refresh() -> void;
 
   auto power(bool reset) -> void;
@@ -31,15 +50,15 @@ struct PPU : Thread {
   auto writeIO(uint16 addr, uint8 data) -> void;
 
   //render.cpp
-  auto enable() const -> bool;
-  auto loadCHR(uint16 addr) -> uint8;
+  inline auto enable() const -> bool;
+  inline auto loadCHR(uint16 addr) -> uint8;
 
-  auto renderPixel() -> void;
-  auto renderSprite() -> void;
-  auto renderScanline() -> void;
+  inline auto renderPixel() -> void;
+  inline auto renderSprite() -> void;
+  inline auto renderScanline() -> void;
 
   //color.cpp
-  auto color(uint32) -> uint64;
+  inline auto color(uint32) -> uint64;
 
   //serialization.cpp
   auto serialize(serializer&) -> void;

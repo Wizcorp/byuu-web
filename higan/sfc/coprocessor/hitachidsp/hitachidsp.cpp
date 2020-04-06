@@ -16,6 +16,10 @@ auto HitachiDSP::unload() -> void {
   Thread::destroy();
 }
 
+auto HitachiDSP::main() -> void {
+  return HG51B::main();
+}
+
 auto HitachiDSP::step(uint clocks) -> void {
   HG51B::step(clocks);
   Thread::step(clocks);

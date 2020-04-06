@@ -1,6 +1,8 @@
 //Sony CXP1100Q-1
 
 struct SMP : SPC700, Thread {
+  int firstRun = 1;
+
   Node::Component node;
   Node::Instruction eventInstruction;
 

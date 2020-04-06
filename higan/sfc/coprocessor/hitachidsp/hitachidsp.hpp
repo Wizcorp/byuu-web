@@ -6,6 +6,7 @@ struct HitachiDSP : HG51B, Thread {
   //hitachidsp.cpp
   auto load(Node::Object, Node::Object) -> void;
   auto unload() -> void;
+  auto main() -> void;
 
   auto step(uint clocks) -> void override;
   auto halt() -> void override;

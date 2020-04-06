@@ -1,6 +1,3 @@
-#if defined(SCHEDULER_SYNCHRO)
-#include "../scheduler-synchro/scheduler.cpp"
-#else
 auto Scheduler::reset() -> void {
   _threads.reset();
 }
@@ -55,9 +52,21 @@ auto Scheduler::remove(Thread& thread) -> void {
   _threads.removeByValue(&thread);
 }
 
+auto Scheduler::run() -> void {
+  _primary->main();
+}
+
 //power cycle and soft reset events: assigns the primary thread and resets all thread clocks.
 auto Scheduler::power(Thread& thread) -> void {
-  _primary = _resume = thread.handle();
+  _primary = &thread;
+  _host = co_active();
+  _resume = co_create(Thread::Size, []() -> void {
+    while(true) {
+      scheduler.synchronize();
+      scheduler.run();
+    }
+  });
+
   for(auto& thread : _threads) {
     thread->_clock = thread->_uniqueID;
   }
@@ -66,33 +75,24 @@ auto Scheduler::power(Thread& thread) -> void {
 auto Scheduler::enter(Mode mode) -> Event {
   if(mode == Mode::Run) {
     _mode = mode;
-    _host = co_active();
     co_switch(_resume);
     platform->event(_event);
     return _event;
   }
 
+  // todo: this is probably incorrect since it relies on calling
+  // exit, which will try to switch coros
   if(mode == Mode::Synchronize) {
-    //run all threads to safe points, starting with the primary thread.
+    // run all threads to safe points, starting with the primary thread.
+    _mode = Mode::SynchronizePrimary;
+    do {
+      co_switch(_resume);
+    } while(_event != Event::Synchronize);
+
     for(auto& thread : _threads) {
-      if(thread->handle() == _primary) {
-        _mode = Mode::SynchronizePrimary;
-        _host = co_active();
-        do {
-          co_switch(_resume);
-          platform->event(_event);
-        } while(_event != Event::Synchronize);
-      }
-    }
-    for(auto& thread : _threads) {
-      if(thread->handle() != _primary) {
+      if(thread != _primary) {
         _mode = Mode::SynchronizeAuxiliary;
-        _host = co_active();
-        _resume = thread->handle();
-        do {
-          co_switch(_resume);
-          platform->event(_event);
-        } while(_event != Event::Synchronize);
+        thread->main();
       }
     }
     return Event::Synchronize;
@@ -110,7 +110,6 @@ auto Scheduler::exit(Event event) -> void {
 
   //return to the thread that entered the scheduler originally.
   _event = event;
-  _resume = co_active();
   co_switch(_host);
 }
 
@@ -124,11 +123,7 @@ auto Scheduler::synchronizing() const -> bool {
 //marks a safe point (typically the beginning of the entry point) of a thread.
 //the scheduler may exit at these points for the purpose of synchronization.
 auto Scheduler::synchronize() -> void {
-  if(co_active() == _primary) {
-    if(_mode == Mode::SynchronizePrimary) return exit(Event::Synchronize);
-  } else {
-    if(_mode == Mode::SynchronizeAuxiliary) return exit(Event::Synchronize);
-  }
+  if(_mode == Mode::SynchronizePrimary) return exit(Event::Synchronize);
 }
 
 auto Scheduler::getSynchronize() -> bool {
@@ -138,4 +133,3 @@ auto Scheduler::getSynchronize() -> bool {
 auto Scheduler::setSynchronize(bool synchronize) -> void {
   _synchronize = synchronize;
 }
-#endif

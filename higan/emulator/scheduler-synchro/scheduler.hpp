@@ -1,6 +1,3 @@
-#if defined(SCHEDULER_SYNCHRO)
-#include "../scheduler-synchro/scheduler.hpp"
-#else
 struct Thread;
 
 struct Scheduler {
@@ -34,11 +31,12 @@ struct Scheduler {
 
   inline auto getSynchronize() -> bool;
   inline auto setSynchronize(bool) -> void;
+  inline auto run() -> void;
 
 private:
-  cothread_t _host = nullptr;     //program thread (used to exit scheduler)
-  cothread_t _resume = nullptr;   //resume thread (used to enter scheduler)
-  cothread_t _primary = nullptr;  //primary thread (used to synchronize components)
+  cothread_t _host;     //program coroutine (used to exit scheduler)
+  cothread_t _resume;   //resume coroutine (used to enter scheduler)
+  Thread *_primary;      //primary thread (used to synchronize components)
   Mode _mode = Mode::Run;
   Event _event = Event::Step;
   vector<Thread*> _threads;
@@ -46,7 +44,3 @@ private:
 
   friend class Thread;
 };
-
-#endif
-
-extern Scheduler scheduler;

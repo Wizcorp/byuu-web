@@ -43,6 +43,28 @@ auto PPU::main() -> void {
   renderScanline();
 }
 
+#if defined(SCHEDULER_SYNCHRO)
+auto PPU::step() -> void {
+  uint L = vlines();
+
+  // increment for renderScanline
+  ++callcount;
+
+  if(io.ly == 240 && io.lx == 340) io.nmiHold = 1;
+  if(io.ly == 241 && io.lx ==   0) io.nmiFlag = io.nmiHold;
+  if(io.ly == 241 && io.lx ==   2) cpu.nmiLine(io.nmiEnable && io.nmiFlag);
+
+  if(io.ly == L-2 && io.lx == 340) io.spriteZeroHit = 0, io.spriteOverflow = 0;
+
+  if(io.ly == L-2 && io.lx == 340) io.nmiHold = 0;
+  if(io.ly == L-1 && io.lx ==   0) io.nmiFlag = io.nmiHold;
+  if(io.ly == L-1 && io.lx ==   2) cpu.nmiLine(io.nmiEnable && io.nmiFlag);
+
+  io.lx++;
+  Thread::step(rate());
+  Thread::synchronize(cpu);
+}
+#else
 auto PPU::step(uint clocks) -> void {
   uint L = vlines();
 
@@ -63,6 +85,7 @@ auto PPU::step(uint clocks) -> void {
     io.lx++;
   }
 }
+#endif
 
 auto PPU::scanline() -> void {
   io.lx = 0;

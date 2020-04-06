@@ -22,6 +22,14 @@ auto SMP::unload() -> void {
 }
 
 auto SMP::main() -> void {
+  #if defined(SCHEDULER_SYNCHRO)
+  if (!firstRun) {
+    Thread::synchronize(dsp); 
+  }
+  #endif
+
+  firstRun = 0;
+
   if(r.wait) return instructionWait();
   if(r.stop) return instructionStop();
 

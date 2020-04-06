@@ -1,6 +1,8 @@
 //Sony CXD1222Q-1
 
 struct DSP : Thread {
+  int callcount = 0;
+  
   Node::Component node;
   Node::Stream stream;
 

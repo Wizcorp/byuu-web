@@ -1,3 +1,6 @@
+#if defined(SCHEDULER_SYNCHRO)
+#include "render-synchro.cpp"
+#else
 auto PPU::enable() const -> bool {
   return io.bgEnable || io.spriteEnable;
 }
@@ -209,3 +212,4 @@ auto PPU::renderScanline() -> void {
 
   return scanline();
 }
+#endif

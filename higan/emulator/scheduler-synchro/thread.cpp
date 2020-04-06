@@ -1,37 +1,14 @@
-#if defined(SCHEDULER_SYNCHRO)
-#include "../scheduler-synchro/thread.cpp"
-#else
-auto Thread::EntryPoints() -> vector<EntryPoint>& {
-  static vector<EntryPoint> entryPoints;
-  return entryPoints;
-}
-
-auto Thread::Enter() -> void {
-  for(uint64_t index : range(EntryPoints().size())) {
-    if(co_active() == EntryPoints()[index].handle) {
-      auto entryPoint = EntryPoints()[index].entryPoint;
-      EntryPoints().remove(index);
-      while(true) {
-        scheduler.synchronize();
-        entryPoint();
-      }
-    }
-  }
-  struct ThreadNotFound{};
-  throw ThreadNotFound{};
-}
-
 Thread::~Thread() {
   destroy();
 }
 
-auto Thread::active() const -> bool { return co_active() == _handle; }
-auto Thread::handle() const -> cothread_t { return _handle; }
+auto Thread::active() const -> bool { return true; } // Todo: what does this mean if threads don't run
+auto Thread::handle() const -> thread_handle_t* { return _handle; }
 auto Thread::frequency() const -> uintmax { return _frequency; }
 auto Thread::scalar() const -> uintmax { return _scalar; }
 auto Thread::clock() const -> uintmax { return _clock; }
 
-auto Thread::setHandle(cothread_t handle) -> void {
+auto Thread::setHandle(thread_handle_t *handle) -> void {
   _handle = handle;
 }
 
@@ -50,11 +27,10 @@ auto Thread::setClock(uintmax clock) -> void {
 
 auto Thread::create(double frequency, function<void ()> entryPoint) -> void {
   if(!_handle) {
-    _handle = co_create(Thread::Size, &Thread::Enter);
-  } else {
-    co_derive(_handle, Thread::Size, &Thread::Enter);
+    _handle = (thread_handle_t *) malloc(sizeof(thread_handle_t));
+    _handle->thread = this;
   }
-  EntryPoints().append({_handle, entryPoint});
+
   setFrequency(frequency);
   setClock(0);
   scheduler.append(*this);
@@ -62,7 +38,7 @@ auto Thread::create(double frequency, function<void ()> entryPoint) -> void {
 
 auto Thread::destroy() -> void {
   scheduler.remove(*this);
-  if(_handle) co_delete(_handle);
+  if(_handle) free(_handle);
   _handle = nullptr;
 }
 
@@ -80,13 +56,21 @@ auto Thread::synchronize() -> void {
 //ensure the specified thread(s) are caught up the current thread before proceeding.
 template<typename... P>
 auto Thread::synchronize(Thread& thread, P&&... p) -> void {
+  // yield back
+  if (_handle->parent != nullptr && _handle->parent == thread._handle) {
+    return;
+  }
+
   //switching to another thread does not guarantee it will catch up before switching back.
+  thread._handle->parent = _handle;
   while(thread.clock() < clock()) {
     //disable synchronization for auxiliary threads during scheduler synchronization.
     //synchronization can begin inside of this while loop.
     if(scheduler.synchronizing()) break;
-    co_switch(thread.handle());
+    thread.main();
   }
+  thread._handle->parent = nullptr;
+
   //convenience: allow synchronizing multiple threads with one function call.
   if constexpr(sizeof...(p) > 0) synchronize(forward<P>(p)...);
 }
@@ -98,7 +82,7 @@ auto Thread::serialize(serializer& s) -> void {
 
   if(!scheduler._synchronize) {
     static uint8_t stack[Thread::Size];
-    bool resume = co_active() == _handle;
+    bool resume = true; // todo
 
     if(s.mode() == serializer::Size) {
       s.array(stack, Thread::Size);
@@ -109,7 +93,6 @@ auto Thread::serialize(serializer& s) -> void {
       s.array(stack, Thread::Size);
       s.boolean(resume);
       memory::copy(_handle, stack, Thread::Size);
-      if(resume) scheduler._resume = _handle;
     }
 
     if(s.mode() == serializer::Save) {
@@ -119,4 +102,3 @@ auto Thread::serialize(serializer& s) -> void {
     }
   }
 }
-#endif

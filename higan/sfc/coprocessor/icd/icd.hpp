@@ -71,6 +71,7 @@ struct ICD : Thread {
 
   auto load(Node::Peripheral, Node::Peripheral) -> void {}
   auto unload() -> void {}
+  auto main() -> void override {}
 
   auto connect(Node::Peripheral) -> void {}
   auto disconnect() -> void {}
