@@ -22,6 +22,7 @@ else ifeq ($(platform),macos)
 else ifneq ($(filter $(platform),linux bsd),)
   options += -Wl,-export-dynamic
   options += -lX11 -lXext
+else ifeq ($(platform),web)
 else
   $(error "unsupported platform")
 endif
@@ -39,6 +40,17 @@ endif
 ifeq ($(target),byuu)
   profile := performance
   cores := fc sfc sg ms md pce msx gb gba ws ngp
+endif
+
+ifeq ($(target),web)
+  profile := performance
+  # Todo: the CPU used by the MegaDrive creates one big function in
+  # WASM, which stalls the intialization (and would crash on mobile)
+  #
+  # Todo: GBA Cartridge triggers one dlmalloc which assigns 32 megabytes, 
+  # and which seems to dramatically slow down initialization
+  disabled-cores := fc sfc sg ms md pce msx gb gba ws ngp
+  cores := fc sfc
 endif
 
 ifeq ($(profile),accuracy)
@@ -103,6 +115,16 @@ flags += $(foreach c,$(call strupper,$(cores)),-DCORE_$c)
 ui := target-$(target)
 include $(ui)/GNUmakefile
 -include obj/*.d
+
+# Serve files by looking in folders in the following order
+# This is required to deal with WASM map durring debugging, 
+# so the required source file(s) may be accessed
+serve:
+	python ./target-web/serve.py \
+    ${CURDIR}/out \
+    ${CURDIR}/target-web \
+    ${CURDIR} \
+    ${CURDIR}/../
 
 clean:
 	$(call delete,obj/*)
