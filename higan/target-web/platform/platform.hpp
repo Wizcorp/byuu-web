@@ -6,7 +6,7 @@ struct LoadingCallbackContainer {
         instance = i;
     }; 
     WebPlatform *instance;
-    const char *url;
+    string url;
     emscripten::val callback;
 };
 
@@ -73,6 +73,7 @@ struct WebPlatform : higan::Platform {
         WebAudio webaudio;
 
         auto createJSObjectFromManifest(string& manifest) -> emscripten::val;
+        auto parseBMLNode(Markup::Node node) -> emscripten::val;
         auto getEmulatorByExtension(const char *extension) -> nall::shared_pointer<Emulator>;
         auto getFilenameExtension(const char *url) -> const char*;
 };

@@ -47,16 +47,13 @@ auto WebPlatform::load(const char *url, emscripten::val callback) -> void {
             LoadingCallbackContainer *container = (LoadingCallbackContainer *) c;
             auto instance = container->instance;
             auto emulator = instance->emulator;
-            auto url = container->url;
+            auto url = container->url.data();
             auto callback = container->callback;
 
             try {
                 emulator->load(url, *data);
                 DEBUG_LOG("Data loaded and emulator ready: %s\n", url);
-
                 auto index = 0;                
-                auto info = emscripten::val::object();
-                info.set("name", emulator->name.data());
                 
                 auto ports = emscripten::val::array();
                 index = 0;
@@ -64,7 +61,6 @@ auto WebPlatform::load(const char *url, emscripten::val callback) -> void {
                     ports.set(index, port.data());
                     index++;
                 }
-                info.set("ports", ports);
 
                 auto buttons = emscripten::val::array();
                 index = 0;
@@ -72,9 +68,12 @@ auto WebPlatform::load(const char *url, emscripten::val callback) -> void {
                     buttons.set(index, button.data());
                     index++;
                 }
-                info.set("buttons", buttons);
 
-                info.set("game", instance->createJSObjectFromManifest(emulator->game.manifest));
+                auto info = emscripten::val::object();
+                info.set("name", emulator->name.data());
+                info.set("ports", ports);
+                info.set("buttons", buttons);
+                info.set("cartridge", instance->createJSObjectFromManifest(emulator->game.manifest));
 
                 callback(0, info);
             } catch (...) {
@@ -85,7 +84,7 @@ auto WebPlatform::load(const char *url, emscripten::val callback) -> void {
         [](void *c) -> void {
             LoadingCallbackContainer *container = (LoadingCallbackContainer *) c;
             auto callback = container->callback;
-            auto url = container->url;
+            auto url = container->url.data();
             
             DEBUG_LOG("Failed to fetch data: %s", url);
             callback(WebPlatform::Error::ROM_FETCH_FAILED, 0);
@@ -231,12 +230,62 @@ auto WebPlatform::stateLoad(uint slot) -> bool {
 }
 
 auto WebPlatform::createJSObjectFromManifest(string& manifest) -> emscripten::val {
-    auto game = emscripten::val::object();
     auto node = BML::unserialize(manifest);
+    return parseBMLNode(node);
+}
 
-    // Todo: fill game info object with BML data
+// See: /nall/string/markup/bml.hpp
+// See: https://byuu.org/docs/higan/manifests
+// See: https://byuu.org/preservation/boards-(production)
+//
+// Note: values are converted to std::string because const char *
+// does not return UTF-8 strings to JavaScript
+auto WebPlatform::parseBMLNode(Markup::Node node) -> emscripten::val {
+    if(!node.name()) {
+        auto arr = emscripten::val::array();
+        auto index = 0;
+        for(auto leaf : node) {
+            arr.set(index, parseBMLNode(leaf));
+            index++;
+        }
 
-    return game;
+        return arr;
+    }
+
+    auto name = node.name().data();
+    auto data = emscripten::val::object();
+    data.set("name", name);
+    
+    vector<string> lines;
+    if(auto value = node.value()) {
+        lines = value.split("\n");
+    }
+
+    if(lines.size() == 0) {
+        data.set("value", emscripten::val::null());
+    } else if(lines.size() == 1) {
+        std::string value = lines[0].trimLeft(" ").data();
+        data.set("value", value);
+    } else {
+        auto attr = emscripten::val::array();
+        auto index = 0;
+        for (auto line : lines) {
+            std::string value =  line.trimLeft(" ").data();
+            attr.set(index, value);
+            index++;
+        }
+        data.set("value", attr);
+    }
+
+    auto val = emscripten::val::array();
+    auto index = 0;
+    for(auto leaf : node) {
+        val.set(index, parseBMLNode(leaf));
+        index++;
+    }
+    data.set("children", val);
+
+    return data;
 }
 
 auto WebPlatform::getEmulatorByExtension(const char *ext) -> nall::shared_pointer<Emulator> {
