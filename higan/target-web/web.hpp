@@ -5,6 +5,7 @@
 #include <nall/instance.hpp>
 #include <nall/hid.hpp>
 #include <nall/beat/single/apply.hpp>
+#include <nall/map.hpp>
 
 #include <emscripten/emscripten.h>
 #include <emscripten/bind.h>
@@ -14,5 +15,4 @@
 #include "emulator/emulator.hpp"
 #include "video/video.hpp"
 #include "audio/audio.hpp"
-#include "input/input.hpp"
 #include "platform/platform.hpp"

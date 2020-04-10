@@ -21,9 +21,16 @@ struct Emulator {
   auto setOverscan(bool value) -> bool;
   auto error(const string& text) -> void;
   auto errorFirmwareRequired(const Firmware&) -> void;
+
   virtual auto load() -> bool = 0;
   virtual auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> = 0;
-  virtual auto input(higan::Node::Input) -> void = 0;
+
+  auto connect(const string& portName, const string& peripheralName) -> bool;
+  auto disconnect(const string& portName) -> bool;
+  auto setButton(const string& buttonName, int16_t value) -> bool;
+  auto setButton(const string& portName, const string& buttonName, int16_t value) -> bool;
+  auto input(higan::Node::Input) -> void;
+
   virtual auto notify(const string& message) -> void {}
 
   struct Firmware {
@@ -42,21 +49,15 @@ struct Emulator {
   shared_pointer<higan::Interface> interface;
   string name;
   vector<string> extensions;
+  vector<string> ports;
+  vector<string> buttons;
 
   higan::Node::Object root;
   vector<Firmware> firmware;
   Game game;
 
-  struct Configuration {
-    bool visible = true;  //whether or not to show this emulator in the load menu
-    string game;          //the most recently used folder for games for each emulator core
-  } configuration;
-
-  struct Latch {
-    uint width = 0;
-    uint height = 0;
-    uint rotation = 0;
-  } latch;
+  private:
+    map<string, std::map<string, int16_t>> buttonMaps;
 };
 
 extern vector<shared_pointer<Emulator>> emulators;

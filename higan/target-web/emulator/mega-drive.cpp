@@ -20,6 +20,10 @@ MegaDrive::MegaDrive() {
   interface = new higan::MegaDrive::MegaDriveInterface;
   name = "Mega Drive";
   extensions = {"md", "smd", "gen"};
+  ports = {
+    "Controller Port 1",
+    "Controller Port 2"
+  };
 }
 
 auto MegaDrive::load() -> bool {
@@ -29,12 +33,6 @@ auto MegaDrive::load() -> bool {
 
   if(auto port = root->find<higan::Node::Port>("Cartridge Slot")) {
     auto peripheral = port->allocate();
-    port->connect(peripheral);
-  }
-
-  if(auto port = root->find<higan::Node::Port>("Controller Port 1")) {
-    auto peripheral = port->allocate();
-    peripheral->setName("Fighting Pad");
     port->connect(peripheral);
   }
 
@@ -88,6 +86,10 @@ MegaCD::MegaCD() {
   interface = new higan::MegaDrive::MegaDriveInterface;
   name = "Mega CD";
   extensions = {"bin", "img"};
+  ports = {
+    "Controller Port 1",
+    "Controller Port 2"
+  }
 
   firmware.append({"BIOS", "US"});
   firmware.append({"BIOS", "Japan"});

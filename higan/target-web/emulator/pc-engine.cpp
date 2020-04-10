@@ -25,17 +25,14 @@ PCEngine::PCEngine() {
   interface = new higan::PCEngine::PCEngineInterface;
   name = "PC Engine";
   extensions = {"pce"};
+  ports = {
+    "Controller Port"
+  };
 }
 
 auto PCEngine::load() -> bool {
   if(auto port = root->find<higan::Node::Port>("Cartridge Slot")) {
     auto peripheral = port->allocate();
-    port->connect(peripheral);
-  }
-
-  if(auto port = root->find<higan::Node::Port>("Controller Port")) {
-    auto peripheral = port->allocate();
-    peripheral->setName("Gamepad");
     port->connect(peripheral);
   }
 
@@ -85,6 +82,9 @@ PCEngineCD::PCEngineCD() {
   interface = new higan::PCEngine::PCEngineInterface;
   name = "PC Engine CD";
   extensions = {"bin", "img"};
+  ports = {
+    "Controller Port"
+  };
 
   firmware.append({"BIOS", "World"});
 }
@@ -97,12 +97,6 @@ auto PCEngineCD::load() -> bool {
 
   if(auto port = root->find<higan::Node::Port>("Cartridge Slot")) {
     auto peripheral = port->allocate();
-    port->connect(peripheral);
-  }
-
-  if(auto port = root->find<higan::Node::Port>("Controller Port")) {
-    auto peripheral = port->allocate();
-    peripheral->setName("Gamepad");
     port->connect(peripheral);
   }
 
@@ -163,17 +157,14 @@ SuperGrafx::SuperGrafx() {
   interface = new higan::PCEngine::SuperGrafxInterface;
   name = "SuperGrafx";
   extensions = {"sgx"};
+  ports = {
+    "Controller Port"
+  };
 }
 
 auto SuperGrafx::load() -> bool {
   if(auto port = root->find<higan::Node::Port>("Cartridge Slot")) {
     auto peripheral = port->allocate();
-    port->connect(peripheral);
-  }
-
-  if(auto port = root->find<higan::Node::Port>("Controller Port")) {
-    auto peripheral = port->allocate();
-    peripheral->setName("Gamepad");
     port->connect(peripheral);
   }
 

@@ -77,6 +77,7 @@
         "unordered_map": "cpp",
         "filesystem": "cpp",
         "memory_resource": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "__memory": "cpp"
     }
 }

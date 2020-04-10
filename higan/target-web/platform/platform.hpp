@@ -1,7 +1,10 @@
 struct WebPlatform;
 
 struct LoadingCallbackContainer {
-    LoadingCallbackContainer(WebPlatform *i, const char *u, emscripten::val c) : instance(i), url(u), callback(c) {}; 
+    LoadingCallbackContainer(WebPlatform *i, const char *u, emscripten::val c) : callback(c) {
+        url = u;
+        instance = i;
+    }; 
     WebPlatform *instance;
     const char *url;
     emscripten::val callback;
@@ -21,17 +24,27 @@ struct WebPlatform : higan::Platform {
     } Error;
 
     public:
+        // Is the emulator started?
+        bool started = false;
+
+        // Is a cycle running?
+        bool running = false;
+
         nall::shared_pointer<Emulator> emulator;
         // vector<higan::Node::Screen> screens; // todo: do we need to track screens?
         vector<higan::Node::Stream> streams;
 
-        WebVideo webvideo;
-        WebAudio webaudio;
+        // Frame event callbacks
+        emscripten::val onFrameStart = emscripten::val::null();
+        emscripten::val onFrame = emscripten::val::null();
+        emscripten::val onFrameEnd = emscripten::val::null();
 
-        auto init() -> void;
+        auto init(uint width, uint height) -> void;
         auto load(const char *url, emscripten::val callback) -> void;
         auto run() -> void;
         auto unload() -> void;
+
+        auto resize(uint width, uint height) -> void;
 
         auto attach(Object object) -> void override;
         auto detach(Object object) -> void override;
@@ -41,13 +54,25 @@ struct WebPlatform : higan::Platform {
             vfs::file::mode mode, 
             bool required = false
         ) -> shared_pointer<vfs::file> override;
-        auto event(Event) -> void override;
+        
         auto log(string_view message) -> void override;
+        
         auto video(Screen, const uint32_t* data, uint pitch, uint width, uint height) -> void override;
-        auto audio(Stream) -> void override;
-        auto input(Input) -> void override;
+        auto audio(Stream stream) -> void override;
+
+        auto connect(const string& portName, const string& peripheralName) -> bool;
+        auto disconnect(const string& portName) -> bool;
+        auto setButton(const string& portName, const string& buttonName, int16_t value) -> bool;
+        auto input(Input node) -> void override;
+
+        auto stateSave(uint slot) -> bool;
+        auto stateLoad(uint slot) -> bool;
     
     private:
+        WebVideo webvideo;
+        WebAudio webaudio;
+
+        auto createJSObjectFromManifest(string& manifest) -> emscripten::val;
         auto getEmulatorByExtension(const char *extension) -> nall::shared_pointer<Emulator>;
         auto getFilenameExtension(const char *url) -> const char*;
 };

@@ -18,6 +18,10 @@ MasterSystem::MasterSystem() {
   interface = new higan::MasterSystem::MasterSystemInterface;
   name = "Master System";
   extensions = {"ms", "sms"};
+  ports = {
+    "Controller Port 1",
+    "Controller Port 2"
+  };
 }
 
 auto MasterSystem::load() -> bool {

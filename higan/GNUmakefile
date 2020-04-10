@@ -121,10 +121,14 @@ include $(ui)/GNUmakefile
 # so the required source file(s) may be accessed
 serve:
 	python ./target-web/serve.py \
+    ${CURDIR}/../ \
     ${CURDIR}/out \
     ${CURDIR}/target-web \
     ${CURDIR} \
-    ${CURDIR}/../
+    ${EMSDK}=/emsdk
+
+todo:
+	grep -rin --color=auto "todo: " .
 
 clean:
 	$(call delete,obj/*)

@@ -6,11 +6,15 @@ using higan::Node::Stream;
 using higan::Node::Input;
 using higan::Event;
 
-auto WebPlatform::init() -> void {
+auto WebPlatform::init(uint width, uint height) -> void {
     DEBUG_LOG("Initializing web platform\n");
     higan::platform = this;
     Emulator::construct();
-    webvideo.init();
+    webvideo.init(width, height);
+};
+
+auto WebPlatform::resize(uint width, uint height) -> void {
+    webvideo.resize(width, height);
 };
 
 auto WebPlatform::load(const char *url, emscripten::val callback) -> void {
@@ -23,7 +27,7 @@ auto WebPlatform::load(const char *url, emscripten::val callback) -> void {
 
     if (!this->emulator) {
         DEBUG_LOG("No emulator found for: %s\n", url);
-        callback(WebPlatform::Error::MATCHING_EMULATOR_NOT_FOUND);
+        callback(WebPlatform::Error::MATCHING_EMULATOR_NOT_FOUND, 0);
         return;
     }
     
@@ -37,30 +41,70 @@ auto WebPlatform::load(const char *url, emscripten::val callback) -> void {
         url, 
         (void *) container, 
         [](void *c, void *buffer, int size) -> void {
-            LoadingCallbackContainer *container = (LoadingCallbackContainer *) c;
             vector<uint8_t> *data = new vector<uint8_t>();
             data->acquire((uint8_t*)buffer, size);
 
+            LoadingCallbackContainer *container = (LoadingCallbackContainer *) c;
+            auto instance = container->instance;
+            auto emulator = instance->emulator;
+            auto url = container->url;
+            auto callback = container->callback;
+
             try {
-                container->instance->emulator->load(container->url, *data);
-                DEBUG_LOG("Data loaded and emulator ready: %s\n", container->url);
-                container->callback();
+                emulator->load(url, *data);
+                DEBUG_LOG("Data loaded and emulator ready: %s\n", url);
+
+                auto index = 0;                
+                auto info = emscripten::val::object();
+                info.set("name", emulator->name.data());
+                
+                auto ports = emscripten::val::array();
+                index = 0;
+                for (auto port : emulator->ports) {
+                    ports.set(index, port.data());
+                    index++;
+                }
+                info.set("ports", ports);
+
+                auto buttons = emscripten::val::array();
+                index = 0;
+                for (auto button : emulator->buttons) {
+                    buttons.set(index, button.data());
+                    index++;
+                }
+                info.set("buttons", buttons);
+
+                info.set("game", instance->createJSObjectFromManifest(emulator->game.manifest));
+
+                callback(0, info);
             } catch (...) {
-                DEBUG_LOG("Failed to load data into emulator: %s\n", container->url);
-                container->callback(WebPlatform::Error::EMULATOR_ROM_LOAD_FAILED);
+                DEBUG_LOG("Failed to load data into emulator: %s\n", url);
+                callback(WebPlatform::Error::EMULATOR_ROM_LOAD_FAILED, 0);
             }
         }, 
         [](void *c) -> void {
             LoadingCallbackContainer *container = (LoadingCallbackContainer *) c;
-            DEBUG_LOG("Failed to fetch data: %s", container->url);
-            container->callback(WebPlatform::Error::ROM_FETCH_FAILED);
+            auto callback = container->callback;
+            auto url = container->url;
+            
+            DEBUG_LOG("Failed to fetch data: %s", url);
+            callback(WebPlatform::Error::ROM_FETCH_FAILED, 0);
         }
     );
 }
 
 auto WebPlatform::run() -> void {
-    // todo: handle case when emulator is not set
-    emulator->interface->run();
+    if (emulator && started && !running) {
+        running = true;
+        if (!this->onFrameStart.isNull()) {
+            this->onFrameStart();
+        }
+        emulator->interface->run();
+        if (!this->onFrameEnd.isNull()) {
+            this->onFrameEnd();
+        }
+        running = false; 
+    }
 }
 
 auto WebPlatform::unload() -> void {
@@ -89,16 +133,15 @@ auto WebPlatform::open(Object node, string name, vfs::file::mode mode, bool requ
     return emulator->open(node, name, mode, required);
 }
 
-auto WebPlatform::event(Event) -> void {
-    // todo: do we even need this?
-}
-
 auto WebPlatform::log(string_view message) -> void {
     printf("%s\n", message.data());
 }
 
 auto WebPlatform::video(Screen, const uint32_t* data, uint pitch, uint width, uint height) -> void {
     webvideo.render(data, pitch, width, height);
+    if (!this->onFrame.isNull()) {
+        this->onFrameStart(data, pitch, width, height);
+    }
 }
 
 auto WebPlatform::audio(Stream stream) -> void {
@@ -140,17 +183,69 @@ auto WebPlatform::audio(Stream stream) -> void {
     }
 }
 
-auto WebPlatform::input(Input input) -> void {
-    // todo
+auto WebPlatform::connect(const string& portName, const string& peripheralName) -> bool {
+    return emulator->connect(portName, peripheralName);
+}
+
+auto WebPlatform::disconnect(const string& portName) -> bool{
+    return emulator->disconnect(portName);
+}
+
+auto WebPlatform::setButton(const string& portName, const string& buttonName, int16_t value) -> bool{
+    return emulator->setButton(portName, buttonName, value);
+}
+
+auto WebPlatform::input(Input node) -> void {
+    emulator->input(node);
+}
+
+auto WebPlatform::stateSave(uint slot) -> bool {
+    if(!emulator) return false;
+
+    auto location = emulator->locate(emulator->game.location, {".bs", slot}, settings.paths.saves);
+    if(auto state = emulator->interface->serialize()) {
+        if(file::write(location, {state.data(), state.size()})) {
+            DEBUG_LOG("Saved state to slot %d\n", slot);
+            return true;
+        }
+    }
+
+  DEBUG_LOG("Failed to save state to slot %d\n", slot);
+  return false;
+}
+
+auto WebPlatform::stateLoad(uint slot) -> bool {
+    if(!emulator) return false;
+
+    auto location = emulator->locate(emulator->game.location, {".bs", slot}, settings.paths.saves);
+    if(auto memory = file::read(location)) {
+        serializer state{memory.data(), (uint)memory.size()};
+        if(emulator->interface->unserialize(state)) {
+            DEBUG_LOG("Loaded state from slot %d\n", slot);
+            return true;
+        }
+    }
+
+    DEBUG_LOG("Failed to load state from slot %d\n", slot);
+    return false;
+}
+
+auto WebPlatform::createJSObjectFromManifest(string& manifest) -> emscripten::val {
+    auto game = emscripten::val::object();
+    auto node = BML::unserialize(manifest);
+
+    // Todo: fill game info object with BML data
+
+    return game;
 }
 
 auto WebPlatform::getEmulatorByExtension(const char *ext) -> nall::shared_pointer<Emulator> {
     for(auto& emulator : emulators) {
-      for(auto& extension : emulator->extensions) {
-        if(extension.equals(ext)) {
-          return emulator;
+        for(auto& extension : emulator->extensions) {
+            if(extension.equals(ext)) {
+                return emulator;
+            }
         }
-      }
     }
 
     return nullptr;
@@ -160,7 +255,7 @@ auto WebPlatform::getFilenameExtension(const char *url) -> const char* {
     const char *dot = strrchr(url, '.');
 
     if(!dot || dot == url) {
-      return "";
+        return "";
     };
 
     return dot + 1;

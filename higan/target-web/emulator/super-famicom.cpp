@@ -4,13 +4,23 @@ struct SuperFamicom : Emulator {
   SuperFamicom();
   auto load() -> bool override;
   auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> override;
-  auto input(higan::Node::Input) -> void override;
 };
 
 SuperFamicom::SuperFamicom() {
   interface = new higan::SuperFamicom::SuperFamicomInterface;
   name = "Super Famicom";
   extensions = {"sfc", "smc"};
+  ports = {
+    "Controller Port 1",
+    "Controller Port 2",
+    "Controller Port 3",
+    "Controller Port 4",
+  };
+  buttons = {
+      "Up", "Down", "Left", "Right", 
+      "B", "A", "Y", "X", "L", "R", 
+      "Select", "Start"
+  };
 }
 
 auto SuperFamicom::load() -> bool {
@@ -193,28 +203,4 @@ auto SuperFamicom::open(higan::Node::Object node, string name, vfs::file::mode m
   }
 
   return {};
-}
-
-auto SuperFamicom::input(higan::Node::Input node) -> void {
-  auto name = node->name();
-  maybe<InputMapping&> mapping;
-  if(name == "Up"    ) mapping = virtualPad.up;
-  if(name == "Down"  ) mapping = virtualPad.down;
-  if(name == "Left"  ) mapping = virtualPad.left;
-  if(name == "Right" ) mapping = virtualPad.right;
-  if(name == "B"     ) mapping = virtualPad.a;
-  if(name == "A"     ) mapping = virtualPad.b;
-  if(name == "Y"     ) mapping = virtualPad.x;
-  if(name == "X"     ) mapping = virtualPad.y;
-  if(name == "L"     ) mapping = virtualPad.l;
-  if(name == "R"     ) mapping = virtualPad.r;
-  if(name == "Select") mapping = virtualPad.select;
-  if(name == "Start" ) mapping = virtualPad.start;
-
-  if(mapping) {
-    auto value = mapping->value();
-    if(auto button = node->cast<higan::Node::Button>()) {
-      button->setValue(value);
-    }
-  }
 }

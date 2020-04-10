@@ -4,14 +4,12 @@ struct Famicom : Emulator {
   Famicom();
   auto load() -> bool override;
   auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> override;
-  auto input(higan::Node::Input) -> void override;
 };
 
 struct FamicomDiskSystem : Emulator {
   FamicomDiskSystem();
   auto load() -> bool override;
   auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> override;
-  auto input(higan::Node::Input) -> void override;
   auto notify(const string& message) -> void override;
 
   vector<uint8_t> diskSide[4];
@@ -21,17 +19,20 @@ Famicom::Famicom() {
   interface = new higan::Famicom::FamicomInterface;
   name = "Famicom";
   extensions = {"nes"};
+  ports = {
+    "Controller Port 1",
+    "Controller Port 2"
+  };
+  buttons = {
+    "Up", "Down", "Left", "Right", 
+    "B", "A", "Select", "Start", 
+    "Microphone"
+  };
 }
 
 auto Famicom::load() -> bool {
   if(auto port = root->find<higan::Node::Port>("Cartridge Slot")) {
     auto peripheral = port->allocate();
-    port->connect(peripheral);
-  }
-
-  if(auto port = root->find<higan::Node::Port>("Controller Port 1")) {
-    auto peripheral = port->allocate();
-    peripheral->setName("Gamepad");
     port->connect(peripheral);
   }
 
@@ -68,31 +69,19 @@ auto Famicom::open(higan::Node::Object node, string name, vfs::file::mode mode, 
   return {};
 }
 
-auto Famicom::input(higan::Node::Input node) -> void {
-  auto name = node->name();
-  maybe<InputMapping&> mapping;
-  if(name == "Up"        ) mapping = virtualPad.up;
-  if(name == "Down"      ) mapping = virtualPad.down;
-  if(name == "Left"      ) mapping = virtualPad.left;
-  if(name == "Right"     ) mapping = virtualPad.right;
-  if(name == "B"         ) mapping = virtualPad.a;
-  if(name == "A"         ) mapping = virtualPad.b;
-  if(name == "Select"    ) mapping = virtualPad.select;
-  if(name == "Start"     ) mapping = virtualPad.start;
-  if(name == "Microphone") mapping = virtualPad.x;
-
-  if(mapping) {
-    auto value = mapping->value();
-    if(auto button = node->cast<higan::Node::Button>()) {
-       button->setValue(value);
-    }
-  }
-}
-
 FamicomDiskSystem::FamicomDiskSystem() {
   interface = new higan::Famicom::FamicomInterface;
   name = "Famicom Disk System";
   extensions = {"fds"};
+  ports = {
+    "Controller Port 1",
+    "Controller Port 2"
+  };
+  buttons = {
+    "Up", "Down", "Left", "Right", 
+    "B", "A", "Select", "Start", 
+    "Microphone"
+  };
 
   firmware.append({"BIOS", "Japan"});
 }
@@ -133,12 +122,6 @@ auto FamicomDiskSystem::load() -> bool {
 
   if(auto node = root->scan<higan::Node::String>("State")) {
     node->setValue("Disk 1: Side A");
-  }
-
-  if(auto port = root->find<higan::Node::Port>("Controller Port 1")) {
-    auto peripheral = port->allocate();
-    peripheral->setName("Gamepad");
-    port->connect(peripheral);
   }
 
   return true;
@@ -203,27 +186,6 @@ auto FamicomDiskSystem::open(higan::Node::Object node, string name, vfs::file::m
   }
 
   return {};
-}
-
-auto FamicomDiskSystem::input(higan::Node::Input node) -> void {
-  auto name = node->name();
-  maybe<InputMapping&> mapping;
-  if(name == "Up"        ) mapping = virtualPad.up;
-  if(name == "Down"      ) mapping = virtualPad.down;
-  if(name == "Left"      ) mapping = virtualPad.left;
-  if(name == "Right"     ) mapping = virtualPad.right;
-  if(name == "B"         ) mapping = virtualPad.a;
-  if(name == "A"         ) mapping = virtualPad.b;
-  if(name == "Select"    ) mapping = virtualPad.select;
-  if(name == "Start"     ) mapping = virtualPad.start;
-  if(name == "Microphone") mapping = virtualPad.x;
-
-  if(mapping) {
-    auto value = mapping->value();
-    if(auto button = node->cast<higan::Node::Button>()) {
-       button->setValue(value);
-    }
-  }
 }
 
 auto FamicomDiskSystem::notify(const string& message) -> void {

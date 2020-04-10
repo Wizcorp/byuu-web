@@ -18,17 +18,14 @@ MSX::MSX() {
   interface = new higan::MSX::MSXInterface;
   name = "MSX";
   extensions = {"msx"};
+  ports = {
+    "Controller Port 1"
+  };
 }
 
 auto MSX::load() -> bool {
   if(auto port = root->find<higan::Node::Port>("Cartridge Slot")) {
     auto peripheral = port->allocate();
-    port->connect(peripheral);
-  }
-
-  if(auto port = root->find<higan::Node::Port>("Controller Port 1")) {
-    auto peripheral = port->allocate();
-    peripheral->setName("Gamepad");
     port->connect(peripheral);
   }
 
@@ -74,6 +71,9 @@ MSX2::MSX2() {
   interface = new higan::MSX::MSX2Interface;
   name = "MSX2";
   extensions = {"msx2"};
+  ports = {
+    "Controller Port 1"
+  };
 }
 
 auto MSX2::load() -> bool {

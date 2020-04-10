@@ -131,12 +131,8 @@ auto Emulator::manifest() -> shared_pointer<vfs::file> {
 }
 
 auto Emulator::load(const string& location, const vector<uint8_t>& image) -> bool {
-  configuration.game = Location::dir(location);
-
   game.location = location;
   game.image = image;
-
-  latch = {};
 
   auto system = higan::Node::System::create();
   system->setName(interface->name());
@@ -194,6 +190,63 @@ auto Emulator::setOverscan(bool value) -> bool {
 
 auto Emulator::error(const string& text) -> void {
   printf("ERROR: %s\n", text.data());
+}
+
+auto Emulator::connect(const string& portName, const string& peripheralName) -> bool {
+  if(auto port = root->find<higan::Node::Port>(portName)) {
+    auto peripheral = port->allocate();
+    peripheral->setName(peripheralName);
+    peripheral->setAttribute<string>("portName", portName);
+
+    std::map<string, int16_t> buttonMap;
+    for (auto buttonName : buttons) {
+      buttonMap[buttonName] = 0;
+    }
+    buttonMaps.insert(portName, buttonMap);
+
+    port->connect(peripheral);
+    return true;
+  }
+
+  return false;
+}
+
+auto Emulator::disconnect(const string& portName) -> bool {
+  if(auto port = root->find<higan::Node::Port>(portName)) {
+    port->disconnect();
+    buttonMaps.remove(portName);
+    return true;
+  }
+
+  return false;
+}
+
+auto Emulator::setButton(const string& buttonName, int16_t value) -> bool {
+  return setButton("", buttonName, value); 
+}
+
+auto Emulator::setButton(const string& portName, const string& buttonName, int16_t value) -> bool {
+  if (auto buttonMap = buttonMaps.find(portName)) {
+    buttonMap.get()[buttonName] = value;
+    return true;
+  }
+
+  return false;
+} 
+
+auto Emulator::input(higan::Node::Input node) -> void {
+  string portName = "";
+  
+  if (auto parent = node->parent()) {
+    portName = parent.acquire()->attribute<string>("portName");
+  }
+
+  if (auto buttonMap = buttonMaps.find(portName)) {
+    if(auto button = node->cast<higan::Node::Button>()) {
+      auto buttonName = node->name();
+      button->setValue(buttonMap.get()[buttonName]);
+    }
+  }
 }
 
 auto Emulator::errorFirmwareRequired(const Firmware& firmware) -> void {

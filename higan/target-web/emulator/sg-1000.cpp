@@ -11,6 +11,10 @@ SG1000::SG1000() {
   interface = new higan::SG1000::SG1000Interface;
   name = "SG-1000";
   extensions = {"sg"};
+  ports = {
+    "Controller Port 1",
+    "Controller Port 2"
+  };
 }
 
 auto SG1000::load() -> bool {
