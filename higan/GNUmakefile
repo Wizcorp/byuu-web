@@ -121,7 +121,7 @@ include $(ui)/GNUmakefile
 # so the required source file(s) may be accessed
 serve:
 	python ./target-web/serve.py \
-    ${CURDIR}/../ \
+    ${CURDIR}/.. \
     ${CURDIR}/out \
     ${CURDIR}/target-web \
     ${CURDIR} \

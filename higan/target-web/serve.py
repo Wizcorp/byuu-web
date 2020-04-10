@@ -17,9 +17,9 @@ SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map.update({
 })
 
 main_root = sys.argv[1]
-games_root = main_root + '/games'
+games_root = os.path.normpath(main_root + '/games')
 
-if not os.path.isfile(games_root) and not os.path.islink(games_root):
+if not os.path.isdir(games_root) and not os.path.islink(games_root):
     print(games_root + ' does not exist. Create this folder, and add games in it first!')
     sys.exit(1)
 
