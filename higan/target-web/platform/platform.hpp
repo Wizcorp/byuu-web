@@ -10,11 +10,11 @@ struct LoadingCallbackContainer {
     emscripten::val callback;
 };
 
-using higan::Node::Object;
-using higan::Node::Screen;
-using higan::Node::Stream;
-using higan::Node::Input;
-using higan::Event;
+using Object = higan::Node::Object;
+using Screen = higan::Node::Screen;
+using Stream =higan::Node::Stream;
+using Input = higan::Node::Input;
+using Event = higan::Event;
 
 struct WebPlatform : higan::Platform {
     static struct Error {
@@ -40,10 +40,18 @@ struct WebPlatform : higan::Platform {
         emscripten::val onFrameEnd = emscripten::val::null();
 
         auto init(uint width, uint height) -> void;
-        auto load(const char *url, emscripten::val callback) -> void;
-        auto run() -> void;
+
+        auto getEmulatorNameForFilename(const char *path) -> string;
+        auto getROMInfo(const char *path, uint8_t *rom, int size) -> emscripten::val;
+
+        auto setEmulator(const char *emulatorName) -> bool;
+        auto setEmulatorForFilename(const char *path) -> bool;
+        
+        auto load(const char *path, uint8_t *rom, int size) -> emscripten::val;
+        auto loadURL(const char *url, emscripten::val callback) -> void;
         auto unload() -> void;
 
+        auto run() -> void;
         auto resize(uint width, uint height) -> void;
 
         auto attach(Object object) -> void override;
@@ -68,12 +76,15 @@ struct WebPlatform : higan::Platform {
         auto stateSave(uint slot) -> bool;
         auto stateLoad(uint slot) -> bool;
     
+        auto getEmulatorAndGameInfo(nall::shared_pointer<Emulator> emulator, string manifest) -> emscripten::val;
+
     private:
         WebVideo webvideo;
         WebAudio webaudio;
 
         auto createJSObjectFromManifest(string& manifest) -> emscripten::val;
         auto parseBMLNode(Markup::Node node) -> emscripten::val;
+        auto getEmulatorByName(const char *name) -> nall::shared_pointer<Emulator>;
         auto getEmulatorByExtension(const char *extension) -> nall::shared_pointer<Emulator>;
         auto getFilenameExtension(const char *url) -> const char*;
 };

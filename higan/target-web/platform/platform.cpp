@@ -1,10 +1,7 @@
 #include "../web.hpp"
+#include <icarus/icarus.hpp>
 
-using higan::Node::Object;
-using higan::Node::Screen;
-using higan::Node::Stream;
-using higan::Node::Input;
-using higan::Event;
+using namespace higan;
 
 auto WebPlatform::init(uint width, uint height) -> void {
     DEBUG_LOG("Initializing web platform\n");
@@ -13,15 +10,73 @@ auto WebPlatform::init(uint width, uint height) -> void {
     webvideo.init(width, height);
 };
 
-auto WebPlatform::resize(uint width, uint height) -> void {
-    webvideo.resize(width, height);
-};
+auto WebPlatform::getEmulatorNameForFilename(const char *path) -> string {
+    auto ext = getFilenameExtension(path);
 
-auto WebPlatform::load(const char *url, emscripten::val callback) -> void {
+    if (auto emulator = getEmulatorByExtension(ext)) {
+        return emulator->name;
+    }
+
+    return "";
+}
+
+auto WebPlatform::getROMInfo(const char *path, uint8_t *rom, int size) -> emscripten::val {
+    auto ext = getFilenameExtension(path);
+    auto emulator = getEmulatorByExtension(ext);
+
+    if (!emulator) {
+        return emscripten::val::null();
+    }
+
+    vector<uint8_t> *data = new vector<uint8_t>();
+    data->acquire(rom, size);
+
+    for(auto& media : icarus::media) {
+        if(!media->name().equals(emulator->name)) continue;
+        if(auto cartridge = media.cast<icarus::Cartridge>()) {
+            auto manifest = cartridge->manifest(*data, path);
+            return getEmulatorAndGameInfo(emulator, manifest);
+        }
+  }
+
+  return emscripten::val::null();
+}
+
+auto WebPlatform::setEmulator(const char *emulatorName) -> bool {
+    this->emulator = getEmulatorByName(emulatorName);
+    if(!this->emulator) {
+        return false;
+    }
+
+    return true;
+}
+
+auto WebPlatform::setEmulatorForFilename(const char *path) -> bool {
+    auto ext = getFilenameExtension(path);
+    this->emulator = getEmulatorByExtension(ext);
+    if(!this->emulator) {
+        return false;
+    }
+
+    return true;
+}
+
+auto WebPlatform::load(const char *path, uint8_t *rom, int size) -> emscripten::val {
     // todo: We should probably do something better than wait for user input 
     // to trigger audio setup
     webaudio.init();
 
+    if (!setEmulatorForFilename(path)) {
+        return emscripten::val::null(); 
+    }
+
+    vector<uint8_t> *data = new vector<uint8_t>();
+    data->acquire(rom, size);
+    this->emulator->load(path, *data);
+    return getEmulatorAndGameInfo(this->emulator, this->emulator->game.manifest);
+}
+
+auto WebPlatform::loadURL(const char *url, emscripten::val callback) -> void {
     auto extension = getFilenameExtension(url);
     this->emulator = getEmulatorByExtension(extension);
 
@@ -41,41 +96,13 @@ auto WebPlatform::load(const char *url, emscripten::val callback) -> void {
         url, 
         (void *) container, 
         [](void *c, void *buffer, int size) -> void {
-            vector<uint8_t> *data = new vector<uint8_t>();
-            data->acquire((uint8_t*)buffer, size);
-
             LoadingCallbackContainer *container = (LoadingCallbackContainer *) c;
             auto instance = container->instance;
-            auto emulator = instance->emulator;
             auto url = container->url.data();
             auto callback = container->callback;
 
             try {
-                emulator->load(url, *data);
-                DEBUG_LOG("Data loaded and emulator ready: %s\n", url);
-                auto index = 0;                
-                
-                auto ports = emscripten::val::array();
-                index = 0;
-                for (auto port : emulator->ports) {
-                    ports.set(index, port.data());
-                    index++;
-                }
-
-                auto buttons = emscripten::val::array();
-                index = 0;
-                for (auto button : emulator->buttons) {
-                    buttons.set(index, button.data());
-                    index++;
-                }
-
-                auto info = emscripten::val::object();
-                info.set("name", emulator->name.data());
-                info.set("ports", ports);
-                info.set("buttons", buttons);
-                info.set("cartridge", instance->createJSObjectFromManifest(emulator->game.manifest));
-
-                callback(0, info);
+                callback(0, instance->load(url, (uint8_t*) buffer, size));
             } catch (...) {
                 DEBUG_LOG("Failed to load data into emulator: %s\n", url);
                 callback(WebPlatform::Error::EMULATOR_ROM_LOAD_FAILED, 0);
@@ -92,6 +119,13 @@ auto WebPlatform::load(const char *url, emscripten::val callback) -> void {
     );
 }
 
+auto WebPlatform::unload() -> void {
+    if (emulator) {
+        emulator->interface->unload();
+        emulator = nullptr;
+    }
+}
+
 auto WebPlatform::run() -> void {
     if (emulator && started && !running) {
         running = true;
@@ -106,29 +140,27 @@ auto WebPlatform::run() -> void {
     }
 }
 
-auto WebPlatform::unload() -> void {
-    if (emulator) {
-        emulator->interface->unload();
-        emulator = nullptr;
-    }
-}
 
-auto WebPlatform::attach(Object node) -> void {
+auto WebPlatform::resize(uint width, uint height) -> void {
+    webvideo.resize(width, height);
+};
+
+auto WebPlatform::attach(Node::Object node) -> void {
     // todo: should we attach screens?
-    if(auto stream = node->cast<Stream>()) {
-        streams = emulator->root->find<Stream>();
+    if(auto stream = node->cast<Node::Stream>()) {
+        streams = emulator->root->find<Node::Stream>();
         stream->setResamplerFrequency(webaudio.frequency);
     }
 }
 
-auto WebPlatform::detach(Object node) -> void {
+auto WebPlatform::detach(Node::Object node) -> void {
     // todo: should we detach screens?
-    if(auto stream = node->cast<Stream>()) {
-        streams = emulator->root->find<Stream>();
+    if(auto stream = node->cast<Node::Stream>()) {
+        streams = emulator->root->find<Node::Stream>();
     }
 }
 
-auto WebPlatform::open(Object node, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> { 
+auto WebPlatform::open(Node::Object node, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> { 
     return emulator->open(node, name, mode, required);
 }
 
@@ -136,14 +168,14 @@ auto WebPlatform::log(string_view message) -> void {
     printf("%s\n", message.data());
 }
 
-auto WebPlatform::video(Screen, const uint32_t* data, uint pitch, uint width, uint height) -> void {
+auto WebPlatform::video(Node::Screen, const uint32_t* data, uint pitch, uint width, uint height) -> void {
     webvideo.render(data, pitch, width, height);
     if (!this->onFrame.isNull()) {
         this->onFrameStart(data, pitch, width, height);
     }
 }
 
-auto WebPlatform::audio(Stream stream) -> void {
+auto WebPlatform::audio(Node::Stream stream) -> void {
     if(!streams) return;
 
     //process all pending frames (there may be more than one waiting)
@@ -194,7 +226,7 @@ auto WebPlatform::setButton(const string& portName, const string& buttonName, in
     return emulator->setButton(portName, buttonName, value);
 }
 
-auto WebPlatform::input(Input node) -> void {
+auto WebPlatform::input(Node::Input node) -> void {
     emulator->input(node);
 }
 
@@ -227,6 +259,36 @@ auto WebPlatform::stateLoad(uint slot) -> bool {
 
     DEBUG_LOG("Failed to load state from slot %d\n", slot);
     return false;
+}
+
+
+auto WebPlatform::getEmulatorAndGameInfo(nall::shared_pointer<Emulator> emulator, string manifest) -> emscripten::val {
+    uint index;
+    auto ports = emscripten::val::array();
+    
+    index = 0;
+    for (auto port : emulator->ports) {
+        ports.set(index, port.data());
+        index++;
+    }
+
+    auto buttons = emscripten::val::array();
+    index = 0;
+    for (auto button : emulator->buttons) {
+        buttons.set(index, button.data());
+        index++;
+    }
+
+    auto emulatorInfo = emscripten::val::object();
+    emulatorInfo.set("name", emulator->name.data());
+    emulatorInfo.set("ports", ports);
+    emulatorInfo.set("buttons", buttons);
+
+    auto info = emscripten::val::object();
+    info.set("emulator", emulatorInfo);
+    info.set("rom", createJSObjectFromManifest(manifest));
+
+    return info;
 }
 
 auto WebPlatform::createJSObjectFromManifest(string& manifest) -> emscripten::val {
@@ -286,6 +348,16 @@ auto WebPlatform::parseBMLNode(Markup::Node node) -> emscripten::val {
     data.set("children", val);
 
     return data;
+}
+
+auto WebPlatform::getEmulatorByName(const char *name) -> nall::shared_pointer<Emulator> {
+    for(auto& emulator : emulators) {
+        if(emulator->name.equals(name)) {
+            return emulator;
+        }
+    }
+
+    return nullptr;
 }
 
 auto WebPlatform::getEmulatorByExtension(const char *ext) -> nall::shared_pointer<Emulator> {

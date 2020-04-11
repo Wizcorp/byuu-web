@@ -16,15 +16,6 @@ SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map.update({
     '.js': 'text/javascript'
 })
 
-main_root = sys.argv[1]
-games_root = os.path.normpath(main_root + '/games')
-
-if not os.path.isdir(games_root) and not os.path.islink(games_root):
-    print(games_root + ' does not exist. Create this folder, and add games in it first!')
-    sys.exit(1)
-
-games = os.listdir(games_root)
-
 class ThreadingSimpleServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     pass
 class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
@@ -33,19 +24,6 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")
         SimpleHTTPServer.SimpleHTTPRequestHandler.end_headers(self)
-
-    def do_GET(self):
-        if self.path == '/games.json':
-            self.send_response(200)
-            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-            self.send_header("Pragma", "no-cache")
-            self.send_header("Expires", "0")
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps(games))
-            return
-
-        return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
     
     def translate_path(self, path):
         if path == '/':

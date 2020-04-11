@@ -47,15 +47,17 @@
         max-width: 800px;
       }
 
-      #game-select {
+      /* Action buttons */
+      #actions {
         width: 100%;
       }
 
-      #game-container {
+
+      #game-selector-container {
         width: 100%;
       }
 
-      #game-container .arrow {
+      #game-selector-container .arrow {
         position: absolute;
         display: block;
         pointer-events: none;
@@ -64,10 +66,13 @@
         text-shadow: -1px 1px 0px #000;
       }
 
-      #game {
+      #game-selector:empty {
+        display: none
+      }
+
+      #game-selector {
         width: 100%;
-        height: 45px; 
-        padding: 10px 30px;
+        padding: 10px 10px 10px 30px;
         border-top: 2px solid #000;
         border-bottom: 2px solid #000;
         border-left: 0 none;
@@ -80,19 +85,23 @@
         color: #F7F8EE;
       }
 
-      #game-select .btn-group {
+      #actions .btn-group {
         display: flex;
       }
 
-      #game-select .btn-group .btn {
+      #actions .btn-group .btn {
         flex: 1;
         border-radius: 0;
         margin-left: 1px;
         margin-bottom: 1px;
       }
 
-      #game-select .btn-group .btn:first-child {
+      #actions .btn-group .btn:first-child {
         margin-left: 0;
+      }
+
+      #game-files {
+        display: none;
       }
 
       #cpuprofiler {
@@ -107,7 +116,7 @@
         display: block;
       }
 
-      /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+      /* Display zone (screen and notifications) */
       #display {
         position: relative;
         display: block;
@@ -143,6 +152,7 @@
         background-color: rgba(0,0,0,0.75);
       }
 
+      /* Notification zone */
       #notification-box {
         z-index: 3;
         overflow: hidden;
@@ -166,7 +176,9 @@
       #notification-box .container .alert {
         opacity: 0;
         transform: scale(0);
-        transition: opacity ease-in-out 125ms, transform ease-in-out 125ms;
+        transition: 
+          opacity cubic-bezier(0.165, 0.840, 0.440, 1.000) 250ms, 
+          transform cubic-bezier(0.165, 0.840, 0.440, 1.000) 250ms;
         background-color: rgba(255, 255, 255, 0.8);
         border-width: 5px;
         border-radius: 10px;
@@ -207,6 +219,7 @@
         flex-wrap: wrap;
         max-width: 700px;
         border: 3px solid #E94F37;
+        border-radius: 10px;
         padding: 20px 10px 10px;
         margin: 0 5px;
         background: rgba(16, 17, 18, 0.75);
@@ -378,21 +391,25 @@
       </div>
 
       <!-- Emulator functionalities -->
-      <div id="game-select">
-        <div id="game-container">
+      <div id="actions">
+        <div id="game-selector-container">
           <div class="arrow">▼&#xFE0E;</div>
-          <select id="game"></select>
+          <select id="game-selector"></select>
         </div>
         <div class="btn-group" role="group" aria-label="Options">
           <button type="button" class="btn btn-secondary" id="start">Start</button>
           <button type="button" class="btn btn-secondary" id="pause">Pause</button>
           <button type="button" class="btn btn-secondary" id="fullscreen">Fullscreen</button>
-          <button type="button" class="btn btn-secondary" id="showProfiler">Profiler</button>
+          <label type="button" class="btn btn-secondary" id="add">
+            <input type="file" id="game-files" name="files[]" multiple />
+            <span>Add ROMS</span>
+          </label>
         </div>
         <div class="btn-group" role="group" aria-label="Options">
-          <button type="button" class="btn btn-secondary" id="saveState">Save state</button>
-          <button type="button" class="btn btn-secondary" id="loadState">Load state</button>
-          <button type="button" class="btn btn-secondary" id="toggleKeymap">Show keymap</button>
+          <button type="button" class="btn btn-secondary" id="save-state">Save state</button>
+          <button type="button" class="btn btn-secondary" id="load-state">Load state</button>
+          <button type="button" class="btn btn-secondary" id="toggle-keymap">Show keymap</button>
+          <button type="button" class="btn btn-secondary" id="show-profiler">Profiler</button>
         </div>
       </div>
     </div>
@@ -473,15 +490,17 @@
       const keymapsElement = document.getElementById('keymaps');
       let cpuprofilerElement = false;
 
-      const select = document.getElementById('game');
+      const select = document.getElementById('game-selector');
       const startButton = document.getElementById('start');
       const fullscreenButton = document.getElementById('fullscreen');
       const pauseButton = document.getElementById('pause');
-      const saveStateButton = document.getElementById('saveState');
-      const loadStateButton = document.getElementById('loadState');
-      const showProfilerButton = document.getElementById('showProfiler');
-      const toggleKeymapButton = document.getElementById('toggleKeymap');
-      
+      const saveStateButton = document.getElementById('save-state');
+      const loadStateButton = document.getElementById('load-state');
+      const showProfilerButton = document.getElementById('show-profiler');
+      const toggleKeymapButton = document.getElementById('toggle-keymap');
+
+      const gameFiles = document.getElementById('game-files');
+
       // Basic mobile device detection
       const device = {
         isMobile: false,
@@ -530,11 +549,22 @@
       // since it gets redeclared by the module loader.
       var Module = {
         isRunning: false,
-        onRuntimeInitialized: () => {
+        onRuntimeInitialized: async () => {
+          // Open and migrate the application's database
+          try {
+            await openApplicationDatabase();
+          } catch (error) {
+            console.error(error);
+            Module.setStatus('Failed to open database, see JavaScript console');
+            return;
+          }
+
+          // Initialize the emulator platform
           const { width, height } = getDesiredCanvasSize();
           Module.init(width, height);
           Module.onFrameStart(pollGamepadControllers);
 
+          // Adjust the UI based on whether the CPU profiler is present or not
           configureCPUProfiler();
 
           // As a default initial behavior, pop up an alert when webgl context is lost. To make your
@@ -545,39 +575,38 @@
             e.preventDefault(); 
           }, false);
 
-          fetch('/games.json')
-            .then((response) => response.json())
-            .then((games) => {
-                populateGameList(games);
+          populateSelectGameList();
 
-                // Start, pause, resume...
-                startButton.addEventListener('click', () => startGame(select.value));
-                pauseButton.addEventListener('click', () => pauseOrResumeGame());
+          // Add games
+          gameFiles.addEventListener('change', ({ target: { files } }) => addROMFiles(files));
+          
+          // Start, pause, resume...
+          startButton.addEventListener('click', () => startGame(select.value));
+          pauseButton.addEventListener('click', () => pauseOrResumeGame());
 
-                // We have many save slots, for now we only use one
-                saveStateButton.addEventListener('click', () => Module.stateSave(1));
-                loadStateButton.addEventListener('click', () => Module.stateLoad(1));
+          // We have many save slots, for now we only use one
+          saveStateButton.addEventListener('click', () => Module.stateSave(1));
+          loadStateButton.addEventListener('click', () => Module.stateLoad(1));
 
-                // Remove fullscreen button if not supported by device (iPhone)
-                if (document.body.requestFullscreen) {
-                  fullscreenButton.addEventListener('click', () => requestFullscreen());
-                } else {
-                  fullscreenButton.parentElement.removeChild(fullscreenButton);
-                }
+          // Remove fullscreen button if not supported by device (iPhone)
+          if (document.body.requestFullscreen) {
+            fullscreenButton.addEventListener('click', () => requestFullscreen());
+          } else {
+            fullscreenButton.parentElement.removeChild(fullscreenButton);
+          }
 
-                // Show keymap toggle button only on desktop
-                if (device.isMobile) {
-                  toggleKeymapButton.parentElement.removeChild(toggleKeymapButton);
-                } else {
-                  toggleKeymapButton.addEventListener('click', () => toggleKeymap());
-                }
+          // Show keymap toggle button only on desktop
+          if (device.isMobile) {
+            toggleKeymapButton.parentElement.removeChild(toggleKeymapButton);
+          } else {
+            toggleKeymapButton.addEventListener('click', () => toggleKeymap());
+          }
 
-                // Toggle profiler if present
-                showProfilerButton.addEventListener('click', () => cpuprofilerElement.classList.toggle('show'));
+          // Toggle profiler if present
+          showProfilerButton.addEventListener('click', () => cpuprofilerElement.classList.toggle('show'));
 
-                // Everything is ready, show the screen
-                hideOverlay();
-            });
+          // Everything is ready, show the screen
+          hideOverlay();
         },
         preRun: [],
         postRun: [],
@@ -653,18 +682,159 @@
         return { width, height };
       }
 
-      // Add games to the dropdown list
-      function populateGameList(games) {
-        games.forEach((link) => {
-            const option = document.createElement('option');
-            option.innerHTML = link;
-            option.value = `/games/${link}`;
-            select.appendChild(option);
+      // Manage games, memory and save states
+      // Todo - change DB based on player?
+      let db; 
+      async function openApplicationDatabase() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open('application', 1);
+          request.onerror = ({ target: { errorCode }}) => reject(errorCode);
+          
+          request.onupgradeneeded = ({ target: { result: db }}) =>  { 
+            if (!db.objectStoreNames.contains('roms')) {
+              db.createObjectStore('roms', { keyPath: 'filename' });
+            }
+          };
+
+          request.onsuccess = ({ target: { result }}) => {
+            db = result;
+            resolve();
+          };
         });
+      }
+
+      async function addGame(filename, romData) {
+        const info = Module.getROMInfo(filename, romData, romData.byteLength);
+        if (!info) {
+          throw new Error('ROM is invalid');
+        }
+
+        const { emulator, rom: [{ children }] } = info;
+        function getNodeValue(key) {
+          const node = children.find(({ name }) => name === key);
+          if (node) {
+            return node.value;
+          }
+
+          return '';
+        }
+
+        const name = getNodeValue('name');
+        const label = getNodeValue('label');
+        const title = getNodeValue('title');
+        const gameRecord = {
+          filename,
+          name,
+          label, 
+          title,
+          emulator: emulator.name,
+          romData
+        };
+
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(['roms'], 'readwrite');
+          tx.onerror = reject;
+
+          const store = tx.objectStore('roms');
+          const request = store.add(gameRecord);
+          request.onsuccess = () => resolve(gameRecord);
+        });
+      }
+
+      async function getGame(filename) {
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(['roms'], 'readonly');
+          tx.onerror = reject;
+
+          const store = tx.objectStore('roms');
+          const request = store.get(filename);
+          request.onsuccess = () => resolve(request.result);
+        });
+      }
+
+      async function listGames() {
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(['roms'], 'readonly');
+          tx.onerror = reject;
+
+          const store = tx.objectStore('roms');
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result);
+        });
+      }
+
+      async function addROMFiles(files) {
+        let addedCount = 0;
+
+        for (const file of files) {
+          if (Module.getEmulatorNameForFilename(file.name.toLowerCase()) === '') {
+            notify(`
+              <h1>💀Invalid ROM file</h1>
+              <p>
+                ${file.name} is not a supported ROM file
+              </p>
+            `, 'danger', 5000);
+            continue;
+          }
+
+          await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = async () => {
+              const { name, title, emulator } = await addGame(file.name, reader.result);
+              addGameToSelectList(title || name, file.name);
+
+              if (files.length === 1) {
+                notify(`
+                  <h1>🎮Game added</h1>
+                  <p>
+                    ${title || name} (file ${file.name}) for <strong>${emulator}</strong> 
+                    was successfully added to your list of games
+                  </p>
+                `, 'success', 5000);
+              }
+              resolve();
+            };
+            reader.readAsArrayBuffer(file);
+          });
+
+          addedCount += 1;
+        }
+
+        if (files.length > 1) {
+          notify(`
+            <h1>🎮Games added</h1>
+            <p>
+              <strong>${addedCount} ROMs</strong> were added to your collection
+            </p>
+          `, 'success', 5000);
+        }
+      }
+
+      // Fill in the UI's game selection list
+      function addGameToSelectList(displayName, filename) {
+        const option = document.createElement('option');
+        option.innerHTML = `${displayName} (${filename})`;
+        option.value = filename;
+        select.appendChild(option);
+      }
+
+      async function populateSelectGameList() {
+        const games = await listGames();
+        if (games.length === 0) {
+          return notify(`
+            <h1>👋First time around?</h1>
+            <p>
+              Click <strong>Add ROMs</strong> to get started
+            </p>
+          `, 'success', 5000);
+        }
+
+        games.forEach(({ title, name, filename }) => addGameToSelectList(title || name, filename));
 
         const lastGame = localStorage.getItem(LAST_GAME);
+
         if (lastGame) {
-            select.value = lastGame;
+          select.value = lastGame;
         }
       }
 
@@ -804,6 +974,15 @@
       }
 
       function connectGamepad(gamepad) {
+        if (!gamepadButtonKeymaps[gamepad.id]) {
+          return notify(`
+              <h1>😲 Cannot connect gamepad</h1>
+              <p>
+                Gamepad detected but no button mappings are available for <strong>${gamepad.id}</strong>
+              </p>
+            `, 'warning');
+        }
+
         for (const [port, currentGamepad] of Object.entries(gamepadControllers)) {
           if (!currentGamepad) {
             gamepadControllers[port] = gamepad.index;
@@ -823,7 +1002,7 @@
       }
 
       function disconnectGamepad(gamepad) {
-        for (const [port, { index }] of Object.entries(gamepadControllers)) {
+        for (const [port, index] of Object.entries(gamepadControllers)) {
           if (gamepad.index === index) {
             if (port !== 'Controller Port 1') {
               Module.disconnectPeripheral(port);
@@ -882,7 +1061,7 @@
       window.addEventListener("gamepaddisconnected", ({ gamepad }) => disconnectGamepad(gamepad), false);
       
       // Load a ROM and start the associated emulator
-      function startGame(romURL) {
+      async function startGame(filename) {
         gameLoadingElement.style.display = 'block';
 
         if (Module.isRunning) {
@@ -890,26 +1069,26 @@
           Module.unload();
         }
 
-        Module.load(select.value, (error, { name, ports }) => {
-          gameLoadingElement.style.display = 'none';
-          
-          if (error) {
-            return Module.setStatus(error);
-          }
+        if(!Module.setEmulatorForFilename(filename)) {
+          throw new Error(`No matching emulator for ${select.value}`);
+        }
 
-          localStorage.setItem(LAST_GAME, select.value);
-          Module.isRunning = true;
+        const { emulator, romData } = await getGame(filename);
+        Module.load(filename, romData, romData.byteLength)
 
-          if (device.isMobile) {
-            displayControllerForEmulator(name);
-          } else {
-            setKeymapForEmulator(name);
-          }
+        gameLoadingElement.style.display = 'none';
+        localStorage.setItem(LAST_GAME, select.value);
+        Module.isRunning = true;
 
-          connectAllGamepadPeripherals();
+        if (device.isMobile) {
+          displayControllerForEmulator(emulator);
+        } else {
+          setKeymapForEmulator(emulator);
+        }
 
-          setResume();
-        });
+        connectAllGamepadPeripherals();
+
+        setResume();
       }
 
       // Pause and resume
@@ -950,7 +1129,7 @@
         notification.innerHTML = innerHTML;
 
         notificationBoxContainerElement.appendChild(notification);
-        setTimeout(() => notification.classList.add('show'), 0);
+        setTimeout(() => notification.classList.add('show'), 10);
         setTimeout(() => {
           notification.classList.remove('show');
           setTimeout(() => notificationBoxContainerElement.removeChild(notification), 250);

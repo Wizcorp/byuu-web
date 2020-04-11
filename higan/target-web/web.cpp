@@ -47,7 +47,15 @@ bool stop() {
 
 /*  bootstrap */
 void init(uint width, uint height) { return webplatform->init(width, height); }
-void load(std::string url, emscripten::val callback) { return webplatform->load(url.c_str(), callback); }
+std::string getEmulatorNameForFilename(std::string path) { return webplatform->getEmulatorNameForFilename(path.c_str()).data(); };
+emscripten::val getROMInfo(std::string path, std::string rom, int size) { return webplatform->getROMInfo(path.c_str(), (uint8_t *) rom.c_str(), size); }
+
+bool setEmulator(std::string emulatorName) { return webplatform->setEmulator(emulatorName.c_str()); }
+bool setEmulatorForFilename(std::string path) { return webplatform->setEmulatorForFilename(path.c_str()); }
+emscripten::val load(std::string path, std::string rom, int size) { 
+    return webplatform->load(path.c_str(), (uint8_t *) rom.c_str(), size); 
+}
+void loadURL(std::string url, emscripten::val callback) { return webplatform->loadURL(url.c_str(), callback); }
 void unload() { 
     if (webplatform->started) {
         stop(); 
@@ -78,13 +86,20 @@ bool stateLoad(uint slot) { return webplatform->stateLoad(slot); }
 
 EMSCRIPTEN_BINDINGS(my_module) {
     emscripten::function("init", &init);
+    emscripten::function("getEmulatorNameForFilename", &getEmulatorNameForFilename);
+    emscripten::function("setEmulator", &setEmulator);
+    emscripten::function("setEmulatorForFilename", &setEmulatorForFilename);
+
     emscripten::function("load", &load);
+    emscripten::function("loadURL", &loadURL);
     emscripten::function("unload", &unload);
     emscripten::function("run", &run);
     emscripten::function("start", &start);
     emscripten::function("stop", &stop);
+    
     emscripten::function("isStarted", &isStarted);
     emscripten::function("isRunning", &isRunning);
+    
     emscripten::function("onFrameStart", &onFrameStart);
     emscripten::function("onFrame", &onFrame);
     emscripten::function("onFrameEnd", &onFrameEnd);
@@ -95,6 +110,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
     emscripten::function("disconnectconnectPeripheral", &disconnectPeripheral);
     emscripten::function("setButton", &setButton);
     
+    emscripten::function("getROMInfo", &getROMInfo);
     emscripten::function("stateSave", &stateSave);
     emscripten::function("stateLoad", &stateLoad);
 }
