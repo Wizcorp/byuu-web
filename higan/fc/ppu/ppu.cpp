@@ -60,7 +60,6 @@ auto PPU::step() -> void {
   if(io.ly == L-1 && io.lx ==   0) io.nmiFlag = io.nmiHold;
   if(io.ly == L-1 && io.lx ==   2) cpu.nmiLine(io.nmiEnable && io.nmiFlag);
 
-  io.lx++;
   Thread::step(rate());
   Thread::synchronize(cpu);
 }
