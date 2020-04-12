@@ -23,6 +23,10 @@ auto VDP::unload() -> void {
   screen = {};
 }
 
+auto VDP::main() -> void {
+  return TMS9918::main();
+}
+
 auto VDP::step(uint clocks) -> void {
   Thread::step(clocks);
   Thread::synchronize(cpu);

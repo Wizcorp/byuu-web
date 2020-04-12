@@ -34,6 +34,16 @@ auto VDP::unload() -> void {
   screen_ = {};
 }
 
+// Note: not called unless using synchro scheduler
+// See: VDP::power
+auto VDP::main() -> void {
+  if(Model::MSX()) {
+    return TMS9918::main();
+  } else {
+    return V9938::main();
+  }
+}
+
 auto VDP::step(uint clocks) -> void {
   Thread::step(clocks);
   Thread::synchronize(cpu);
@@ -58,6 +68,7 @@ auto VDP::refresh() -> void {
 }
 
 auto VDP::power() -> void {
+  // Note: we call directly the right main instead of calling our own
   if(Model::MSX()) {
     TMS9918::vram.allocate(16_KiB);
     TMS9918::power();
