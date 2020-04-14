@@ -35,14 +35,11 @@ to test against upstream:
 make -C higan target=web profile=performance synchro=false
 ```
 
-Once you have a build, drop some test ROMS into `./higan/out/games`, 
-then start the HTTP development server.
+Once you have a build, start the HTTP development server.
 
 > Serving the emulator
 
 ```shell
-mkdir ./higan/out/games
-# Put some games in the folder, then:
 make -C higan serve
 ```
 

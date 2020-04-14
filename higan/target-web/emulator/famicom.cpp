@@ -57,12 +57,12 @@ auto Famicom::open(higan::Node::Object node, string name, vfs::file::mode mode, 
   }
 
   if(name == "save.ram" && !programRAMVolatile) {
-    auto location = locate(game.location, ".sav", settings.paths.saves);
+    auto location = locate(game.location, ".sav", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
   }
 
   if(name == "save.eeprom") {
-    auto location = locate(game.location, ".sav", settings.paths.saves);
+    auto location = locate(game.location, ".sav", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
   }
 
@@ -161,25 +161,25 @@ auto FamicomDiskSystem::open(higan::Node::Object node, string name, vfs::file::m
     }
 
     if(name == "disk1.sideA") {
-      auto location = locate(game.location, ".1A.sav", settings.paths.saves);
+      auto location = locate(game.location, ".1A.sav", Emulator::GameFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       if(mode == vfs::file::mode::read) return vfs::memory::file::open(diskSide[0].data(), diskSide[0].size());
     }
 
     if(name == "disk1.sideB") {
-      auto location = locate(game.location, ".1B.sav", settings.paths.saves);
+      auto location = locate(game.location, ".1B.sav", Emulator::GameFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       if(mode == vfs::file::mode::read) return vfs::memory::file::open(diskSide[1].data(), diskSide[1].size());
     }
 
     if(name == "disk2.sideA") {
-      auto location = locate(game.location, ".2A.sav", settings.paths.saves);
+      auto location = locate(game.location, ".2A.sav", Emulator::GameFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       if(mode == vfs::file::mode::read) return vfs::memory::file::open(diskSide[2].data(), diskSide[2].size());
     }
 
     if(name == "disk2.sideB") {
-      auto location = locate(game.location, ".2B.sav", settings.paths.saves);
+      auto location = locate(game.location, ".2B.sav", Emulator::GameFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       if(mode == vfs::file::mode::read) return vfs::memory::file::open(diskSide[3].data(), diskSide[3].size());
     }

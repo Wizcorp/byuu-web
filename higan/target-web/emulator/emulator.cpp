@@ -114,7 +114,7 @@ auto Emulator::locate(const string& location, const string& suffix, const string
   if(!path) return {Location::notsuffix(location), suffix};
 
   //path override
-  string pathname = {path, interface->name(), "/"};
+  string pathname = {path, "/"};
   directory::create(pathname);
   return {pathname, Location::prefix(location), suffix};
 }

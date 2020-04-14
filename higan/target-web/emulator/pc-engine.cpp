@@ -51,7 +51,7 @@ auto PCEngine::open(higan::Node::Object node, string name, vfs::file::mode mode,
   }
 
   if(name == "save.ram" && !programRAMVolatile) {
-    auto location = locate(game.location, ".sav", settings.paths.saves);
+    auto location = locate(game.location, ".sav", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
   }
 
@@ -125,7 +125,7 @@ auto PCEngineCD::open(higan::Node::Object node, string name, vfs::file::mode mod
     }
 
     if(name == "save.ram") {
-      auto location = locate(game.location, ".sav", settings.paths.saves);
+      auto location = locate(game.location, ".sav", Emulator::GameFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
     }
   }
@@ -183,7 +183,7 @@ auto SuperGrafx::open(higan::Node::Object node, string name, vfs::file::mode mod
   }
 
   if(name == "save.ram" && !programRAMVolatile) {
-    auto location = locate(game.location, ".sav", settings.paths.saves);
+    auto location = locate(game.location, ".sav", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
   }
 

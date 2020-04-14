@@ -46,7 +46,7 @@ auto GameBoyAdvance::open(higan::Node::Object node, string name, vfs::file::mode
 
   if(name == "save.ram" || name == "save.eeprom" || name == "save.flash") {
     if(saveRAMVolatile) return {};
-    auto location = locate(game.location, ".sav", settings.paths.saves);
+    auto location = locate(game.location, ".sav", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
   }
 

@@ -45,7 +45,7 @@ auto GameBoy::open(higan::Node::Object node, string name, vfs::file::mode mode, 
   }
 
   if(name == "save.ram" && !saveRAMVolatile) {
-    auto location = locate(game.location, ".sav", settings.paths.saves);
+    auto location = locate(game.location, ".sav", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
   }
 
@@ -103,7 +103,7 @@ auto GameBoyColor::open(higan::Node::Object node, string name, vfs::file::mode m
   }
 
   if(name == "save.ram" && !saveRAMVolatile) {
-    auto location = locate(game.location, ".sav", settings.paths.saves);
+    auto location = locate(game.location, ".sav", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
   }
 

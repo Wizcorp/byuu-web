@@ -68,17 +68,17 @@ auto SuperFamicom::open(higan::Node::Object node, string name, vfs::file::mode m
 
   if(name == "save.ram") {
     if((bool)document["game/board/memory(content=Save,type=RAM)/volatile"]) return {};
-    auto location = locate(game.location, ".sav", settings.paths.saves);
+    auto location = locate(game.location, ".sav", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
   }
 
   if(name == "download.ram") {
-    auto location = locate(game.location, ".psr", settings.paths.saves);
+    auto location = locate(game.location, ".psr", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
   }
 
   if(name == "time.rtc") {
-    auto location = locate(game.location, ".rtc", settings.paths.saves);
+    auto location = locate(game.location, ".rtc", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
   }
 
@@ -91,7 +91,7 @@ auto SuperFamicom::open(higan::Node::Object node, string name, vfs::file::mode m
       if(game.image.size() >= programROMSize + firmwareProgramROMSize) {
         return vfs::memory::file::open(game.image.data() + programROMSize, firmwareProgramROMSize);
       }
-      auto location = locate({Location::dir(game.location), identifier, ".program.rom"}, ".rom", settings.paths.firmware);
+      auto location = locate({Location::dir(game.location), identifier, ".program.rom"}, ".rom", Emulator::FirmwaresFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       error({"Missing required file: ", identifier, ".program.rom"});
     }
@@ -100,14 +100,14 @@ auto SuperFamicom::open(higan::Node::Object node, string name, vfs::file::mode m
       if(game.image.size() >= programROMSize + firmwareProgramROMSize + firmwareDataROMSize) {
         return vfs::memory::file::open(game.image.data() + programROMSize + firmwareProgramROMSize, firmwareDataROMSize);
       }
-      auto location = locate({Location::dir(game.location), identifier, ".data.rom"}, ".rom", settings.paths.firmware);
+      auto location = locate({Location::dir(game.location), identifier, ".data.rom"}, ".rom", Emulator::FirmwaresFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       error({"Missing required file: ", identifier, ".data.rom"});
     }
 
     if(name == "upd7725.data.ram") {
       if((bool)document["game/board/memory(content=Data,type=RAM,architecture=uPD7725)/volatile"]) return {};
-      auto location = locate(game.location, ".upd7725.sav", settings.paths.saves);
+      auto location = locate(game.location, ".upd7725.sav", Emulator::GameFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
     }
   }
@@ -121,7 +121,7 @@ auto SuperFamicom::open(higan::Node::Object node, string name, vfs::file::mode m
       if(game.image.size() >= programROMSize + firmwareProgramROMSize) {
         return vfs::memory::file::open(game.image.data() + programROMSize, firmwareProgramROMSize);
       }
-      auto location = locate({Location::dir(game.location), identifier, ".program.rom"}, ".rom", settings.paths.firmware);
+      auto location = locate({Location::dir(game.location), identifier, ".program.rom"}, ".rom", Emulator::FirmwaresFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       error({"Missing required file: ", identifier, ".program.rom"});
     }
@@ -130,14 +130,14 @@ auto SuperFamicom::open(higan::Node::Object node, string name, vfs::file::mode m
       if(game.image.size() >= programROMSize + firmwareProgramROMSize + firmwareDataROMSize) {
         return vfs::memory::file::open(game.image.data() + programROMSize + firmwareProgramROMSize, firmwareDataROMSize);
       }
-      auto location = locate({Location::dir(game.location), identifier, ".data.rom"}, ".rom", settings.paths.firmware);
+      auto location = locate({Location::dir(game.location), identifier, ".data.rom"}, ".rom", Emulator::FirmwaresFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       error({"Missing required file: ", identifier, ".data.rom"});
     }
 
     if(name == "upd96050.data.ram") {
       if((bool)document["game/board/memory(content=Data,type=RAM,architecture=uPD96050)/volatile"]) return {};
-      auto location = locate(game.location, ".upd96050.sav", settings.paths.saves);
+      auto location = locate(game.location, ".upd96050.sav", Emulator::GameFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
     }
   }
@@ -150,14 +150,14 @@ auto SuperFamicom::open(higan::Node::Object node, string name, vfs::file::mode m
       if(game.image.size() >= programROMSize + firmwareDataROMSize) {
         return vfs::memory::file::open(game.image.data() + programROMSize, firmwareDataROMSize);
       }
-      auto location = locate({Location::dir(game.location), identifier, ".data.rom"}, ".rom", settings.paths.firmware);
+      auto location = locate({Location::dir(game.location), identifier, ".data.rom"}, ".rom", Emulator::FirmwaresFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       error({"Missing required file: ", identifier, ".data.rom"});
     }
 
     if(name == "hg51bs169.data.ram") {
       if((bool)document["game/board/memory(content=Data,type=RAM,architecture=HG51BS169)/volatile"]) return {};
-      auto location = locate(game.location, ".hg51bs169.sav", settings.paths.saves);
+      auto location = locate(game.location, ".hg51bs169.sav", Emulator::GameFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
     }
   }
@@ -171,7 +171,7 @@ auto SuperFamicom::open(higan::Node::Object node, string name, vfs::file::mode m
       if(game.image.size() >= programROMSize + firmwareProgramROMSize) {
         return vfs::memory::file::open(game.image.data() + programROMSize, firmwareProgramROMSize);
       }
-      auto location = locate({Location::dir(game.location), identifier, ".program.rom"}, ".rom", settings.paths.firmware);
+      auto location = locate({Location::dir(game.location), identifier, ".program.rom"}, ".rom", Emulator::FirmwaresFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       error({"Missing required file: ", identifier, ".program.rom"});
     }
@@ -180,14 +180,14 @@ auto SuperFamicom::open(higan::Node::Object node, string name, vfs::file::mode m
       if(game.image.size() >= programROMSize + firmwareProgramROMSize + firmwareDataROMSize) {
         return vfs::memory::file::open(game.image.data() + programROMSize + firmwareProgramROMSize, firmwareDataROMSize);
       }
-      auto location = locate({Location::dir(game.location), identifier, ".data.rom"}, ".rom", settings.paths.firmware);
+      auto location = locate({Location::dir(game.location), identifier, ".data.rom"}, ".rom", Emulator::FirmwaresFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
       error({"Missing required file: ", identifier, ".data.rom"});
     }
 
     if(name == "arm6.data.ram") {
       if((bool)document["game/board/memory(content=Data,type=RAM,architecture=ARM6)/volatile"]) return {};
-      auto location = locate(game.location, ".arm6.sav", settings.paths.saves);
+      auto location = locate(game.location, ".arm6.sav", Emulator::GameFolder);
       if(auto result = vfs::fs::file::open(location, mode)) return result;
     }
   }

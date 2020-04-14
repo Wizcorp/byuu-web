@@ -1,12 +1,18 @@
 struct WebPlatform;
 
 struct LoadingCallbackContainer {
-    LoadingCallbackContainer(WebPlatform *i, const char *u, emscripten::val c) : callback(c) {
+    LoadingCallbackContainer(
+        WebPlatform *i, 
+        const char *u, 
+        emscripten::val f,
+        emscripten::val c
+    ) : files(f), callback(c) {
         url = u;
         instance = i;
     }; 
     WebPlatform *instance;
     string url;
+    emscripten::val files;
     emscripten::val callback;
 };
 
@@ -47,8 +53,8 @@ struct WebPlatform : higan::Platform {
         auto setEmulator(const char *emulatorName) -> bool;
         auto setEmulatorForFilename(const char *path) -> bool;
         
-        auto load(const char *path, uint8_t *rom, int size) -> emscripten::val;
-        auto loadURL(const char *url, emscripten::val callback) -> void;
+        auto load(const char *path, uint8_t *rom, int size, emscripten::val files) -> emscripten::val;
+        auto loadURL(const char *url, emscripten::val files, emscripten::val callback) -> void;
         auto unload() -> void;
 
         auto run() -> void;
@@ -73,8 +79,9 @@ struct WebPlatform : higan::Platform {
         auto setButton(const string& portName, const string& buttonName, int16_t value) -> bool;
         auto input(Input node) -> void override;
 
-        auto stateSave(uint slot) -> bool;
-        auto stateLoad(uint slot) -> bool;
+        auto stateSave(emscripten::val callback) -> void;
+        auto stateLoad(const char *stateData, uint stateSize) -> bool;
+        auto save() -> emscripten::val;
     
         auto getEmulatorAndGameInfo(nall::shared_pointer<Emulator> emulator, string manifest) -> emscripten::val;
 

@@ -1,14 +1,8 @@
-static struct Settings {
-  struct Paths {
-    string saves;
-    string patches;
-    string traces;
-    string firmware;
-  } paths;
-} settings;
-
 struct Emulator {
   struct Firmware;
+  
+  inline static string GameFolder = "/gamefiles";
+  inline static string FirmwaresFolder = "/firmwares";
 
   static auto construct() -> void;
   auto locate(const string& location, const string& suffix, const string& path = "") -> string;

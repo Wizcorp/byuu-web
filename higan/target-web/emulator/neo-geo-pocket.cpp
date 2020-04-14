@@ -51,7 +51,7 @@ auto NeoGeoPocket::open(higan::Node::Object node, string name, vfs::file::mode m
   auto programROMSize = document["game/board/memory(content=Program,type=Flash)/size"].natural();
 
   if(name == "program.flash") {
-    auto location = locate(game.location, ".sav", settings.paths.saves);
+    auto location = locate(game.location, ".sav", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
     if(mode == vfs::file::mode::read) return vfs::memory::file::open(game.image.data(), programROMSize);
   }
@@ -115,7 +115,7 @@ auto NeoGeoPocketColor::open(higan::Node::Object node, string name, vfs::file::m
   auto programROMSize = document["game/board/memory(content=Program,type=Flash)/size"].natural();
 
   if(name == "program.flash") {
-    auto location = locate(game.location, ".sav", settings.paths.saves);
+    auto location = locate(game.location, ".sav", Emulator::GameFolder);
     if(auto result = vfs::fs::file::open(location, mode)) return result;
     if(mode == vfs::file::mode::read) return vfs::memory::file::open(game.image.data(), programROMSize);
   }

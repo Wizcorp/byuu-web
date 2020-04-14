@@ -542,157 +542,25 @@
         devtools.check();
       });
 
-      // The platform's module. This will get populated
-      // when the actual module is loaded
-      //
-      // Note: With this loader the variable itself cannot be a constant
-      // since it gets redeclared by the module loader.
-      var Module = {
-        isRunning: false,
-        onRuntimeInitialized: async () => {
-          // Open and migrate the application's database
-          try {
-            await openApplicationDatabase();
-          } catch (error) {
-            console.error(error);
-            Module.setStatus('Failed to open database, see JavaScript console');
-            return;
-          }
-
-          // Initialize the emulator platform
-          const { width, height } = getDesiredCanvasSize();
-          Module.init(width, height);
-          Module.onFrameStart(pollGamepadControllers);
-
-          // Adjust the UI based on whether the CPU profiler is present or not
-          configureCPUProfiler();
-
-          // As a default initial behavior, pop up an alert when webgl context is lost. To make your
-          // application robust, you may want to override this behavior before shipping!
-          // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
-          canvas.addEventListener('webglcontextlost', function(e) { 
-            Module.setStatus('WebGL context lost. You will need to reload the page.'); 
-            e.preventDefault(); 
-          }, false);
-
-          populateSelectGameList();
-
-          // Add games
-          gameFiles.addEventListener('change', ({ target: { files } }) => addROMFiles(files));
-          
-          // Start, pause, resume...
-          startButton.addEventListener('click', () => startGame(select.value));
-          pauseButton.addEventListener('click', () => pauseOrResumeGame());
-
-          // We have many save slots, for now we only use one
-          saveStateButton.addEventListener('click', () => Module.stateSave(1));
-          loadStateButton.addEventListener('click', () => Module.stateLoad(1));
-
-          // Remove fullscreen button if not supported by device (iPhone)
-          if (document.body.requestFullscreen) {
-            fullscreenButton.addEventListener('click', () => requestFullscreen());
-          } else {
-            fullscreenButton.parentElement.removeChild(fullscreenButton);
-          }
-
-          // Show keymap toggle button only on desktop
-          if (device.isMobile) {
-            toggleKeymapButton.parentElement.removeChild(toggleKeymapButton);
-          } else {
-            toggleKeymapButton.addEventListener('click', () => toggleKeymap());
-          }
-
-          // Toggle profiler if present
-          showProfilerButton.addEventListener('click', () => cpuprofilerElement.classList.toggle('show'));
-
-          // Everything is ready, show the screen
-          hideOverlay();
-        },
-        preRun: [],
-        postRun: [],
-        printErr: (...args) => console.error(...args),
-        canvas,
-        totalDependencies: 0,
-        monitorRunDependencies: function(_left) {
-          Module.setStatus(`Preparing`)
-        },
-        setStatus: function(text) {
-          if (!text || text === 'Running...') {
-            return
-          }
-          
-          showOverlay();
-          statusElement.innerHTML = text;       
-        }
-      };
-
-      // Window events - handle game on focus/blur, error handling
-      // If the button's text is set to "Pause", then this means
-      // the game was not paused (and need to be), and that it needs
-      // to auto resume when we come back.
-      // 
-      // Note: this functionality is disabled if devtools are open.
-      let wasPaused;
-      window.addEventListener('focus', () => {
-        if (!devtools.enabled && Module.isRunning && !wasPaused) {
-          setResume();
-        }
-      });
-
-      window.addEventListener('blur', () => {
-        if (!devtools.enabled && Module.isRunning) {
-          wasPaused = pauseButton.textContent === 'Resume';
-
-          if (!wasPaused) {
-            setPause();
-          }
-        }
-      });
-      
-      window.onerror = function() {
-        Module.setStatus('Exception thrown, see JavaScript console');
-        spinnerElement.style.display = 'none';
-      };
-
-      // Make ther CPU profiler toggleable, or hide the profiler button if
-      // the profiler is not present
-      function configureCPUProfiler() {
-        const lastElement = document.querySelector('body > div:last-child');
-
-        if (lastElement && lastElement.innerText.substring(0,12) === 'Cpu Profiler') {
-          cpuprofilerElement = lastElement;
-          cpuprofilerElement.id = 'cpuprofiler';
-          cpuprofilerElement.addEventListener('touchstart', () => cpuprofilerElement.classList.toggle('show'));
-        } else {
-          showProfilerButton.style.display = 'none';
-        }
-      }
-
-      // Set the desired canvas size to screen width on mobile, 
-      // max out the size to 800x600 on desktop
-      function getDesiredCanvasSize() {
-        let width = 800;
-        let height = 600;
-
-        if (device.isMobile) {
-          width = window.innerWidth;
-          height = width * 3 / 4;
-        }
-
-        return { width, height };
-      }
-
-      // Manage games, memory and save states
-      // Todo - change DB based on player?
+      // Local database
       let db; 
+
       async function openApplicationDatabase() {
         return new Promise((resolve, reject) => {
-          const request = indexedDB.open('application', 1);
+          const request = indexedDB.open('application', 2);
           request.onerror = ({ target: { errorCode }}) => reject(errorCode);
           
           request.onupgradeneeded = ({ target: { result: db }}) =>  { 
             if (!db.objectStoreNames.contains('roms')) {
               db.createObjectStore('roms', { keyPath: 'filename' });
+            }
+
+            if (!db.objectStoreNames.contains('saves')) {
+              db.createObjectStore('saves', { keyPath: 'filename' });
+            }
+
+            if (!db.objectStoreNames.contains('states')) {
+              db.createObjectStore('states', { keyPath: 'id' });
             }
           };
 
@@ -763,6 +631,200 @@
         });
       }
 
+      async function storeState(filename, index, stateData) {
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(['states'], 'readwrite');
+          tx.onerror = reject;
+
+          const store = tx.objectStore('states');
+          const request = store.put({
+            id: `${filename}:${index}`,
+            state: stateData,
+          });
+          request.onsuccess = () => resolve();
+        });
+      }
+
+      async function getState(filename, index) {
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(['states'], 'readonly');
+          tx.onerror = reject;
+
+          const store = tx.objectStore('states');
+          const request = store.get(`${filename}:${index}`);
+          request.onsuccess = () => resolve(request.result && request.result.state);
+        });
+      }
+
+      async function storeSave(filename, saveData) {
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(['saves'], 'readwrite');
+          tx.onerror = reject;
+
+          const store = tx.objectStore('saves');
+          const request = store.put({
+            filename,
+            data: saveData,
+          });
+          request.onsuccess = () => resolve();
+        });
+      }
+
+      async function getSave(filename) {
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(['saves'], 'readonly');
+          tx.onerror = reject;
+
+          const store = tx.objectStore('saves');
+          const request = store.get(filename);
+          request.onsuccess = () => resolve(request.result && request.result.data);
+        });
+      }
+
+      // The platform's module. This will get populated
+      // when the actual module is loaded
+      //
+      // Note: With this loader the variable itself cannot be a constant
+      // since it gets redeclared by the module loader.
+      var Module = {
+        info: {
+          isRunning: false,
+          currentGame: null
+        },
+        onRuntimeInitialized: async () => {
+          // Open and migrate the application's database
+          try {
+            await openApplicationDatabase();
+          } catch (error) {
+            console.error(error);
+            Module.setStatus('Failed to open database, see JavaScript console');
+            return;
+          }
+
+          // Initialize the emulator platform
+          const { width, height } = getDesiredCanvasSize();
+          Module.init(width, height);
+          Module.onFrameStart(pollGamepadControllers);
+
+          // Adjust the UI based on whether the CPU profiler is present or not
+          configureCPUProfiler();
+
+          // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+          // application robust, you may want to override this behavior before shipping!
+          // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+          canvas.addEventListener('webglcontextlost', function(e) { 
+            Module.setStatus('WebGL context lost. You will need to reload the page.'); 
+            e.preventDefault(); 
+          }, false);
+
+          populateSelectGameList();
+
+          // Add games
+          gameFiles.addEventListener('change', ({ target: { files } }) => addROMFiles(files));
+          
+          // Start, pause, resume...
+          startButton.addEventListener('click', () => startGame(select.value));
+          pauseButton.addEventListener('click', () => pauseOrResumeGame());
+
+          // We have many save slots, for now we only use one
+          saveStateButton.addEventListener('click', () => stateSave());
+          loadStateButton.addEventListener('click', () => stateLoad());
+
+          // Remove fullscreen button if not supported by device (iPhone)
+          if (document.body.requestFullscreen) {
+            fullscreenButton.addEventListener('click', () => requestFullscreen());
+          } else {
+            fullscreenButton.parentElement.removeChild(fullscreenButton);
+          }
+
+          // Show keymap toggle button only on desktop
+          if (device.isMobile) {
+            toggleKeymapButton.parentElement.removeChild(toggleKeymapButton);
+          } else {
+            toggleKeymapButton.addEventListener('click', () => toggleKeymap());
+          }
+
+          // Toggle profiler if present
+          showProfilerButton.addEventListener('click', () => cpuprofilerElement.classList.toggle('show'));
+
+          // Everything is ready, show the screen
+          hideOverlay();
+        },
+        preRun: [],
+        postRun: [],
+        printErr: (...args) => console.error(...args),
+        canvas,
+        totalDependencies: 0,
+        monitorRunDependencies: function(_left) {
+          Module.setStatus(`Preparing`)
+        },
+        setStatus: function(text) {
+          if (!text || text === 'Running...') {
+            return
+          }
+          
+          showOverlay();
+          statusElement.innerHTML = text;       
+        }
+      };
+
+      // Window events - handle game on focus/blur, error handling
+      // If the button's text is set to "Pause", then this means
+      // the game was not paused (and need to be), and that it needs
+      // to auto resume when we come back.
+      // 
+      // Note: this functionality is disabled if devtools are open.
+      let wasPaused;
+      window.addEventListener('focus', () => {
+        if (!devtools.enabled && Module.info.isRunning && !wasPaused) {
+          setResume();
+        }
+      });
+
+      window.addEventListener('blur', () => {
+        if (!devtools.enabled && Module.info.isRunning) {
+          wasPaused = pauseButton.textContent === 'Resume';
+
+          if (!wasPaused) {
+            setPause();
+          }
+        }
+      });
+      
+      window.onerror = function() {
+        Module.setStatus('Exception thrown, see JavaScript console');
+        spinnerElement.style.display = 'none';
+      };
+
+      // Make ther CPU profiler toggleable, or hide the profiler button if
+      // the profiler is not present
+      function configureCPUProfiler() {
+        const lastElement = document.querySelector('body > div:last-child');
+
+        if (lastElement && lastElement.innerText.substring(0,12) === 'Cpu Profiler') {
+          cpuprofilerElement = lastElement;
+          cpuprofilerElement.id = 'cpuprofiler';
+          cpuprofilerElement.addEventListener('touchstart', () => cpuprofilerElement.classList.toggle('show'));
+        } else {
+          showProfilerButton.style.display = 'none';
+        }
+      }
+
+      // Set the desired canvas size to screen width on mobile, 
+      // max out the size to 800x600 on desktop
+      function getDesiredCanvasSize() {
+        let width = 800;
+        let height = 600;
+
+        if (device.isMobile) {
+          width = window.innerWidth;
+          height = width * 3 / 4;
+        }
+
+        return { width, height };
+      }
+
+      // Add ROMs, update ROM UI display
       async function addROMFiles(files) {
         let addedCount = 0;
 
@@ -987,7 +1049,7 @@
           if (!currentGamepad) {
             gamepadControllers[port] = gamepad.index;
             
-            if (port !== 'Controller Port 1' && Module.isRunning) {
+            if (port !== 'Controller Port 1' && Module.info.isRunning) {
               Module.connectPeripheral(port, 'Gamepad'); // todo: peripheralName according to console 
             }
 
@@ -1064,8 +1126,17 @@
       async function startGame(filename) {
         gameLoadingElement.style.display = 'block';
 
-        if (Module.isRunning) {
-          Module.isRunning = false;
+        if (Module.info.isRunning) {
+          // todo: Emscripten returns a view on a really large buffer - is there a better way?
+          const save = Module.save();
+          for (const [filename, { buffer, byteOffset, byteLength }] of Object.entries(save)) {
+            save[filename] = buffer.slice(byteOffset, byteOffset + byteLength);
+          }
+          await storeSave(Module.info.currentGame, save);
+
+          Module.info.isRunning = false;
+          Module.info.currentGame = null;
+          
           Module.unload();
         }
 
@@ -1074,11 +1145,13 @@
         }
 
         const { emulator, romData } = await getGame(filename);
-        Module.load(filename, romData, romData.byteLength)
+        const save = await getSave(filename);
+        Module.load(filename, romData, save);
 
         gameLoadingElement.style.display = 'none';
         localStorage.setItem(LAST_GAME, select.value);
-        Module.isRunning = true;
+        Module.info.isRunning = true;
+        Module.info.currentGame = filename;
 
         if (device.isMobile) {
           displayControllerForEmulator(emulator);
@@ -1089,6 +1162,47 @@
         connectAllGamepadPeripherals();
 
         setResume();
+      }
+
+      // state save/load, save
+      // todo: store multiple states
+      function stateSave() {
+        if (!Module.info.isRunning) {
+          return notify(`
+            <h1>💣No games running</h1>
+            <p>
+              You need to <strong>start a game</strong> before you can save a state
+            </p>
+          `, 'danger', 5000);
+        }
+
+        Module.stateSave(async (state) => {
+          // todo: Emscripten returns a view on a really large buffer - is there a better way? 
+          const buffer = state.buffer.slice(state.byteOffset, state.byteOffset + state.byteLength);
+          await storeState(Module.info.currentGame, 1, buffer);
+        });
+      }
+
+      async function stateLoad() {
+        if (!Module.info.isRunning) {
+          return notify(`
+            <h1>💣No games running</h1>
+            <p>
+              You need to <strong>start a game</strong> before you can load a state
+            </p>
+          `, 'danger', 5000);
+        }
+
+        const state = await getState(Module.info.currentGame, 1);
+          if (!state) {
+            return notify(`
+              <h1>💣No states found</h1>
+              <p>
+                You need to <strong>Save state</strong> before you can load a state
+              </p>
+            `, 'danger', 5000);
+        }
+        Module.stateLoad(state);
       }
 
       // Pause and resume
@@ -1106,7 +1220,7 @@
 
       // Toggle pause state if a game is running
       function pauseOrResumeGame() {
-        if (!Module.isRunning) {
+        if (!Module.info.isRunning) {
           return;
         }
 

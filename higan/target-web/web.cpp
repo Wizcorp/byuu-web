@@ -52,10 +52,10 @@ emscripten::val getROMInfo(std::string path, std::string rom, int size) { return
 
 bool setEmulator(std::string emulatorName) { return webplatform->setEmulator(emulatorName.c_str()); }
 bool setEmulatorForFilename(std::string path) { return webplatform->setEmulatorForFilename(path.c_str()); }
-emscripten::val load(std::string path, std::string rom, int size) { 
-    return webplatform->load(path.c_str(), (uint8_t *) rom.c_str(), size); 
+emscripten::val load(std::string path, std::string rom, emscripten::val files) { 
+    return webplatform->load(path.c_str(), (uint8_t *) rom.c_str(), rom.size(), files); 
 }
-void loadURL(std::string url, emscripten::val callback) { return webplatform->loadURL(url.c_str(), callback); }
+void loadURL(std::string url, emscripten::val files, emscripten::val callback) { return webplatform->loadURL(url.c_str(), files, callback); }
 void unload() { 
     if (webplatform->started) {
         stop(); 
@@ -77,12 +77,9 @@ bool setButton(std::string portName, std::string buttonName, int16_t value) {
 }
 
 /* state save, memory saves */
-
-// Todo: return save data, load saved data instead
-bool stateSave(uint slot) { return webplatform->stateSave(slot); }
-bool stateLoad(uint slot) { return webplatform->stateLoad(slot); }
-
-// Todo: snapshot save RAM(s) when data is being saved
+void stateSave(emscripten::val callback) { return webplatform->stateSave(callback); }
+bool stateLoad(std::string state) { return webplatform->stateLoad(state.c_str(), state.size()); }
+emscripten::val save() { return webplatform->save(); }
 
 EMSCRIPTEN_BINDINGS(my_module) {
     emscripten::function("init", &init);
@@ -111,6 +108,8 @@ EMSCRIPTEN_BINDINGS(my_module) {
     emscripten::function("setButton", &setButton);
     
     emscripten::function("getROMInfo", &getROMInfo);
+    
     emscripten::function("stateSave", &stateSave);
     emscripten::function("stateLoad", &stateLoad);
+    emscripten::function("save", &save);
 }

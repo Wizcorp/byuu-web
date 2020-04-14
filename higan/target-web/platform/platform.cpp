@@ -61,7 +61,7 @@ auto WebPlatform::setEmulatorForFilename(const char *path) -> bool {
     return true;
 }
 
-auto WebPlatform::load(const char *path, uint8_t *rom, int size) -> emscripten::val {
+auto WebPlatform::load(const char *path, uint8_t *rom, int size, emscripten::val files) -> emscripten::val {
     // todo: We should probably do something better than wait for user input 
     // to trigger audio setup
     webaudio.init();
@@ -70,13 +70,32 @@ auto WebPlatform::load(const char *path, uint8_t *rom, int size) -> emscripten::
         return emscripten::val::null(); 
     }
 
+    // Reset games folder
+    if (directory::exists(Emulator::GameFolder)) {
+        directory::remove(Emulator::GameFolder);
+    }
+
+    directory::create(Emulator::GameFolder);
+
+    // todo: we should be able to simply keep this in memory and have the emulator access that data... going over file is pretty much useless
+    if (!files.isNull() && !files.isUndefined()) {
+        emscripten::val fileEntries = emscripten::val::global("Object").call<emscripten::val>("entries", files);
+        int length = fileEntries["length"].as<int>();
+
+        for (int i = 0; i < length; ++i) {
+            auto filename = fileEntries[i][0].as<std::string>();
+            auto filedata = fileEntries[i][1].as<std::string>();
+            file::write({Emulator::GameFolder, "/", filename.c_str()}, {filedata.c_str(), filedata.size()});
+        }
+    }
+
     vector<uint8_t> *data = new vector<uint8_t>();
     data->acquire(rom, size);
     this->emulator->load(path, *data);
     return getEmulatorAndGameInfo(this->emulator, this->emulator->game.manifest);
 }
 
-auto WebPlatform::loadURL(const char *url, emscripten::val callback) -> void {
+auto WebPlatform::loadURL(const char *url, emscripten::val files, emscripten::val callback) -> void {
     auto extension = getFilenameExtension(url);
     this->emulator = getEmulatorByExtension(extension);
 
@@ -88,7 +107,7 @@ auto WebPlatform::loadURL(const char *url, emscripten::val callback) -> void {
     
     DEBUG_LOG("Using emulator: %s\n", this->emulator->name.data());
 
-    LoadingCallbackContainer *container = new LoadingCallbackContainer(this, url, callback);
+    LoadingCallbackContainer *container = new LoadingCallbackContainer(this, url, files, callback);
 
     DEBUG_LOG("Fetching ROM: %s\n", url);
 
@@ -99,10 +118,11 @@ auto WebPlatform::loadURL(const char *url, emscripten::val callback) -> void {
             LoadingCallbackContainer *container = (LoadingCallbackContainer *) c;
             auto instance = container->instance;
             auto url = container->url.data();
+            auto files = container->files;
             auto callback = container->callback;
 
             try {
-                callback(0, instance->load(url, (uint8_t*) buffer, size));
+                callback(0, instance->load(url, (uint8_t*) buffer, size, files));
             } catch (...) {
                 DEBUG_LOG("Failed to load data into emulator: %s\n", url);
                 callback(WebPlatform::Error::EMULATOR_ROM_LOAD_FAILED, 0);
@@ -218,11 +238,11 @@ auto WebPlatform::connect(const string& portName, const string& peripheralName) 
     return emulator->connect(portName, peripheralName);
 }
 
-auto WebPlatform::disconnect(const string& portName) -> bool{
+auto WebPlatform::disconnect(const string& portName) -> bool {
     return emulator->disconnect(portName);
 }
 
-auto WebPlatform::setButton(const string& portName, const string& buttonName, int16_t value) -> bool{
+auto WebPlatform::setButton(const string& portName, const string& buttonName, int16_t value) -> bool {
     return emulator->setButton(portName, buttonName, value);
 }
 
@@ -230,37 +250,53 @@ auto WebPlatform::input(Node::Input node) -> void {
     emulator->input(node);
 }
 
-auto WebPlatform::stateSave(uint slot) -> bool {
-    if(!emulator) return false;
+// todo: we need a callback here because it appears that
+// the scheduler sync throws things for a loop, and forces
+// that function to return void (false, zero, "") instead of
+// the actual data being returned. 
+auto WebPlatform::stateSave(emscripten::val callback) -> void {
+    if(!emulator) return;
 
-    auto location = emulator->locate(emulator->game.location, {".bs", slot}, settings.paths.saves);
     if(auto state = emulator->interface->serialize()) {
-        if(file::write(location, {state.data(), state.size()})) {
-            DEBUG_LOG("Saved state to slot %d\n", slot);
-            return true;
-        }
+        auto view = emscripten::typed_memory_view(state.size(), state.data());
+        auto buffer = emscripten::val(view);
+        callback(buffer);
     }
 
-  DEBUG_LOG("Failed to save state to slot %d\n", slot);
-  return false;
+    return;
 }
 
-auto WebPlatform::stateLoad(uint slot) -> bool {
+auto WebPlatform::stateLoad(const char *stateData, uint stateSize) -> bool {
     if(!emulator) return false;
 
-    auto location = emulator->locate(emulator->game.location, {".bs", slot}, settings.paths.saves);
-    if(auto memory = file::read(location)) {
-        serializer state{memory.data(), (uint)memory.size()};
-        if(emulator->interface->unserialize(state)) {
-            DEBUG_LOG("Loaded state from slot %d\n", slot);
-            return true;
-        }
+    serializer state{(const uint8_t *) stateData, stateSize};
+    if(emulator->interface->unserialize(state)) {
+        return true;
     }
 
-    DEBUG_LOG("Failed to load state from slot %d\n", slot);
     return false;
 }
 
+
+auto WebPlatform::save() -> emscripten::val {
+    auto files = emscripten::val::object();
+
+    if (!emulator) {
+        return files;
+    }
+
+    emulator->save();
+
+    auto filenames = directory::files(Emulator::GameFolder);
+    for (auto filename : filenames) {
+        auto file = file::read({Emulator::GameFolder, "/", filename});
+        auto view = emscripten::typed_memory_view(file.size(), file.data());
+        auto buffer = emscripten::val(view);
+        files.set(filename.data(), buffer);
+    }
+
+    return files;
+}
 
 auto WebPlatform::getEmulatorAndGameInfo(nall::shared_pointer<Emulator> emulator, string manifest) -> emscripten::val {
     uint index;
