@@ -727,8 +727,16 @@
           pauseButton.addEventListener('click', () => pauseOrResumeGame());
 
           // We have many save slots, for now we only use one
-          saveStateButton.addEventListener('click', () => stateSave());
-          loadStateButton.addEventListener('click', () => stateLoad());
+          saveStateButton.addEventListener('click', () => stateSave(Module.info.currentGame, 1));
+          loadStateButton.addEventListener('click', () => stateLoad(Module.info.currentGame, 1));
+          
+          // Save running game before unload
+          // Todo: find a surefire way to save!
+          window.addEventListener('beforeunload', async () => {
+            if (Module.info.isRunning) {
+                await gameSave(Module.info.currentGame);
+            }
+          })
 
           // Remove fullscreen button if not supported by device (iPhone)
           if (document.body.requestFullscreen) {
@@ -1127,12 +1135,7 @@
         gameLoadingElement.style.display = 'block';
 
         if (Module.info.isRunning) {
-          // todo: Emscripten returns a view on a really large buffer - is there a better way?
-          const save = Module.save();
-          for (const [filename, { buffer, byteOffset, byteLength }] of Object.entries(save)) {
-            save[filename] = buffer.slice(byteOffset, byteOffset + byteLength);
-          }
-          await storeSave(Module.info.currentGame, save);
+          await gameSave(Module.info.currentGame);
 
           Module.info.isRunning = false;
           Module.info.currentGame = null;
@@ -1145,7 +1148,7 @@
         }
 
         const { emulator, romData } = await getGame(filename);
-        const save = await getSave(filename);
+        const save = await gameLoad(filename);
         Module.load(filename, romData, save);
 
         gameLoadingElement.style.display = 'none';
@@ -1166,7 +1169,7 @@
 
       // state save/load, save
       // todo: store multiple states
-      function stateSave() {
+      function stateSave(filename, index) {
         if (!Module.info.isRunning) {
           return notify(`
             <h1>💣No games running</h1>
@@ -1179,11 +1182,11 @@
         Module.stateSave(async (state) => {
           // todo: Emscripten returns a view on a really large buffer - is there a better way? 
           const buffer = state.buffer.slice(state.byteOffset, state.byteOffset + state.byteLength);
-          await storeState(Module.info.currentGame, 1, buffer);
+          await storeState(filename, index, buffer);
         });
       }
 
-      async function stateLoad() {
+      async function stateLoad(filename, index) {
         if (!Module.info.isRunning) {
           return notify(`
             <h1>💣No games running</h1>
@@ -1193,7 +1196,7 @@
           `, 'danger', 5000);
         }
 
-        const state = await getState(Module.info.currentGame, 1);
+        const state = await getState(filename, index);
           if (!state) {
             return notify(`
               <h1>💣No states found</h1>
@@ -1203,6 +1206,19 @@
             `, 'danger', 5000);
         }
         Module.stateLoad(state);
+      }
+
+      async function gameSave(filename) {
+        // todo: Emscripten returns a view on a really large buffer - is there a better way?
+        const save = Module.save();
+        for (const [filename, { buffer, byteOffset, byteLength }] of Object.entries(save)) {
+          save[filename] = buffer.slice(byteOffset, byteOffset + byteLength);
+        }
+        await storeSave(filename, save);
+      }
+
+      async function gameLoad(filename) {
+        return getSave(filename);
       }
 
       // Pause and resume
