@@ -15,6 +15,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
+    <!-- FPS Meter -->
+    <script src="https://unpkg.com/fpsmeter@0.3.1/dist/fpsmeter.min.js" crossorigin="anonymous"></script>
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Muli:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Press+Start+2P&display=swap" rel="stylesheet">
 
@@ -75,6 +78,7 @@
         opacity: 0;
         transition: opacity ease-out 125ms;
         transition-delay: 3s;
+        z-index: 999;
       }
 
       .fullscreen #actions:hover {
@@ -169,7 +173,7 @@
 
       #display #canvas {
         display: block;
-        height: 100%;
+        height: calc(100% - 30px);
         width: 100%;
         margin: 0 auto;
         background-color: #070708;
@@ -319,6 +323,7 @@
         height: 230px; 
         width: 100%;
         transition: opacity ease-in 250ms, bottom ease-in 125ms;
+        z-index: 100;
       }
 
       .paused #controllers {
@@ -553,7 +558,19 @@
       const spinnerElement = document.getElementById('spinner');
       const overlayElement = document.getElementById('overlay');
       const keymapsElement = document.getElementById('keymaps');
+      
       let cpuprofilerElement = false;
+      const fpsMeter = new FPSMeter(displayElement, {
+        theme: 'dark',
+        position: 'relative',
+        left: '0',
+        top: '0',
+        interval: 1000, 
+        decimals: 0,
+        heat: 1,
+        graph: 1,
+        history: 10
+      });
 
       const select = document.getElementById('game-selector');
       const startButton = document.getElementById('start');
@@ -771,7 +788,13 @@
           // Initialize the emulator platform
           const { width, height } = getDesiredCanvasSize();
           Module.init(width, height);
-          Module.onFrameStart(pollGamepadControllers);
+
+          // Gamepad polling and FPS counter
+          Module.onFrameStart(() => {
+            pollGamepadControllers();
+            fpsMeter.tickStart();
+          });
+          Module.onFrameEnd(() => fpsMeter.tick());
 
           // Adjust the UI based on whether the CPU profiler is present or not
           configureCPUProfiler();
@@ -1334,6 +1357,7 @@
 
       // Pause and resume
       function setPause() {
+        fpsMeter.pause();
         Module.stop();
         document.body.classList.add('paused');
         pauseButton.textContent = "Resume";
@@ -1341,6 +1365,7 @@
 
       function setResume() {
         document.body.classList.remove('paused');
+        fpsMeter.resume();
         Module.start();
         pauseButton.textContent = "Pause";
       }
