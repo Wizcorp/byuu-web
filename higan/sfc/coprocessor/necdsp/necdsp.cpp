@@ -19,9 +19,12 @@ auto NECDSP::unload() -> void {
 }
 
 auto NECDSP::main() -> void {
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(regs.pc)) {
     eventInstruction->notify(disassembleInstruction(), disassembleContext());
   }
+  #endif
+  
   exec();
 
   Thread::step(1);

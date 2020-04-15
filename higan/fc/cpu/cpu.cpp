@@ -31,9 +31,12 @@ auto CPU::main() -> void {
     return interrupt();
   }
 
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(r.pc)) {
     eventInstruction->notify(disassembleInstruction(), disassembleContext());
   }
+  #endif
+  
   instruction();
 }
 

@@ -33,9 +33,12 @@ auto SMP::main() -> void {
   if(r.wait) return instructionWait();
   if(r.stop) return instructionStop();
 
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(r.pc.w)) {
     eventInstruction->notify(disassembleInstruction(), disassembleContext());
   }
+  #endif
+  
   instruction();
 }
 

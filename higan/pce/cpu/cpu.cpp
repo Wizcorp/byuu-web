@@ -43,6 +43,7 @@ auto CPU::main() -> void {
     return interrupt(irq2.vector);
   }
 
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled()) {
     auto bank = r.mpr[r.pc >> 13];
     auto address = (uint13)r.pc;
@@ -52,6 +53,7 @@ auto CPU::main() -> void {
       });
     }
   }
+  #endif
 
   instruction();
 }

@@ -30,9 +30,13 @@ auto SuperFX::main() -> void {
   if(regs.sfr.g == 0) return step(6);
 
   auto opcode = peekpipe();
+  
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(regs.r[15])) {
     eventInstruction->notify(disassembleInstruction(), disassembleContext());
   }
+  #endif
+
   instruction(opcode);
 
   if(regs.r[14].modified) {

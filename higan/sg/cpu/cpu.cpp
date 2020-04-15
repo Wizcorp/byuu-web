@@ -35,9 +35,12 @@ auto CPU::main() -> void {
     irq(1, 0x0038, 0xff);
   }
 
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(r.pc)) {
     eventInstruction->notify(disassembleInstruction(), disassembleContext());
   }
+  #endif
+  
   instruction();
 }
 

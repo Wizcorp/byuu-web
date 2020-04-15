@@ -5,6 +5,7 @@ debug_host := 127.0.0.1
 wasm := true
 debug := false
 synchro := true
+eventinstruction_notify := false
 
 ifeq ($(wasm), true)
   flags += -s WASM=1 
@@ -18,6 +19,10 @@ endif
 
 ifeq ($(synchro),true)
   flags += -DSCHEDULER_SYNCHRO
+endif
+
+ifeq ($(eventinstruction_notify), false)
+  flags += -DNO_EVENTINSTRUCTION_NOTIFY
 endif
 
 # -Werror 

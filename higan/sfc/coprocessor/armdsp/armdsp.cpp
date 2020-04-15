@@ -35,9 +35,13 @@ auto ArmDSP::boot() -> void {
 
 auto ArmDSP::main() -> void {
   processor.cpsr.t = 0;  //force ARM mode
+
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(pipeline.execute.address)) {
     eventInstruction->notify(disassembleInstruction(), disassembleContext());
   }
+  #endif
+  
   instruction();
 }
 

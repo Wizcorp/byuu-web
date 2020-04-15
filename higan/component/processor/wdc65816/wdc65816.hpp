@@ -4,6 +4,12 @@
 
 #pragma once
 
+#if defined(EMSCRIPTEN)
+#define INLINE_INSTRUCTIONS noinline
+#else
+#define INLINE_INSTRUCTIONS alwaysinline
+#endif
+
 namespace higan {
 
 struct WDC65816 {
@@ -228,6 +234,10 @@ struct WDC65816 {
   auto instructionPushEffectiveRelativeAddress() -> void;
 
   //instruction.cpp
+  INLINE_INSTRUCTIONS auto instructionMFXF() -> void;
+  INLINE_INSTRUCTIONS auto instructionMFNoXF() -> void;
+  INLINE_INSTRUCTIONS auto instructionNoMFXF() -> void;
+  INLINE_INSTRUCTIONS auto instructionNoMFNoXF() -> void;
   auto instruction() -> void;
 
   //serialization.cpp
