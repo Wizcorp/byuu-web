@@ -1,4 +1,3 @@
-#target := higan
 target := byuu
 build := performance
 openmp := false
@@ -115,17 +114,6 @@ flags += $(foreach c,$(call strupper,$(cores)),-DCORE_$c)
 ui := target-$(target)
 include $(ui)/GNUmakefile
 -include obj/*.d
-
-# Serve files by looking in folders in the following order
-# This is required to deal with WASM map durring debugging, 
-# so the required source file(s) may be accessed
-serve:
-	python ./target-web/serve.py \
-    ${CURDIR}/.. \
-    ${CURDIR}/out \
-    ${CURDIR}/target-web \
-    ${CURDIR} \
-    ${EMSDK}=/emsdk
 
 todo:
 	grep -rin --color=auto "todo: " .

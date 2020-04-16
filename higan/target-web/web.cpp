@@ -48,7 +48,7 @@ bool stop() {
 /*  bootstrap */
 void init(uint width, uint height) { return webplatform->init(width, height); }
 std::string getEmulatorNameForFilename(std::string path) { return webplatform->getEmulatorNameForFilename(path.c_str()).data(); };
-emscripten::val getROMInfo(std::string path, std::string rom, int size) { return webplatform->getROMInfo(path.c_str(), (uint8_t *) rom.c_str(), size); }
+emscripten::val getROMInfo(std::string path, std::string rom) { return webplatform->getROMInfo(path.c_str(), (uint8_t *) rom.c_str(), rom.size()); }
 
 bool setEmulator(std::string emulatorName) { return webplatform->setEmulator(emulatorName.c_str()); }
 bool setEmulatorForFilename(std::string path) { return webplatform->setEmulatorForFilename(path.c_str()); }

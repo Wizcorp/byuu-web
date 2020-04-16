@@ -656,7 +656,7 @@
       }
 
       async function addGame(filename, romData) {
-        const info = Module.getROMInfo(filename, romData, romData.byteLength);
+        const info = Module.getROMInfo(filename, romData);
         if (!info) {
           throw new Error('ROM is invalid');
         }

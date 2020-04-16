@@ -3,7 +3,7 @@ compiler = emcc
 name := byuu-web
 debug_host := 127.0.0.1
 wasm := true
-debug := true
+debug := false
 synchro := true
 
 ifeq ($(wasm), true)
@@ -22,6 +22,7 @@ endif
 
 # -Werror 
 flags += \
+	-fPIC \
 	-DICARUS_LIBRARY \
 	-ffast-math \
 	-ffinite-math-only \
@@ -49,13 +50,61 @@ obj/web.o: $(ui)/web.cpp
 obj/icarus.o: ../icarus/icarus.cpp
 obj/icarus-resource.o: ../icarus/resource/resource.cpp
 
-all: $(objects)
+package: $(objects)
+	mkdir -p ./out/package
+	$(compiler) \
+		$(flags) \
+		-s MODULARIZE=1 \
+		--source-map-base http://$(debug_host):8000/ \
+		-o ./out/package/$(name)-lib.js \
+		$(objects)
+
+	cp ./target-web/package.json ./out/package/
+	cp ./target-web/api.js ./out/package/
+	cp ./target-web/api.d.ts ./out/package/
+	cp ../README.md ./out/package/
+	cp ../CHANGELOG.md ./out/package/
+	cp ../LICENSE.txt ./out/package/
+
+app: $(objects)
+	mkdir -p ./out/app
 	$(compiler) \
 		$(flags) \
 		--shell-file ./target-web/shell.html \
 		--source-map-base http://$(debug_host):8000/ \
-		-o ./out/$(name).html \
+		-o ./out/app/$(name).html \
 		$(objects)
 		
 
-	mv ./out/$(name).html ./out/index.html
+	mv ./out/app/$(name).html ./out/app/index.html
+
+all: package app
+
+# Serve files by looking in folders in the following order
+# This is required to deal with WASM map durring debugging, 
+# so the required source file(s) may be accessed
+serve:
+	python ./target-web/serve.py \
+    ${CURDIR}/.. \
+    ${CURDIR}/out/app \
+    ${CURDIR}/target-web \
+    ${CURDIR} \
+    ${EMSDK}=/emsdk
+
+publish:
+	$(MAKE) clean-package
+	$(MAKE) package
+ifneq ($(version), true)
+	cd ./out/app && npm version $(version)
+else
+	@echo "Version bump info not specified, skipping" 
+endif
+	cd ./out/app && npm publish
+
+clean-app:
+	rm -rf ./out/app
+
+clean-package:
+	rm -rf ./out/package
+
+clean: clean-app clean-package
