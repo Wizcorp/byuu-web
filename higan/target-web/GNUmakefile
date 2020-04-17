@@ -94,14 +94,14 @@ serve:
     ${EMSDK}=/emsdk
 
 publish:
-	$(MAKE) clean-package
+	$(MAKE) clean
 	$(MAKE) package
 ifneq ($(version), true)
-	cd ./out/app && npm version $(version)
+	cd ./out/package && npm version $(version)
 else
 	@echo "Version bump info not specified, skipping" 
 endif
-	cd ./out/app && npm publish
+	cd ./out/package && npm publish
 
 clean-app:
 	rm -rf ./out/app
