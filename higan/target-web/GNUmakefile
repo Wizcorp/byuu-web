@@ -55,6 +55,8 @@ package: $(objects)
 	$(compiler) \
 		$(flags) \
 		-s MODULARIZE=1 \
+		-s EXPORT_ES6=1 \
+		-s USE_ES6_IMPORT_META=0 \
 		--source-map-base http://$(debug_host):8000/ \
 		-o ./out/package/$(name)-lib.js \
 		$(objects)

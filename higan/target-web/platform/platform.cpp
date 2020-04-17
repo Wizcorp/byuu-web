@@ -190,9 +190,6 @@ auto WebPlatform::log(string_view message) -> void {
 
 auto WebPlatform::video(Node::Screen, const uint32_t* data, uint pitch, uint width, uint height) -> void {
     webvideo.render(data, pitch, width, height);
-    if (!this->onFrame.isNull()) {
-        this->onFrameStart(data, pitch, width, height);
-    }
 }
 
 auto WebPlatform::audio(Node::Stream stream) -> void {

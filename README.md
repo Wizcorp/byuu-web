@@ -31,25 +31,15 @@ npm install byuu
 The package contains a [TypeScript](https://www.typescriptlang.org/) type definition where the 
 documentation of the [available API](./higan/target-web/api.d.ts) can be found.
 
-You will need to make sure that a canvas DOM element with the id set to `canvas` has
-been loaded on the page before you initialize the module.
-
-> HTML file
-
-```html
-<canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
-```
-
-Code 
-
-> Example code
+> Example
 
 ```js
-const emulator = require('byuu')
+import emulator from 'byuu'
+const canvas = document.getElementById('canvas')
 const romPath = '/path/to/rom.sfc'
 
 // Initialization is only needed once
-emulator.init(800, 600)
+emulator.init(canvas, 800, 600)
   .then(() => emulator.loadURL(romPath))
   .then((romInfo) => {
     console.log(`Loaded ${romPath}`, romInfo)
@@ -59,9 +49,80 @@ emulator.init(800, 600)
   })
 ```
 
+It is also possible to use this component in Webpack-based projects; however, 
+it will require the [file-loader](https://webpack.js.org/loaders/file-loader/) loader
+to allow this library to properly load its WASM code.
+
+> webpack.config.js
+
+```js
+module.exports = ( env, options ) => {
+  // ...
+  module: {
+    rules: [
+      { 
+        test: /byuu-web-lib.wasm$/,
+        type: 'javascript/auto',
+        loader: 'file-loader',
+        options: {
+          name: '[name]-[hash].[ext]',         
+        }
+      }
+    ]
+  }
+}
+```
+
+Here below is an example using [Vue.js](https://vuejs.org/). Although untested, it should be possible
+to use this library similarly with other frameworks.
+
+> vue.config.js
+
+```js
+module.exports = {
+  configureWebpack: {
+    module: {
+      rules: [
+        { 
+          test: /byuu-web-lib.wasm$/,
+          type: 'javascript/auto',
+          loader: 'file-loader',
+          options: {
+            name: '[name]-[hash].[ext]',         
+          }
+        }
+      ]
+    }
+  }
+}
+
+```
+
+> ./src/components/HelloByuu.vue
+
+```vue
+<template>
+  <div class="byuu">
+    <canvas ref="canvas"></canvas>
+  </div>
+</template>
+<script>
+import emulator from 'byuu'
+
+export default {
+  async mounted () {
+    await emulator.init(this.$refs.canvas, 800, 600)
+    await emulator.loadURL('/games/link.sfc')
+    emulator.start()
+  }
+}
+</script>
+<style scoped></style>
+```
+
 See [the API documentation](./higan/target-web/api.d.ts) to learn how
 to connect controllers and so on! You can also have a look at the 
-git repository's app code to see a more complete implementation example.
+git repository's app code to see a relatively complete implementation example.
 
 ## Development
 

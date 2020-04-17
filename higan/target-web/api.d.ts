@@ -1,14 +1,13 @@
 import EventEmitter from 'eventemitter3'
 
-// todo: add all other emulator cores
-export enum Emulator {
+// todo: add all other emulation cores
+export const enum Emulator {
   Famicom = 'Famicom',
   SuperFamicom = 'Superfamicom',
 }
 
-export enum EmulatorEvent {
+export const enum EmulatorEvent {
   FrameStart = 'frame.start',
-  Frame = 'frame',
   FrameEnd = 'frame.end',
 }
 
@@ -20,7 +19,7 @@ export interface BMLNode {
 
 export interface ROMInfo {
   emulator: {
-    name: EmulatorName
+    name: Emulator
     ports: string[]
     buttons: string[]
   }
@@ -40,7 +39,7 @@ export interface SaveFiles {
  * This library will require the DOM to already have a <canvas> element
  * width its id set to "canvas".
  */
-class Emulator extends EventEmitter<EmulatorEvent> {
+declare class Byuu extends EventEmitter<EmulatorEvent> {
   /**
    * Initialize the module
    * 
@@ -90,7 +89,7 @@ class Emulator extends EventEmitter<EmulatorEvent> {
    * @param url Remote URL of the ROM
    * @param saveFiles List of files generated on save (see Emulator.save)
    */
-  public async loadURL(url: string, saveFiles?: SaveFiles) : Promise<ROMInfo>
+  public loadURL(url: string, saveFiles?: SaveFiles) : Promise<ROMInfo>
 
   /**
    * Unload the current game, then unload the current emulator
@@ -100,7 +99,7 @@ class Emulator extends EventEmitter<EmulatorEvent> {
   /**
    * Start the emulator's render loop
    */
-  public start() : bool
+  public start() : boolean
 
   /**
    * Run one render cycle
@@ -113,7 +112,7 @@ class Emulator extends EventEmitter<EmulatorEvent> {
   /**
    * Stop the emulator's render loop
    */
-  public stop() : bool
+  public stop() : boolean
 
   /**
    * Check if the emulator is started
@@ -186,7 +185,7 @@ class Emulator extends EventEmitter<EmulatorEvent> {
    * This differs from Emulator.save by taking a snapshot at a specific point in time. Note
    * that the size of a state will be up to 10x bigger than a normal save depending on the console.
    */
-  public async stateSave() : Promise<Uint8Array>
+  public stateSave() : Promise<Uint8Array>
 
   /**
    * Load a state snapshot
@@ -204,4 +203,8 @@ class Emulator extends EventEmitter<EmulatorEvent> {
   public save() : SaveFiles
 }
 
-exports = new Emulator()
+declare const byuu: Byuu
+
+declare namespace byuu {}
+
+export default byuu

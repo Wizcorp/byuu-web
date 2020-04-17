@@ -12,10 +12,6 @@ void onFrameStart(emscripten::val callback) {
     webplatform->onFrameStart = callback;
 }
 
-void onFrame(emscripten::val callback) {
-    webplatform->onFrame = callback;
-}
-
 void onFrameEnd(emscripten::val callback) {
     webplatform->onFrameEnd = callback;
 }
@@ -98,7 +94,6 @@ EMSCRIPTEN_BINDINGS(my_module) {
     emscripten::function("isRunning", &isRunning);
     
     emscripten::function("onFrameStart", &onFrameStart);
-    emscripten::function("onFrame", &onFrame);
     emscripten::function("onFrameEnd", &onFrameEnd);
 
     emscripten::function("resize", &resize);
