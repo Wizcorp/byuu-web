@@ -77,9 +77,12 @@ auto CPU::main() -> void {
     return step(16);
   }
 
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(r.pc.l.l0)) {
     eventInstruction->notify(disassembleInstruction(), disassembleContext());
   }
+  #endif
+  
   instruction();
 }
 

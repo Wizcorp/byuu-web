@@ -91,9 +91,12 @@ auto CPU::main() -> void {
     }
   }
 
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(PC)) {
     eventInstruction->notify(disassembleInstruction(), disassembleContext());
   }
+  #endif
+  
   instruction();
 
   if(Model::SuperGameBoy()) {

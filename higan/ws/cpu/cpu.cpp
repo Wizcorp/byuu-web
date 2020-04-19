@@ -24,6 +24,7 @@ auto CPU::unload() -> void {
 auto CPU::main() -> void {
   poll();
 
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled()
   && eventInstruction->address(uint20(V30MZ::r.cs * 16 + V30MZ::r.ip))
   ) {
@@ -31,6 +32,8 @@ auto CPU::main() -> void {
       eventInstruction->notify(instruction, disassembleContext());
     }
   }
+  #endif
+  
   exec();
 }
 

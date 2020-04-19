@@ -142,9 +142,12 @@ auto MCD::main() -> void {
     }
   }
 
+  #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(r.pc - 4)) {
     eventInstruction->notify(disassembleInstruction(r.pc - 4), disassembleContext());
   }
+  #endif
+  
   instruction();
 }
 

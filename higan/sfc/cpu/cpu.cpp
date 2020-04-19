@@ -35,11 +35,14 @@ auto CPU::main() -> void {
   if(r.stp) return instructionStop();
 
   if(!status.interruptPending) {
+    #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
     if(eventInstruction->enabled() && eventInstruction->address(r.pc.d)) {
       eventInstruction->notify(disassembleInstruction(), disassembleContext(), {
         "V:", pad(vcounter(), 3L), " ", "H:", pad(hcounter(), 4L), " I:", (uint)field()
       });
     }
+    #endif
+    
     return instruction();
   }
 
