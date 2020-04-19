@@ -30,12 +30,20 @@
 #if defined(__SIZEOF_INT128__)
   using int128_t = signed __int128;
   using uint128_t = unsigned __int128;
-
   #define INTMAX_BITS 128
+#else
+  #define INTMAX_BITS 64
+#endif
+
+// override this on wasm as other types will not use correct bitwise operators
+// and in turn won't overflow/underflow correctly
+#if defined(__EMSCRIPTEN__)
+  using intmax = int;
+  using uintmax = uint;
+#elif defined(__SIZEOF_INT128__)
   using intmax = int128_t;
   using uintmax = uint128_t;
 #else
-  #define INTMAX_BITS 64
   using intmax = intmax_t;
   using uintmax = uintmax_t;
 #endif
