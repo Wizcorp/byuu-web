@@ -23,6 +23,7 @@ with open(packageJsonFile) as packageFile:
     version = data['version']
 
 process = subprocess.Popen(['git', 'diff-index', '--quiet', 'HEAD'])
+process.wait()
 isDirty = process.returncode
 
 if isDirty != 0:
