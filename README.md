@@ -99,7 +99,6 @@ module.exports = {
     }
   }
 }
-
 ```
 
 > ./src/components/HelloByuu.vue

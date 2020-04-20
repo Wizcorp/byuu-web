@@ -1,5 +1,5 @@
 let lib;
-let initialized = false;
+let initialized = false
 
 function getBinaryPath() {
   try {
@@ -34,6 +34,11 @@ byuu.EmulatorEvent = {
 }
 
 import Module from './byuu-web-lib.js'
+
+// The following are injected at build time
+byuu.version = '$version'
+byuu.commit = '$commit'
+byuu.dirty = $dirty
 
 byuu.initialize = async function (container, height, width) {
   if (!container) {
@@ -74,8 +79,8 @@ byuu.initialize = async function (container, height, width) {
         return prefix + filename
       },
       canvas
-    }).then((l) => {
-      lib = l
+    }).then((result) => {
+      lib = result
       lib.initialize(height, width)
   
       // Set callbacks, patch into event emission
@@ -124,6 +129,10 @@ byuu.isStarted = () => getModule().isStarted()
 byuu.isRunning = () => getModule().isRunning()
 
 byuu.resize = (height, width) => getModule().resize(height, width)
+
+byuu.setVolume = (volume) => getModule().setVolume(volume)
+
+byuu.setMute = (mute) => getModule().setMute(mute)
 
 byuu.connectPeripheral = (portName, peripheralName) => getModule().connectPeripheral(portName, peripheralName)
 

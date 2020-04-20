@@ -174,6 +174,14 @@ auto WebPlatform::resize(uint width, uint height) -> void {
     webvideo.resize(width, height);
 };
 
+auto WebPlatform::setVolume(uint volume) -> void {
+    webaudio.volume = volume;
+};
+
+auto WebPlatform::setMute(bool mute) -> void {
+    webaudio.muted = mute;
+};
+
 auto WebPlatform::attach(Node::Object node) -> void {
     // todo: should we attach screens?
     if(auto stream = node->cast<Node::Stream>()) {
@@ -227,8 +235,8 @@ auto WebPlatform::audio(Node::Stream stream) -> void {
         }
 
         //apply volume, balance, and clamping to the output frame
-        double volume = webaudio.volume / 100;
-        double balance = 0; // todo
+        double volume = webaudio.muted ? 0.0 : ((double) webaudio.volume) / 100;
+        double balance = 0; // todo: make audio balance reconfigurable
 
         for(uint c : range(2)) {
             samples[c] = max(-1.0, min(+1.0, samples[c] * volume));

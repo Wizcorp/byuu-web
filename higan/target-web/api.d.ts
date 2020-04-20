@@ -1,5 +1,9 @@
 import EventEmitter from 'eventemitter3'
 
+type ByuuVersion = '$version'
+type ByuuCommit = '$commit'
+type ByuuIsDirty = $dirty
+
 /**
  * Supported emulation cores
  * 
@@ -62,6 +66,21 @@ export interface SaveFiles {
  * width its id set to "canvas".
  */
 declare class Byuu extends EventEmitter<Event> {
+  /**
+   * The current version of byuu
+   */
+  readonly version: ByuuVersion
+
+  /**
+   * The commit hash attached to this release of byuu
+   */
+  readonly commit: ByuuCommit
+
+  /**
+   * Whether the build was generated from a dirty repository
+   */
+  readonly dirty: ByuuIsDirty
+  
   /**
    * Initialize the module
    * 
@@ -161,6 +180,20 @@ declare class Byuu extends EventEmitter<Event> {
    * @param height The height to apply to the render canvas
    */
   public resize(width: number, height: number) : void
+  
+  /**
+   * Set the volume of byuu's audio output
+   * 
+   * @param volume Volume between 0 and 100
+   */
+  public setVolume(volume: number) : void
+
+  /**
+   * Mute or unmute byuu's audio
+   * 
+   * @param mute Set to true to mute, false to unmute
+   */
+  public setMute(mute: boolean) : void
 
   /**
    * Connect a new peripheral

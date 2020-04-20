@@ -11,7 +11,9 @@ struct WebAudio {
 	uint frequency = 48000;
 	uint latency = 100;
 	uint volume = 100;
-	uint blocking = false;
+
+	bool muted = false;
+	bool blocking = false;
 
 	uint queueLength = 0;
 	uint32_t* buffer = nullptr;

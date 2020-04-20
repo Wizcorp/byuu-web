@@ -60,6 +60,8 @@ struct WebPlatform : higan::Platform {
 
         auto run() -> void;
         auto resize(uint width, uint height) -> void;
+        auto setVolume(uint volume) -> void;
+        auto setMute(bool mute) -> void;
 
         auto attach(Object object) -> void override;
         auto detach(Object object) -> void override;
