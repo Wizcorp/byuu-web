@@ -106,16 +106,14 @@ module.exports = {
 
 ```vue
 <template>
-  <div class="byuu">
-    <canvas ref="canvas"></canvas>
-  </div>
+  <div ref="container"></div>
 </template>
 <script>
 import byuu from 'byuu'
 
 export default {
   async mounted () {
-    await byuu.initialize(this.$refs.canvas, 800, 600)
+    await byuu.initialize(this.$refs.container, 800, 600)
     await byuu.loadURL('/path/to/rom.sfc')
     byuu.start()
   },
