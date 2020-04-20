@@ -4,13 +4,17 @@ name := byuu-web
 debug_host := 127.0.0.1
 wasm := true
 debug := false
+profile := false
 synchro := true
 eventinstruction_notify := false
 
 ifeq ($(wasm), true)
   flags += -s WASM=1 
   ifeq ($(debug), true)
-	flags += -g4 --profiling --cpuprofiler 
+	flags += -DWEB_DEBUG -g4 
+  endif
+  ifeq ($(profile), true) 
+	flags += --profiling --cpuprofiler 
 	# flags += --memoryprofiler
   endif
 else
@@ -94,6 +98,7 @@ serve:
 	python ./target-web/serve.py \
     ${CURDIR}/.. \
     ${CURDIR}/out/app \
+    ${CURDIR}/out/package \
     ${CURDIR}/target-web \
     ${CURDIR} \
     ${EMSDK}=/emsdk

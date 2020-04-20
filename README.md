@@ -22,6 +22,10 @@ Go to https://wizcorp.github.io/byuu-web and enjoy!
 
 ### Library
 
+See [the API documentation](./higan/target-web/api.d.ts) to learn how
+to connect controllers and so on! You can also have a look at the 
+git repository's app code to see a relatively complete implementation example.
+
 > Installing the library
 
 ```shell
@@ -31,26 +35,26 @@ npm install byuu
 The package contains a [TypeScript](https://www.typescriptlang.org/) type definition where the 
 documentation of the [available API](./higan/target-web/api.d.ts) can be found.
 
-> Example
+> ./index.js
 
 ```js
-import emulator from 'byuu'
-const canvas = document.getElementById('canvas')
+import byuu from 'byuu'
 const romPath = '/path/to/rom.sfc'
+const container = document.body
 
 // Initialization is only needed once
-emulator.init(canvas, 800, 600)
-  .then(() => emulator.loadURL(romPath))
+byuu.initialize(container, 800, 600)
+  .then(() => byuu.loadURL(romPath))
   .then((romInfo) => {
     console.log(`Loaded ${romPath}`, romInfo)
-    if (emulator.start()) {
+    if (byuu.start()) {
       console.log('Emulator started successfully!')
     }
   })
 ```
 
-It is also possible to use this component in Webpack-based projects; however, 
-it will require the [file-loader](https://webpack.js.org/loaders/file-loader/) loader
+When using with Webpack, you will be required to use the 
+[file-loader](https://webpack.js.org/loaders/file-loader/) loader
 to allow this library to properly load its WASM code.
 
 > webpack.config.js
@@ -107,22 +111,21 @@ module.exports = {
   </div>
 </template>
 <script>
-import emulator from 'byuu'
+import byuu from 'byuu'
 
 export default {
   async mounted () {
-    await emulator.init(this.$refs.canvas, 800, 600)
-    await emulator.loadURL('/games/link.sfc')
-    emulator.start()
+    await byuu.initialize(this.$refs.canvas, 800, 600)
+    await byuu.loadURL('/path/to/rom.sfc')
+    byuu.start()
+  },
+  beforeDestroy() {
+    byuu.terminate()
   }
 }
 </script>
 <style scoped></style>
 ```
-
-See [the API documentation](./higan/target-web/api.d.ts) to learn how
-to connect controllers and so on! You can also have a look at the 
-git repository's app code to see a relatively complete implementation example.
 
 ## Development
 

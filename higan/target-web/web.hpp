@@ -1,4 +1,8 @@
+#if defined(WEB_DEBUG)
 #define DEBUG_LOG(...) printf(__VA_ARGS__)
+#else
+#define DEBUG_LOG(...)
+#endif
 
 #include <emulator/emulator.hpp>
 

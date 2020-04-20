@@ -42,18 +42,19 @@ struct WebPlatform : higan::Platform {
 
         // Frame event callbacks
         emscripten::val onFrameStart = emscripten::val::null();
-        emscripten::val onFrame = emscripten::val::null();
         emscripten::val onFrameEnd = emscripten::val::null();
 
-        auto init(uint width, uint height) -> void;
+        WebPlatform();
 
-        auto getEmulatorNameForFilename(const char *path) -> string;
+        auto initialize(uint width, uint height) -> bool;
+
         auto getROMInfo(const char *path, uint8_t *rom, int size) -> emscripten::val;
-
+        
+        auto getEmulatorForFilename(const char *path) -> string;
         auto setEmulator(const char *emulatorName) -> bool;
         auto setEmulatorForFilename(const char *path) -> bool;
         
-        auto load(const char *path, uint8_t *rom, int size, emscripten::val files) -> emscripten::val;
+        auto load(uint8_t *rom, int size, emscripten::val files) -> emscripten::val;
         auto loadURL(const char *url, emscripten::val files, emscripten::val callback) -> void;
         auto unload() -> void;
 

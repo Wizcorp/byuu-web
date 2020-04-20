@@ -787,7 +787,7 @@
 
           // Initialize the emulator platform
           const { width, height } = getDesiredCanvasSize();
-          Module.init(width, height);
+          Module.initialize(width, height);
 
           // Gamepad polling and FPS counter
           Module.onFrameStart(() => {
@@ -1283,10 +1283,13 @@
 
         const { emulator, romData } = await getGame(filename);
         const save = await gameLoad(filename);
-        Module.load(filename, romData, save);
+
+        Module.setEmulator(emulator);
+        Module.load(romData, save);
 
         gameLoadingElement.style.display = 'none';
         localStorage.setItem(LAST_GAME, select.value);
+        
         Module.info.isRunning = true;
         Module.info.currentGame = filename;
 

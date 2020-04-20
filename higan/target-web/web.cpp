@@ -41,17 +41,6 @@ bool stop() {
     return true;
 }
 
-/*  bootstrap */
-void init(uint width, uint height) { return webplatform->init(width, height); }
-std::string getEmulatorNameForFilename(std::string path) { return webplatform->getEmulatorNameForFilename(path.c_str()).data(); };
-emscripten::val getROMInfo(std::string path, std::string rom) { return webplatform->getROMInfo(path.c_str(), (uint8_t *) rom.c_str(), rom.size()); }
-
-bool setEmulator(std::string emulatorName) { return webplatform->setEmulator(emulatorName.c_str()); }
-bool setEmulatorForFilename(std::string path) { return webplatform->setEmulatorForFilename(path.c_str()); }
-emscripten::val load(std::string path, std::string rom, emscripten::val files) { 
-    return webplatform->load(path.c_str(), (uint8_t *) rom.c_str(), rom.size(), files); 
-}
-void loadURL(std::string url, emscripten::val files, emscripten::val callback) { return webplatform->loadURL(url.c_str(), files, callback); }
 void unload() { 
     if (webplatform->started) {
         stop(); 
@@ -59,6 +48,21 @@ void unload() {
     
     return webplatform->unload(); 
 }
+
+/*  bootstrap */
+bool initialize(uint width, uint height) { return webplatform->initialize(width, height); }
+
+std::string getEmulatorForFilename(std::string path) { return webplatform->getEmulatorForFilename(path.c_str()).data(); };
+emscripten::val getROMInfo(std::string path, std::string rom) { return webplatform->getROMInfo(path.c_str(), (uint8_t *) rom.c_str(), rom.size()); }
+
+bool setEmulator(std::string emulatorName) { return webplatform->setEmulator(emulatorName.c_str()); }
+bool setEmulatorForFilename(std::string path) { return webplatform->setEmulatorForFilename(path.c_str()); }
+
+emscripten::val load(std::string rom, emscripten::val files) { 
+    return webplatform->load((uint8_t *) rom.c_str(), rom.size(), files); 
+}
+void loadURL(std::string url, emscripten::val files, emscripten::val callback) { return webplatform->loadURL(url.c_str(), files, callback); }
+
 
 /* configuration */
 void resize(uint width, uint height) { webplatform->resize(width, height); }
@@ -78,8 +82,8 @@ bool stateLoad(std::string state) { return webplatform->stateLoad(state.c_str(),
 emscripten::val save() { return webplatform->save(); }
 
 EMSCRIPTEN_BINDINGS(my_module) {
-    emscripten::function("init", &init);
-    emscripten::function("getEmulatorNameForFilename", &getEmulatorNameForFilename);
+    emscripten::function("initialize", &initialize);
+    emscripten::function("getEmulatorForFilename", &getEmulatorForFilename);
     emscripten::function("setEmulator", &setEmulator);
     emscripten::function("setEmulatorForFilename", &setEmulatorForFilename);
 

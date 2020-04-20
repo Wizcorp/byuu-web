@@ -297,7 +297,9 @@ inline auto directory::copy(const string& source, const string& target) -> bool 
       if(name.endsWith("/")) directory::remove({pathname, name});
       else file::remove({pathname, name});
     }
-    return rmdir(pathname) == 0;
+
+    // In build environments such as emscripten, the trailing slash is taken as part of the file name
+    return rmdir(pathname.slice(0, pathname.size() - 1)) == 0;
   }
 
   inline auto directory::exists(const string& pathname) -> bool {

@@ -1,6 +1,6 @@
 #include "../web.hpp"
 
-void WebVideo::init(uint width, uint height) {
+void WebVideo::initialize(uint width, uint height) {
     if (!renderer) {
         DEBUG_LOG("Initializing video\n");
 

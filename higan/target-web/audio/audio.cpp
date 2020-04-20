@@ -1,6 +1,6 @@
 #include "../web.hpp"
 
-void WebAudio::init() {
+void WebAudio::initialize() {
     // Audio
     if (!device) {
         device = alcOpenDevice(NULL);

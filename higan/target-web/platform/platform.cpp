@@ -3,14 +3,20 @@
 
 using namespace higan;
 
-auto WebPlatform::init(uint width, uint height) -> void {
-    DEBUG_LOG("Initializing web platform\n");
+WebPlatform::WebPlatform() {
     higan::platform = this;
     Emulator::construct();
-    webvideo.init(width, height);
+}
+
+auto WebPlatform::initialize(uint width, uint height) -> bool {
+    DEBUG_LOG("Initializing web platform\n");
+    webvideo.initialize(width, height);
+    DEBUG_LOG("Web platform initialized\n");
+
+    return true;
 };
 
-auto WebPlatform::getEmulatorNameForFilename(const char *path) -> string {
+auto WebPlatform::getEmulatorForFilename(const char *path) -> string {
     auto ext = getFilenameExtension(path);
 
     if (auto emulator = getEmulatorByExtension(ext)) {
@@ -61,21 +67,25 @@ auto WebPlatform::setEmulatorForFilename(const char *path) -> bool {
     return true;
 }
 
-auto WebPlatform::load(const char *path, uint8_t *rom, int size, emscripten::val files) -> emscripten::val {
+auto WebPlatform::load(uint8_t *rom, int size, emscripten::val files) -> emscripten::val {
     // todo: We should probably do something better than wait for user input 
     // to trigger audio setup
-    webaudio.init();
+    webaudio.initialize();
 
-    if (!setEmulatorForFilename(path)) {
+    if (!this->emulator) {
         return emscripten::val::null(); 
     }
 
     // Reset games folder
     if (directory::exists(Emulator::GameFolder)) {
-        directory::remove(Emulator::GameFolder);
+        if(!directory::remove(Emulator::GameFolder)) {
+            DEBUG_LOG("Failed to clear game folder");
+        }
     }
 
-    directory::create(Emulator::GameFolder);
+    if(!directory::create(Emulator::GameFolder)) {
+        DEBUG_LOG("Failed to create game folder\n");
+    }
 
     // todo: we should be able to simply keep this in memory and have the emulator access that data... going over file is pretty much useless
     if (!files.isNull() && !files.isUndefined()) {
@@ -85,21 +95,20 @@ auto WebPlatform::load(const char *path, uint8_t *rom, int size, emscripten::val
         for (int i = 0; i < length; ++i) {
             auto filename = fileEntries[i][0].as<std::string>();
             auto filedata = fileEntries[i][1].as<std::string>();
-            file::write({Emulator::GameFolder, "/", filename.c_str()}, {filedata.c_str(), filedata.size()});
+            file::write({Emulator::GameFolder, filename.c_str()}, {filedata.c_str(), filedata.size()});
         }
     }
 
     vector<uint8_t> *data = new vector<uint8_t>();
     data->acquire(rom, size);
-    this->emulator->load(path, *data);
+
+    // Todo: Remove path entirely, if possible 
+    this->emulator->load("game", *data);
     return getEmulatorAndGameInfo(this->emulator, this->emulator->game.manifest);
 }
 
 auto WebPlatform::loadURL(const char *url, emscripten::val files, emscripten::val callback) -> void {
-    auto extension = getFilenameExtension(url);
-    this->emulator = getEmulatorByExtension(extension);
-
-    if (!this->emulator) {
+    if (!setEmulatorForFilename(url)) {
         DEBUG_LOG("No emulator found for: %s\n", url);
         callback(WebPlatform::Error::MATCHING_EMULATOR_NOT_FOUND, 0);
         return;
@@ -122,7 +131,7 @@ auto WebPlatform::loadURL(const char *url, emscripten::val files, emscripten::va
             auto callback = container->callback;
 
             try {
-                callback(0, instance->load(url, (uint8_t*) buffer, size, files));
+                callback(0, instance->load((uint8_t*) buffer, size, files));
             } catch (...) {
                 DEBUG_LOG("Failed to load data into emulator: %s\n", url);
                 callback(WebPlatform::Error::EMULATOR_ROM_LOAD_FAILED, 0);
@@ -286,7 +295,7 @@ auto WebPlatform::save() -> emscripten::val {
 
     auto filenames = directory::files(Emulator::GameFolder);
     for (auto filename : filenames) {
-        auto file = file::read({Emulator::GameFolder, "/", filename});
+        auto file = file::read({Emulator::GameFolder, filename});
         auto view = emscripten::typed_memory_view(file.size(), file.data());
         auto buffer = emscripten::val(view);
         files.set(filename.data(), buffer);

@@ -1,22 +1,39 @@
 import EventEmitter from 'eventemitter3'
 
-// todo: add all other emulation cores
+/**
+ * Supported emulation cores
+ * 
+ * @todo add all other emulation cores
+ */
 export const enum Emulator {
   Famicom = 'Famicom',
   SuperFamicom = 'Superfamicom',
 }
 
-export const enum EmulatorEvent {
+/**
+ * Events that are fired by byuu
+ */
+export const enum Event {
   FrameStart = 'frame.start',
   FrameEnd = 'frame.end',
 }
 
+/**
+ * ROM metadata node 
+ */
 export interface BMLNode {
   name: string
   value: string
   children: BMLNode[]
 }
 
+/**
+ * ROM related information
+ * 
+ * The information provided is for both the console emulator and the
+ * data found in the ROM itself. Note that data attributes may vary depending
+ * on emulated console, cartridge format, and cartridges.
+ */
 export interface ROMInfo {
   emulator: {
     name: Emulator
@@ -26,6 +43,11 @@ export interface ROMInfo {
   rom: BMLNode[]
 }
 
+/**
+ * List of files generated on save
+ * 
+ * Each file represent the data of a RAM component (generally on cartridge).
+ */
 export interface SaveFiles {
   [filename: string]: Uint8Array
 }
@@ -39,16 +61,22 @@ export interface SaveFiles {
  * This library will require the DOM to already have a <canvas> element
  * width its id set to "canvas".
  */
-declare class Byuu extends EventEmitter<EmulatorEvent> {
+declare class Byuu extends EventEmitter<Event> {
   /**
    * Initialize the module
    * 
    * This method needs to be called before any other methods can be used
    * 
+   * @param container The DOM element in which the canvas element byuu renders in will be appended
    * @param width The width to apply to the render canvas
    * @param height The height to apply to the render canvas
    */
-  public init(width: number, height: number) : Promise<void>
+  public initialize(container: HTMLCanvasElement, width: number, height: number) : Promise<void>
+
+  /**
+   * Stop, unload byuu, and remove canvas
+   */
+  public terminate() : boolean
 
   /**
    * Find applicable emulator for a given file name
@@ -58,7 +86,7 @@ declare class Byuu extends EventEmitter<EmulatorEvent> {
    * 
    * @param filename ROM file name with extension
    */
-  public getEmulatorNameForFilename(filename: string) : Emulator | ""
+  public getEmulatorForFilename(filename: string) : Emulator | ""
 
   /**
    * Explicitly set the emulator by name
@@ -77,11 +105,10 @@ declare class Byuu extends EventEmitter<EmulatorEvent> {
   /**
    * Load a ROM
    * 
-   * @param filename ROM file name with extension
    * @param romData Byte array with the ROM's content
    * @param saveFiles List of files generated on save (see Emulator.save)
    */
-  public load(filename: string, romData: Uint8Array, saveFiles?: SaveFiles) : ROMInfo
+  public load(romData: Uint8Array, saveFiles?: SaveFiles) : ROMInfo
 
   /**
    * Download and load a remote ROM
