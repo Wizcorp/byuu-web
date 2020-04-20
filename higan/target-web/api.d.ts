@@ -67,11 +67,11 @@ declare class Byuu extends EventEmitter<Event> {
    * 
    * This method needs to be called before any other methods can be used
    * 
-   * @param container The DOM element in which the canvas element byuu renders in will be appended
+   * @param container The DOM element to which the canvas element byuu renders in will be appended
    * @param width The width to apply to the render canvas
    * @param height The height to apply to the render canvas
    */
-  public initialize(container: HTMLCanvasElement, width: number, height: number) : Promise<void>
+  public initialize(container: HTMLElement, width: number, height: number) : Promise<void>
 
   /**
    * Stop, unload byuu, and remove canvas
