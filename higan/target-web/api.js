@@ -1,5 +1,23 @@
+// String enums
+export const Emulator = {
+  Famicom: 'Famicom',
+  SuperFamicom: 'Superfamicom',
+}
+
+export const EmulatorEvent = {
+  FrameStart: 'frame.start',
+  FrameEnd: 'frame.end',
+}
+
 let lib;
 let initialized = false
+
+import Module from './byuu-web-lib.js'
+
+// The following are injected at build time
+export const version = '$version'
+export const commit = '$commit'
+export const dirty = $dirty
 
 function getBinaryPath() {
   try {
@@ -21,24 +39,6 @@ import EventEmitter from 'eventemitter3'
 const byuu = new EventEmitter()
 const canvas = document.createElement('canvas')
 canvas.id = 'canvas'
-
-// String enums
-byuu.Emulator = {
-  Famicom: 'Famicom',
-  SuperFamicom: 'Superfamicom',
-}
-
-byuu.EmulatorEvent = {
-  FrameStart: 'frame.start',
-  FrameEnd: 'frame.end',
-}
-
-import Module from './byuu-web-lib.js'
-
-// The following are injected at build time
-byuu.version = '$version'
-byuu.commit = '$commit'
-byuu.dirty = $dirty
 
 byuu.initialize = async function (container, height, width) {
   if (!container) {

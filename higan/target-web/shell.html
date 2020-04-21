@@ -932,7 +932,7 @@
         let addedCount = 0;
 
         for (const file of files) {
-          if (Module.getEmulatorNameForFilename(file.name.toLowerCase()) === '') {
+          if (Module.getEmulatorForFilename(file.name.toLowerCase()) === '') {
             notify(`
               <h1>💀Invalid ROM file</h1>
               <p>
