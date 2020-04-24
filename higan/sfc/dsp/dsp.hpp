@@ -1,3 +1,6 @@
+#if defined(PROFILE_PERFORMANCE)
+#include "../dsp-performance/dsp.hpp"
+#else
 //Sony CXD1222Q-1
 
 struct DSP : Thread {
@@ -187,3 +190,4 @@ private:
 };
 
 extern DSP dsp;
+#endif

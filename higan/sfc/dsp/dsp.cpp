@@ -1,3 +1,6 @@
+#if defined(PROFILE_PERFORMANCE)
+#include "../dsp-performance/dsp.cpp"
+#else
 #include <sfc/sfc.hpp>
 
 namespace higan::SuperFamicom {
@@ -215,3 +218,4 @@ auto DSP::power(bool reset) -> void {
 }
 
 }
+#endif
