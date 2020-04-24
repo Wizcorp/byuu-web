@@ -4,7 +4,7 @@ name := byuu-web
 debug_host := 127.0.0.1
 wasm := true
 debug := false
-profile := false
+profiler := false
 synchro := true
 eventinstruction_notify := false
 
@@ -13,7 +13,7 @@ ifeq ($(wasm), true)
   ifeq ($(debug), true)
 	flags += -DWEB_DEBUG -g4 
   endif
-  ifeq ($(profile), true) 
+  ifeq ($(profiler), true) 
 	flags += --profiling --cpuprofiler 
 	# flags += --memoryprofiler
   endif
