@@ -1,7 +1,7 @@
 debug_host := 127.0.0.1
 wasm := true
 debug := false
-profile := false
+profiler := false
 synchro := true
 
 .DEFAULT:
@@ -9,5 +9,5 @@ synchro := true
 		wasm=$(wasm) \
 		synchro=$(synchro) \
 		debug=$(debug) \
-		profile=$(profile) \
+		profiler=$(profiler) \
 		debug_host=$(debug_host)
