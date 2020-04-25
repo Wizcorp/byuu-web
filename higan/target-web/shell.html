@@ -437,7 +437,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="paused">
     <!-- Loading overlay -->
     <div id="overlay">
       <div class="container">
@@ -916,12 +916,12 @@
       // Set the desired canvas size to screen width on mobile, 
       // max out the size to 1600x1200 on desktop
       function getDesiredCanvasSize() {
-        let width = 1600;
-        let height = 1200;
+        let width = 800;
+        let height = 600;
 
         if (device.isMobile) {
-          width = window.innerWidth;
-          height = width * 3 / 4;
+          width = 300;
+          height = 225;
         }
 
         return { width, height };

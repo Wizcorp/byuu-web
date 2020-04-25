@@ -11,6 +11,7 @@ WebPlatform::WebPlatform() {
 auto WebPlatform::initialize(uint width, uint height) -> bool {
     DEBUG_LOG("Initializing web platform\n");
     webvideo.initialize(width, height);
+    webaudio.initialize();
     DEBUG_LOG("Web platform initialized\n");
 
     return true;
@@ -68,9 +69,7 @@ auto WebPlatform::setEmulatorForFilename(const char *path) -> bool {
 }
 
 auto WebPlatform::load(uint8_t *rom, int size, emscripten::val files) -> emscripten::val {
-    // todo: We should probably do something better than wait for user input 
-    // to trigger audio setup
-    webaudio.initialize();
+    webaudio.resume();
 
     if (!this->emulator) {
         return emscripten::val::null(); 

@@ -21,5 +21,6 @@ struct WebAudio {
 	uint bufferSize = 0;
 
 	void initialize();
+	bool resume();
 	void output(double samples[2]);
 };
