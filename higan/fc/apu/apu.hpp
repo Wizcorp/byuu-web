@@ -1,3 +1,6 @@
+#if defined(PROFILE_PERFORMANCE)
+#include <fc/apu-performance/apu.hpp>
+#else
 struct APU : Thread {
   Node::Component node;
   Node::Stream stream;
@@ -180,3 +183,4 @@ struct APU : Thread {
 };
 
 extern APU apu;
+#endif

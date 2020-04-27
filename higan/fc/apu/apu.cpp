@@ -1,3 +1,6 @@
+#if defined(PROFILE_PERFORMANCE)
+#include <fc/apu-performance/apu.cpp>
+#else
 #include <fc/fc.hpp>
 
 namespace higan::Famicom {
@@ -317,3 +320,4 @@ const uint16 APU::dmcPeriodTablePAL[16] = {
 };
 
 }
+#endif
