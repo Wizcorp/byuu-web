@@ -20,6 +20,30 @@ SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map.update({
 class ThreadingSimpleServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     pass
 class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+    error_message_format = '''
+    <html>
+      <head>
+        <title>byuu \\\\ web</title>
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Muli:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Press+Start+2P&display=swap" rel="stylesheet">
+        <style>
+          body {
+            background: #070708; 
+            font-family: 'Muli', sans-serif;
+            color:  #F7F8EE;
+          }
+          strong {
+              display: inline;
+              color: #E94F37;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Build required</h1>
+        <p>Make sure to run <strong>make app</strong> and reload this page.</p>
+      </body>
+    </html>
+    '''
     def end_headers(self):
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self.send_header("Pragma", "no-cache")

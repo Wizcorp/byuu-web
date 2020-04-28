@@ -24,27 +24,12 @@ void WebAudio::initialize() {
         // See: https://github.com/Wizcorp/byuu-web/commit/1c28542c7a2c68fcd57332516d361cec18f3dfef
         // See: https://stackoverflow.com/a/46839941/262831
         EM_ASM({
-            const unlock = () => {
-                const isUnlocked = () => this.isWebAudioUnlocked;
-                const removeEventListener = () => {
-                    if (isUnlocked()) {
-                        document.body.removeEventListener('touchstart', unlock);
-                    }
-                };
-
-                if (isUnlocked()) return;
-
-                // Unlock WebAudio - create short silent buffer and play it
-                // This will allow us to play web audio at any time in the app
+            window.addEventListener('touchstart', () => {
                 const { audioCtx } = AL.currentCtx;
-                const buffer = audioCtx.createBuffer(1, 1, 22050); // 1/10th of a second of silence
-                const source = audioCtx.createBufferSource();
-                Object.assign(source, { buffer, onended: () => removeEventListener(this.isWebAudioUnlocked = true) });
-                source.connect(audioCtx.destination);
-                source.start();
-            };
-
-            document.body.addEventListener('touchstart', unlock);
+                if(audioCtx.state == 'suspended') {
+                    audioCtx.resume();
+                }
+            }, { once: true });
         });
     }
 

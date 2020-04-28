@@ -17,7 +17,7 @@ export const enum Emulator {
 /**
  * Events that are fired by byuu
  */
-export const enum Event {
+export const enum EmulatorEvent {
   FrameStart = 'frame.start',
   FrameEnd = 'frame.end',
 }
@@ -65,7 +65,7 @@ export interface SaveFiles {
  * This library will require the DOM to already have a <canvas> element
  * width its id set to "canvas".
  */
-declare class Byuu extends EventEmitter<Event> {
+declare class Byuu extends EventEmitter<EmulatorEvent> {
   /**
    * The current version of byuu
    */
