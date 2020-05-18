@@ -143,7 +143,10 @@ byuu.setButton = (portName, buttonName, value) => getModule().setButton(portName
 byuu.getROMInfo = (filename, romData) => getModule().getROMInfo(filename, romData)
 
 byuu.stateSave = async () => new Promise((resolve) => {
-  getModule().stateSave(resolve)
+  getModule().stateSave(({ buffer, byteOffset, byteLength }) => {
+    const array = new Uint8Array(buffer.slice(byteOffset, byteOffset + byteLength))
+    resolve(array)
+  })
 })
 
 byuu.stateLoad = (stateData) => getModule().stateLoad(stateData)
@@ -154,7 +157,7 @@ byuu.stateLoad = (stateData) => getModule().stateLoad(stateData)
 byuu.save = () => {
   const saveFiles = getModule().save()
   for (const [filename, { buffer, byteOffset, byteLength }] of Object.entries(saveFiles)) {
-    saveFiles[filename] = buffer.slice(byteOffset, byteOffset + byteLength);
+    saveFiles[filename] = new Uint8Array(buffer.slice(byteOffset, byteOffset + byteLength))
   }
 
   return saveFiles
