@@ -52,7 +52,7 @@ auto APU::setIRQ(void* _this) -> void {
 }
 
 auto APU::readDMC(void* _this, cpu_addr_t addr) -> int {
-  return cpu.read(addr);
+  return bus.read(addr);
 }
 
 auto APU::power(bool reset) -> void {
