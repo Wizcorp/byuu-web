@@ -77,9 +77,6 @@ auto PPU::renderSprite() -> void {
   o.x    = oam[n * 4 + 3];
 }
 
-#if defined(SCHEDULER_SYNCHRO)
-#include "render-synchro.cpp"
-#else
 auto PPU::renderScanline() -> void {
   //Vblank
   if(io.ly >= 240 && io.ly <= vlines() - 2) return step(341), scanline();
@@ -212,4 +209,3 @@ auto PPU::renderScanline() -> void {
 
   return scanline();
 }
-#endif

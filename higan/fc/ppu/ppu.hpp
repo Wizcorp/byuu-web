@@ -1,20 +1,4 @@
 struct PPU : Thread {
-  int callcount = 0;
-
-  // State used in renderScanline
-  struct {
-    uint attribute;
-    uint nametable;
-    bool scanlineAfterVBlankCycles;
-    bool skip;
-    uint sprite; 
-    uint spriteY;
-    uint tileaddr;
-    uint tiledataHi;
-    uint tiledataLo;
-    uint vBlankCycles;
-  } renderState;
-
   Node::Component node;
   Node::Screen screen;
   Node::String region;
@@ -28,11 +12,8 @@ struct PPU : Thread {
   auto unload() -> void;
 
   auto main() -> void;
-  #if defined(SCHEDULER_SYNCHRO)
-  inline auto step() -> void;
-  #else
   inline auto step(uint clocks) -> void;
-  #endif
+
   inline auto scanline() -> void;
   inline auto frame() -> void;
   auto refresh() -> void;
