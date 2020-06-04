@@ -22,7 +22,7 @@ struct Board {
   virtual auto save() -> void;
 
   virtual auto main() -> void;
-  virtual auto tick() -> void;
+  virtual auto tick(uint clocks = 1) -> void;
 
   virtual auto readPRG(uint addr) -> uint8 { return 0x00; }
   virtual auto writePRG(uint addr, uint8 data) -> void {}

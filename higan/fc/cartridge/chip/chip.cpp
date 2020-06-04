@@ -12,6 +12,6 @@
 Chip::Chip(Board& board) : board(board) {
 }
 
-auto Chip::tick() -> void {
-  board.tick();
+auto Chip::tick(uint clocks) -> void {
+  board.tick(clocks);
 }

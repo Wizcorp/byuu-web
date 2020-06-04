@@ -113,8 +113,8 @@ auto Board::main() -> void {
   tick();
 }
 
-auto Board::tick() -> void {
-  cartridge.step(cartridge.rate());
+auto Board::tick(uint clocks) -> void {
+  cartridge.step(cartridge.rate() * clocks);
   cartridge.synchronize(cpu);
 }
 

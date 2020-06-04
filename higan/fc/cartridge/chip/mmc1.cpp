@@ -4,8 +4,16 @@ struct MMC1 : Chip {
   }
 
   auto main() -> void {
+    // The MMC1 mapper can be ticked by 32 cycles at a time without in theory
+    // breaking any official games.
+    #if defined(PROFILE_PERFORMANCE)
+    // We also need to disable write delay as we jump over delays alltogether
+    if(writedelay) writedelay = 0;
+    tick(32);
+    #else
     if(writedelay) writedelay--;
     tick();
+    #endif
   }
 
   auto addrPRG(uint addr) -> uint {
@@ -39,7 +47,13 @@ struct MMC1 : Chip {
 
   auto writeIO(uint addr, uint8 data) -> void {
     if(writedelay) return;
+
+    // If we're incrementing 32 cycles at a time, write delays will be jumped
+    // over, otherwise we need to set a 2 cycle write delay every write. i.e. we
+    // only write once every 3 frames
+    #if !defined(PROFILE_PERFORMANCE)
     writedelay = 2;
+    #endif
 
     if(data & 0x80) {
       shiftaddr = 0;
