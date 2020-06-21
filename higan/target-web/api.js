@@ -81,7 +81,10 @@ byuu.initialize = async function (container, height, width) {
       canvas
     }).then((result) => {
       lib = result
+      // Title hack is to get aroud SDL automatically setting the window name
+      const title = document.title;
       lib.initialize(height, width)
+      document.title = title;
   
       // Set callbacks, patch into event emission
       lib.onFrameStart(() => byuu.emit('frame.start'))
