@@ -50,7 +50,7 @@ void unload() {
 }
 
 /*  bootstrap */
-bool initialize(uint width, uint height) { return webplatform->initialize(width, height); }
+bool initialize(std::string windowTitle, uint width, uint height) { return webplatform->initialize(windowTitle.c_str(), width, height); }
 
 std::string getEmulatorForFilename(std::string path) { return webplatform->getEmulatorForFilename(path.c_str()).data(); };
 emscripten::val getROMInfo(std::string path, std::string rom) { return webplatform->getROMInfo(path.c_str(), (uint8_t *) rom.c_str(), rom.size()); }

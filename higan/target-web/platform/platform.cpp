@@ -8,9 +8,9 @@ WebPlatform::WebPlatform() {
     Emulator::construct();
 }
 
-auto WebPlatform::initialize(uint width, uint height) -> bool {
+auto WebPlatform::initialize(const char *windowTitle, uint width, uint height) -> bool {
     DEBUG_LOG("Initializing web platform\n");
-    webvideo.initialize(width, height);
+    webvideo.initialize(windowTitle, width, height);
     webaudio.initialize();
     DEBUG_LOG("Web platform initialized\n");
 

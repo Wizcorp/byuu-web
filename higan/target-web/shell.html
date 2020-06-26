@@ -787,7 +787,7 @@
 
           // Initialize the emulator platform
           const { width, height } = getDesiredCanvasSize();
-          Module.initialize(width, height);
+          Module.initialize(document.title, width, height);
 
           // Gamepad polling and FPS counter
           Module.onFrameStart(() => {
