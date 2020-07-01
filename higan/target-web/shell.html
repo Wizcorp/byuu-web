@@ -50,6 +50,9 @@
         max-width: 1600px;
       }
 
+      .mobile #main {
+        max-width: 100%;
+      }
 
       @media (max-width: 1600px) { 
         #main {
@@ -64,6 +67,61 @@
           max-width: 600px;
         } 
       }
+
+      #fpsWrapper {
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+
+      #pauseMenuButton {
+        display: none;
+        position: absolute;
+        z-index: 101;
+        left: calc(50% - 20px);
+        bottom: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
+        background: rgba(100, 100, 100, 0.5) url('./assets/images/menu.png') 50% 50% no-repeat;
+        background-size: 24px;
+      }
+      .mobile #pauseMenuButton {
+        display: block;
+      }
+
+      @media screen and (orientation: landscape) {
+        #pauseMenuButton {
+          left: 20px;
+          top: 20px;
+          bottom: auto;
+        }
+      }
+
+      #pauseMenu {
+        position: absolute;
+        z-index: 102;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: black;
+      }
+
+      #closePauseMenuButton {
+        display: none;
+        position: absolute;
+        top: -60px;
+        left: calc(50% - 20px);
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
+        background: rgba(100, 100, 100, 0.5) url('./assets/images/arrowDown.png') 50% 50% no-repeat;
+        background-size: 24px;
+      }
+      .mobile #closePauseMenuButton {
+        display: block;
+      }
+
 
       /* Action buttons */
       #actions {
@@ -173,7 +231,7 @@
 
       #display #canvas {
         display: block;
-        height: calc(100% - 30px);
+        height: 100%;
         width: 100%;
         margin: 0 auto;
         background-color: #070708;
@@ -326,12 +384,6 @@
         z-index: 100;
       }
 
-      .paused #controllers {
-        opacity: 0.4;
-        bottom: -75px;
-        transition: opacity ease-out 125ms, bottom ease-out 125ms;
-      }
-
       #controllers > div {
         position: absolute;
         display: block;
@@ -339,18 +391,6 @@
         bottom: -200px;
         width: 100%;
         height: 200px;
-        background: 
-          linear-gradient(27deg, #151515 5px, transparent 5px) 0 5px, 
-          linear-gradient(207deg, #151515 5px, transparent 5px) 10px 0px, 
-          linear-gradient(27deg, #222 5px, transparent 5px) 0px 10px, 
-          linear-gradient(207deg, #222 5px, transparent 5px) 10px 5px, 
-          linear-gradient(90deg, #1b1b1b 10px, transparent 10px), 
-          linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424);
-        background-color: #131313;
-        background-size: 20px 20px;
-        border-top: 5px solid #E94F37;
-        box-shadow: -5px 0 10px #070708;
-        transition: opacity ease-in 250ms, bottom ease-in 250ms;
       }
 
       #controllers .btn {
@@ -448,16 +488,13 @@
       </div>
     </div>
 
-    <div id="main">
-      <!-- Render canvas -->
-      <div id="display">
-        <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1 width="100%"></canvas>
-        <div id="game-loading">Loading</div>
-        <div id="notification-box">
-          <div class="container"></div>
-        </div>
-      </div>
+    <div id="fpsWrapper">
+    </div>
+    <div id="pauseMenuButton" style="display: none;">
+    </div>
 
+    <div id="pauseMenu" style="display: block;">
+      <div id="closePauseMenuButton"></div>
       <!-- Emulator functionalities -->
       <div id="actions">
         <div id="game-selector-container">
@@ -478,6 +515,17 @@
           <button type="button" class="btn btn-secondary" id="load-state">Load state</button>
           <button type="button" class="btn btn-secondary" id="toggle-keymap">Show keymap</button>
           <button type="button" class="btn btn-secondary" id="show-profiler">Profiler</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="main">
+      <!-- Render canvas -->
+      <div id="display">
+        <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1 width="100%"></canvas>
+        <div id="game-loading">Loading</div>
+        <div id="notification-box">
+          <div class="container"></div>
         </div>
       </div>
 
@@ -542,7 +590,7 @@
         <button type="button" value="Start" class="btn btn-secondary btn-sm" style="width: 70px; bottom: 10px; right: 10px; font-size: 10px; padding: 3px;">Start</button>
       </div>
     </div>
-    
+
     <script type='text/javascript'>
       // Where to store the last game in local storage
       const LAST_GAME = 'last-game';
@@ -558,9 +606,13 @@
       const spinnerElement = document.getElementById('spinner');
       const overlayElement = document.getElementById('overlay');
       const keymapsElement = document.getElementById('keymaps');
+      const fpsWrapper = document.getElementById('fpsWrapper');
+      const pauseMenu = document.getElementById('pauseMenu');
+      const pauseMenuButton = document.getElementById('pauseMenuButton');
+      const closePauseMenuButton = document.getElementById('closePauseMenuButton');
       
       let cpuprofilerElement = false;
-      const fpsMeter = new FPSMeter(displayElement, {
+      const fpsMeter = new FPSMeter(fpsWrapper, {
         theme: 'dark',
         position: 'relative',
         left: '0',
@@ -624,7 +676,14 @@
       window.addEventListener('resize', () => {
         device.check();
         devtools.check();
+        if (device.isMobile) {
+          document.body.classList.add('mobile');
+        } else {
+          document.body.classList.remove('mobile');
+        }
+        resizeVideo();
       });
+      resizeVideo();
 
       // Local database
       let db; 
@@ -784,6 +843,9 @@
             Module.setStatus('Failed to open database, see JavaScript console');
             return;
           }
+
+          pauseMenuButton.addEventListener('click', togglePauseMenu);
+          closePauseMenuButton.addEventListener('click', togglePauseMenu);
 
           // Initialize the emulator platform
           const { width, height } = getDesiredCanvasSize();
@@ -1032,11 +1094,7 @@
       }
 
       function requestFullscreen() {
-        if (device.isMobile) {
-          document.body.requestFullscreen();
-        } else {
-          mainElement.requestFullscreen();
-        }
+        document.body.requestFullscreen();
       }
 
       // Configure the controller buttons, and make the controller appear on screen
@@ -1302,6 +1360,9 @@
         connectAllGamepadPeripherals();
 
         setResume();
+        if (device.isMobile) {
+          togglePauseMenu();
+        }
       }
 
       // state save/load, save
@@ -1320,6 +1381,9 @@
           // todo: Emscripten returns a view on a really large buffer - is there a better way? 
           const buffer = state.buffer.slice(state.byteOffset, state.byteOffset + state.byteLength);
           await storeState(filename, index, buffer);
+          if (device.isMobile) {
+            togglePauseMenu();
+          }
         });
       }
 
@@ -1343,6 +1407,9 @@
             `, 'danger', 5000);
         }
         Module.stateLoad(state);
+        if (device.isMobile) {
+          togglePauseMenu();
+        }
       }
 
       async function gameSave(filename) {
@@ -1414,6 +1481,43 @@
       function hideOverlay() {
         overlayElement.style.opacity = 0;
         setTimeout(() => overlayElement.style.display = 'none', 250);
+      }
+
+      function togglePauseMenu() {
+        if (pauseMenu.style.display === 'none') {
+          pauseMenu.style.display = 'block';
+          pauseMenuButton.style.display = 'none';
+        } else {
+          pauseMenu.style.display = 'none';
+          pauseMenuButton.style.display = 'block';
+        }
+      }
+
+      function resizeVideo() {
+        if (device.isMobile) {
+          // resize for mobile
+          let w = window.innerWidth;
+          let h = window.innerHeight;
+
+          if (window.matchMedia('(min-aspect-ratio: 4/3)').matches) {
+            w = h * 1.333;
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+          } else {
+            // portrait
+            h = w * 0.75;
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+          }
+
+          // prevent document overflowing below viewport because it is pushed down by browser bars (especially on some iPhones with landscape rotation)
+          document.body.style.height = window.innerHeight + "px";
+        } else {
+          // resize for desktop
+          canvas.style.width = '100%';
+          canvas.style.height = '100%';
+          document.body.style.height = 'auto';
+        }
       }
     </script>
     {{{ SCRIPT }}}
