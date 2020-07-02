@@ -89,6 +89,7 @@ app: $(objects)
 		
 
 	mv ./out/app/$(name).html ./out/app/index.html
+	cp -R ./target-web/assets ./out/app/
 
 all: package app
 
