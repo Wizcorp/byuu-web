@@ -42,6 +42,13 @@ void WebAudio::initialize() {
     }
 }
 
+void WebAudio::terminate() {
+    free(buffer);
+    bufferLength = 0;
+    alcDestroyContext(context);
+    alcCloseDevice(device);
+}
+
 bool WebAudio::resume() {
     return EM_ASM_INT({
         if(!AL) {

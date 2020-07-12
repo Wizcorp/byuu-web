@@ -94,7 +94,9 @@ byuu.initialize = async function (container, height, width) {
 }
 
 byuu.terminate = () => {
+  byuu.stop()
   byuu.unload()
+  getModule().terminate()
   canvas.parentElement.removeChild(canvas)
 }
 

@@ -51,6 +51,7 @@ void unload() {
 
 /*  bootstrap */
 bool initialize(std::string windowTitle, uint width, uint height) { return webplatform->initialize(windowTitle.c_str(), width, height); }
+void terminate() { return webplatform->terminate(); }
 
 std::string getEmulatorForFilename(std::string path) { return webplatform->getEmulatorForFilename(path.c_str()).data(); };
 emscripten::val getROMInfo(std::string path, std::string rom) { return webplatform->getROMInfo(path.c_str(), (uint8_t *) rom.c_str(), rom.size()); }
@@ -80,6 +81,7 @@ emscripten::val save() { return webplatform->save(); }
 
 EMSCRIPTEN_BINDINGS(my_module) {
     emscripten::function("initialize", &initialize);
+    emscripten::function("terminate", &terminate);
     emscripten::function("getEmulatorForFilename", &getEmulatorForFilename);
     emscripten::function("setEmulator", &setEmulator);
     emscripten::function("setEmulatorForFilename", &setEmulatorForFilename);
