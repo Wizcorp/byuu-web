@@ -9,6 +9,7 @@ struct WebVideo {
 	uint height = 224;
 
     void initialize(const char *windowTitle, uint width, uint height);
+	void terminate();
 	void resize(uint width, uint height);
     void render(const void *data, uint pitch, uint frameWidth, uint frameHeight);
 };

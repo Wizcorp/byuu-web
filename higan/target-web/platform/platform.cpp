@@ -17,6 +17,11 @@ auto WebPlatform::initialize(const char *windowTitle, uint width, uint height) -
     return true;
 };
 
+auto WebPlatform::terminate() -> void {
+    webaudio.terminate();
+    webvideo.terminate();
+}
+
 auto WebPlatform::getEmulatorForFilename(const char *path) -> string {
     auto ext = getFilenameExtension(path);
 

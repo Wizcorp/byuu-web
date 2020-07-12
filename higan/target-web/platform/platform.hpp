@@ -47,6 +47,7 @@ struct WebPlatform : higan::Platform {
         WebPlatform();
 
         auto initialize(const char *windowTitle, uint width, uint height) -> bool;
+        auto terminate() -> void;
 
         auto getROMInfo(const char *path, uint8_t *rom, int size) -> emscripten::val;
         
