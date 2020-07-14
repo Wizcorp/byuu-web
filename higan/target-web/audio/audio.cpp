@@ -4,7 +4,9 @@ void WebAudio::initialize() {
     // Audio
     if (!device) {
         device = alcOpenDevice(NULL);
+    }
 
+    if (!context) {
         //Create a context
         context = alcCreateContext(device, NULL);
         
@@ -45,13 +47,15 @@ void WebAudio::initialize() {
 void WebAudio::terminate() {
     free(buffer);
     bufferLength = 0;
-    alcDestroyContext(context);
-    alcCloseDevice(device);
+    bufferSize = 0;
+
+    alSourceStop(source);
+    alSourcei(source, AL_BUFFER, NULL);
 }
 
 bool WebAudio::resume() {
     return EM_ASM_INT({
-        if(!AL) {
+        if(!AL || !AL.currentCtx) {
             return 0;
         }
 

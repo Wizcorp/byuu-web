@@ -13,8 +13,6 @@ void WebVideo::initialize(const char* windowTitle, uint width, uint height) {
 void WebVideo::terminate() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-    SDL_DestroyTexture(texture);
-    texture = nullptr;
 }
 
 void WebVideo::resize(uint width, uint height) {
