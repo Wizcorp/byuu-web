@@ -40,25 +40,12 @@ const byuu = new EventEmitter()
 const canvas = document.createElement('canvas')
 canvas.id = 'canvas'
 
-byuu.initialize = async function (container, height, width) {
+byuu.initialize = async function (container) {
   if (!container) {
     throw new Error('container parameter is not defined')
   }
 
-  if (!height) {
-    throw new Error('height parameter is not defined')
-  }
-
-  if (!width) {
-    throw new Error('width parameter is not defined')
-  }
-
   container.appendChild(canvas)
-
-  if (initialized) {
-    lib.resize(height, width)
-    return
-  }
 
   // Emscripten's SDL port enforces that the id of the canvas be canvas
   // https://github.com/emscripten-ports/SDL2/blob/952f889879ba3d934249fc7d93b992f91f75a5cd/src/video/emscripten/SDL_emscriptenvideo.c#L217
@@ -81,7 +68,7 @@ byuu.initialize = async function (container, height, width) {
       canvas
     }).then((result) => {
       lib = result
-      lib.initialize(document.title || 'byuu', height, width)
+      lib.initialize(document.title || 'byuu')
   
       // Set callbacks, patch into event emission
       lib.onFrameStart(() => byuu.emit('frame.start'))
@@ -130,7 +117,7 @@ byuu.isStarted = () => getModule().isStarted()
 
 byuu.isRunning = () => getModule().isRunning()
 
-byuu.resize = (height, width) => getModule().resize(height, width)
+byuu.whenResize = (callback) => getModule().whenResize(callback)
 
 byuu.setVolume = (volume) => getModule().setVolume(volume)
 

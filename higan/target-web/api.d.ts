@@ -63,7 +63,7 @@ export interface SaveFiles {
  * as a standalone web application and an embeddable library.
  * 
  * This library will require the DOM to already have a <canvas> element
- * width its id set to "canvas".
+ * with its id set to "canvas".
  */
 declare class Byuu extends EventEmitter<EmulatorEvent> {
   /**
@@ -87,10 +87,8 @@ declare class Byuu extends EventEmitter<EmulatorEvent> {
    * This method needs to be called before any other methods can be used
    * 
    * @param container The DOM element to which the canvas element byuu renders in will be appended
-   * @param width The width to apply to the render canvas
-   * @param height The height to apply to the render canvas
    */
-  public initialize(container: HTMLElement, width: number, height: number) : Promise<void>
+  public initialize(container: HTMLElement) : Promise<void>
 
   /**
    * Stop, unload byuu, and remove canvas
@@ -174,12 +172,11 @@ declare class Byuu extends EventEmitter<EmulatorEvent> {
   public isRunning() : boolean
 
   /**
-   * Resize the render canvas
+   * Called when byuu's framesize changes
    * 
-   * @param width The width to apply to the render canvas
-   * @param height The height to apply to the render canvas
+   * @param callback Callback to be called
    */
-  public resize(width: number, height: number) : void
+  public whenResize(callback: function) : void
   
   /**
    * Set the volume of byuu's audio output

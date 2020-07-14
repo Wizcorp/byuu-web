@@ -50,7 +50,7 @@ void unload() {
 }
 
 /*  bootstrap */
-bool initialize(std::string windowTitle, uint width, uint height) { return webplatform->initialize(windowTitle.c_str(), width, height); }
+bool initialize(std::string windowTitle) { return webplatform->initialize(windowTitle.c_str()); }
 void terminate() { return webplatform->terminate(); }
 
 std::string getEmulatorForFilename(std::string path) { return webplatform->getEmulatorForFilename(path.c_str()).data(); };
@@ -63,7 +63,7 @@ emscripten::val load(std::string rom, emscripten::val files) { return webplatfor
 void loadURL(std::string url, emscripten::val files, emscripten::val callback) { return webplatform->loadURL(url.c_str(), files, callback); }
 
 /* configuration */
-void resize(uint width, uint height) { webplatform->resize(width, height); }
+void whenResize(emscripten::val callback) { return webplatform->whenResize(callback); }
 void setVolume(uint volume) { webplatform->setVolume(volume); }
 void setMute(bool mute) { webplatform->setMute(mute); }
 
@@ -99,7 +99,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
     emscripten::function("onFrameStart", &onFrameStart);
     emscripten::function("onFrameEnd", &onFrameEnd);
 
-    emscripten::function("resize", &resize);
+    emscripten::function("whenResize", &whenResize);
     emscripten::function("setVolume", &setVolume);
     emscripten::function("setMute", &setMute);
 

@@ -8,9 +8,9 @@ WebPlatform::WebPlatform() {
     Emulator::construct();
 }
 
-auto WebPlatform::initialize(const char *windowTitle, uint width, uint height) -> bool {
+auto WebPlatform::initialize(const char *windowTitle) -> bool {
     DEBUG_LOG("Initializing web platform\n");
-    webvideo.initialize(windowTitle, width, height);
+    webvideo.initialize(windowTitle);
     webaudio.initialize();
     DEBUG_LOG("Web platform initialized\n");
 
@@ -173,10 +173,9 @@ auto WebPlatform::run() -> void {
     }
 }
 
-
-auto WebPlatform::resize(uint width, uint height) -> void {
-    webvideo.resize(width, height);
-};
+auto WebPlatform::whenResize(emscripten::val callback) -> void {
+    webvideo.whenResize(callback);
+}
 
 auto WebPlatform::setVolume(uint volume) -> void {
     webaudio.volume = volume;

@@ -46,7 +46,7 @@ struct WebPlatform : higan::Platform {
 
         WebPlatform();
 
-        auto initialize(const char *windowTitle, uint width, uint height) -> bool;
+        auto initialize(const char *windowTitle) -> bool;
         auto terminate() -> void;
 
         auto getROMInfo(const char *path, uint8_t *rom, int size) -> emscripten::val;
@@ -60,7 +60,7 @@ struct WebPlatform : higan::Platform {
         auto unload() -> void;
 
         auto run() -> void;
-        auto resize(uint width, uint height) -> void;
+        auto whenResize(emscripten::val callback) -> void;
         auto setVolume(uint volume) -> void;
         auto setMute(bool mute) -> void;
 

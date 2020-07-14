@@ -8,8 +8,11 @@ struct WebVideo {
 	uint width = 256;
 	uint height = 224;
 
-    void initialize(const char *windowTitle, uint width, uint height);
+	emscripten::val onResize = emscripten::val::null();
+
+    void initialize(const char *windowTitle);
 	void terminate();
-	void resize(uint width, uint height);
     void render(const void *data, uint pitch, uint frameWidth, uint frameHeight);
+
+	auto whenResize(emscripten::val callback) -> void;
 };
