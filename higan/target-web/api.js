@@ -37,15 +37,63 @@ function getModule() {
 
 import EventEmitter from 'eventemitter3'
 const byuu = new EventEmitter()
-const canvas = document.createElement('canvas')
-canvas.id = 'canvas'
 
-byuu.initialize = async function (container) {
-  if (!container) {
+// Create container
+const container = document.createElement('div');
+Object.assign(container.style, {
+  position: 'relative',
+  display: 'flex',
+  height: '100%',
+  width: '100%',
+  flexDirection: 'column',
+  flexWrap: 'wrap',
+  alignItems: 'flex-start'
+});
+
+// Create canvas
+const canvas = document.createElement('canvas')
+const getContext = canvas.getContext.bind(canvas);
+
+canvas.id = 'canvas';
+Object.assign(canvas.style, {
+  height: '100%',
+  width: '100%',
+  objectFit: 'contain',
+});
+
+const contextOptions = {
+  // Required to enable screenshots
+  preserveDrawingBuffer: true,
+  // Optimize for performance
+  powerPreference: 'high-performance',
+  alpha: false,
+  desynchronized: true,
+  antialias: false,
+};
+
+canvas.getContext = function(contextId, options) {
+  options = options || {};
+
+  if (contextId === 'webgl') {
+    Object.assign(options, contextOptions);
+  }
+  
+  return getContext(contextId, options);
+};
+
+container.appendChild(canvas)
+
+byuu.displayRatio = 1;
+
+byuu.initialize = async function (parent, ctxOptions) {
+  if (!parent) {
     throw new Error('container parameter is not defined')
   }
 
-  container.appendChild(canvas)
+  ctxOptions = ctxOptions || {};
+  Object.assign(contextOptions, ctxOptions);
+
+  parent.appendChild(container)
 
   // Emscripten's SDL port enforces that the id of the canvas be canvas
   // https://github.com/emscripten-ports/SDL2/blob/952f889879ba3d934249fc7d93b992f91f75a5cd/src/video/emscripten/SDL_emscriptenvideo.c#L217
@@ -54,7 +102,7 @@ byuu.initialize = async function (container) {
     throw new Error('The DOM ID attribute "canvas" is reserved by byuu for it\'s own canvas')
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // Module isn't a real promise, and unless we set
     // things as follow the code seem to tight-loop
     Module({ 
@@ -73,6 +121,10 @@ byuu.initialize = async function (container) {
       // Set callbacks, patch into event emission
       lib.onFrameStart(() => byuu.emit('frame.start'))
       lib.onFrameEnd(() => byuu.emit('frame.end'))
+      lib.onResize((width, height) => {
+        byuu.displayRatio = width / height;
+        byuu.emit('resize', { width, height });
+      })
       
       initialized = true
       resolve()
@@ -84,8 +136,14 @@ byuu.terminate = () => {
   byuu.stop()
   byuu.unload()
   getModule().terminate()
-  canvas.parentElement.removeChild(canvas)
+  container.parentElement.removeChild(container)
 }
+
+byuu.setFit = (fit) => Object.assign(canvas.style, { objectFit: fit }) 
+
+byuu.setPosition = (position) => Object.assign(canvas.style, { objectPosition: position })
+
+byuu.getCanvas = () => canvas
 
 byuu.getEmulatorForFilename = (filename) => getModule().getEmulatorForFilename(filename)
 
@@ -116,8 +174,6 @@ byuu.stop = () => getModule().stop()
 byuu.isStarted = () => getModule().isStarted()
 
 byuu.isRunning = () => getModule().isRunning()
-
-byuu.whenResize = (callback) => getModule().whenResize(callback)
 
 byuu.setVolume = (volume) => getModule().setVolume(volume)
 

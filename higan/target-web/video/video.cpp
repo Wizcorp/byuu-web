@@ -22,13 +22,18 @@ void WebVideo::render(const void *data, uint pitch, uint frameWidth, uint frameH
     }
 
     if (texture == nullptr) {
-        SDL_SetWindowSize(window, frameWidth, frameHeight);
-        texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, frameWidth, frameHeight);
+        // We multiply by two to increase rendering quality
         width = frameWidth; 
         height = frameHeight;
 
-        if (!onResize.isNull()) {
-            onResize(emscripten::val(width), emscripten::val(height));
+        texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, frameWidth, frameHeight);
+
+        // make screen size double the texture size to increase the render quality;
+        // additional stretching should be done in CSS by the end-user        
+        SDL_SetWindowSize(window, width * 2, height * 2);
+
+        if (!onResizeCallback.isNull()) {
+            onResizeCallback(emscripten::val(width * 2), emscripten::val(height * 2));
         }
     }
     
@@ -37,6 +42,6 @@ void WebVideo::render(const void *data, uint pitch, uint frameWidth, uint frameH
     SDL_RenderPresent(renderer);
 }
 
-auto WebVideo::whenResize(emscripten::val callback) -> void {
-    onResize = callback;
+auto WebVideo::onResize(emscripten::val callback) -> void {
+    onResizeCallback = callback;
 }

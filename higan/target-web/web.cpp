@@ -63,7 +63,7 @@ emscripten::val load(std::string rom, emscripten::val files) { return webplatfor
 void loadURL(std::string url, emscripten::val files, emscripten::val callback) { return webplatform->loadURL(url.c_str(), files, callback); }
 
 /* configuration */
-void whenResize(emscripten::val callback) { return webplatform->whenResize(callback); }
+void onResize(emscripten::val callback) { return webplatform->onResize(callback); }
 void setVolume(uint volume) { webplatform->setVolume(volume); }
 void setMute(bool mute) { webplatform->setMute(mute); }
 
@@ -98,8 +98,8 @@ EMSCRIPTEN_BINDINGS(my_module) {
     
     emscripten::function("onFrameStart", &onFrameStart);
     emscripten::function("onFrameEnd", &onFrameEnd);
-
-    emscripten::function("whenResize", &whenResize);
+    emscripten::function("onResize", &onResize);
+    
     emscripten::function("setVolume", &setVolume);
     emscripten::function("setMute", &setMute);
 

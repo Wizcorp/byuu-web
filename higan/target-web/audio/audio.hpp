@@ -9,7 +9,7 @@ struct WebAudio {
 	ALuint source = 0;
 
 	uint frequency = 48000;
-	uint latency = 100;
+	uint latency = 120;
 	uint volume = 100;
 
 	bool muted = false;

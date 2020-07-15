@@ -18,8 +18,24 @@ export const enum Emulator {
  * Events that are fired by byuu
  */
 export const enum EmulatorEvent {
+  /**
+   * Emitted when a frame starts
+   */
   FrameStart = 'frame.start',
+  
+  /**
+   * Emitted when the frame is completed (including render)
+   */
   FrameEnd = 'frame.end',
+
+  /**
+   * Emitted when the canvas display is resized. This will generally
+   * happen on first frame and will be based on the console's original
+   * height and with render size.
+   * 
+   * Emits an object { width, height }
+   */
+  Resize = 'resize',
 }
 
 /**
@@ -86,14 +102,48 @@ declare class Byuu extends EventEmitter<EmulatorEvent> {
    * 
    * This method needs to be called before any other methods can be used
    * 
+   * By default, rendering context options are set for optimial performance; however,
+   * it will cause an issue with screenshots using getCanvas().toBlob() on Chrome (where you will get
+   * an empty image instead). If you need to be able to take screenshot, make sure to initialized with
+   * `{ desynchronized: false }`.
+   * 
    * @param container The DOM element to which the canvas element byuu renders in will be appended
+   * @param options
    */
-  public initialize(container: HTMLElement) : Promise<void>
+  public initialize(container: HTMLElement, options: WebGLContextAttributes = {}) : Promise<void>
 
   /**
    * Stop, unload byuu, and remove canvas
    */
   public terminate() : boolean
+
+  /**
+   * Define how the display will fit within your container
+   * 
+   * By default, 'contain' is set, meaning the rendered content will be set to fit
+   * within the allocated display zone.
+   * 
+   * @param fit See https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit
+   */
+  public setFit(fit: CanvasFit) : void;
+
+  /**
+   * Define where to position the rendered content within the allocated display zone.
+   * 
+   * By default, content will be centered within the display zone.
+   * 
+   * @param position See https://developer.mozilla.org/en-US/docs/Web/CSS/object-position
+   */
+  public setPosition(position: string) : void;
+  
+  /**
+   * The canvas used to render the emulated content
+   * 
+   * It is **strongly** recommended **NOT** to modify or alter the canvas to avoid
+   * bugs and issues. However, you may use this method to take screenshots or otherwise read the
+   * canvas content.
+   */
+  public getCanvas() : HTMLCanvasElement;
 
   /**
    * Find applicable emulator for a given file name

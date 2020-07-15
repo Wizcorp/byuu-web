@@ -173,8 +173,8 @@ auto WebPlatform::run() -> void {
     }
 }
 
-auto WebPlatform::whenResize(emscripten::val callback) -> void {
-    webvideo.whenResize(callback);
+auto WebPlatform::onResize(emscripten::val callback) -> void {
+    webvideo.onResize(callback);
 }
 
 auto WebPlatform::setVolume(uint volume) -> void {

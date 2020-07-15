@@ -46,26 +46,16 @@
       }
 
       #main {
-        width: 100%;
-        max-width: 1600px;
+        position: absolute;
+        top: 0;
+        bottom: 126px;
+        left: 0;
+        right: 0;
       }
 
+      .fullscreen #main,
       .mobile #main {
-        max-width: 100%;
-      }
-
-      @media (max-width: 1600px) { 
-        #main {
-          width: 100%;
-          max-width: 800px;
-        } 
-      }
-
-      @media (max-width: 1200px) { 
-        #main {
-          width: 100%;
-          max-width: 600px;
-        } 
+        bottom: 0;
       }
 
       #fpsWrapper {
@@ -210,6 +200,7 @@
         margin: 4px;
         padding: 4px;
       }
+
       #settingsArea .label {
         flex: 1;
         text-align: right;
@@ -278,14 +269,15 @@
       /* Display zone (screen and notifications) */
       #display {
         position: relative;
-        display: block;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: flex-start;
         height: 100%;
-        margin: 0 auto;
       }
 
       .fullscreen #display {
         position: absolute;
-        display: block;
         top: 0;
         bottom: 0;
         left: 0;
@@ -293,22 +285,22 @@
       }
 
       #display #canvas {
-        display: block;
-        height: 100%;
-        width: 100%;
-        margin: 0 auto;
         background-color: #070708;
         transition: opacity ease-out 125ms, filter ease-out 125ms;
+        image-rendering: pixelated;
+        height: 100%;
+        width: 100%;
+        object-fit: contain;
+      }
+
+      .mobile #display #canvas {
+        object-position: 50% 0;
       }
 
       .paused #canvas {
         opacity: 0.5;
         filter: blur(3px) saturate(0.5);
         transition: opacity ease-in 125ms, filter ease-in 125ms;
-      }
-
-      .fullscreen #display #canvas {
-        width: unset;
       }
 
       /* Game loading screen */
@@ -754,7 +746,7 @@
     <div id="main">
       <!-- Render canvas -->
       <div id="display">
-        <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1 width="100%"></canvas>
+        <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
         <div id="game-loading">Loading</div>
         <div id="notification-box">
           <div class="container"></div>
@@ -847,6 +839,22 @@
 
       // DOM elements
       const canvas = document.getElementById('canvas');
+      const getContext = canvas.getContext.bind(canvas);
+      canvas.getContext = function(contextId, options) {
+        if (contextId === 'webgl') {
+          Object.assign(options, {
+            // Required to enable screenshots
+            preserveDrawingBuffer: true,
+            // Optimize for performance
+            powerPreference: 'high-performance',
+            desynchronized: true,
+            alpha: false,
+            antialias: false,
+          });
+        }
+        
+        return getContext(contextId, options);
+      }
       const mainElement = document.getElementById('main');
       const displayElement = document.getElementById('display');
       const gameLoadingElement = document.getElementById('game-loading');
@@ -1099,8 +1107,9 @@
         } else {
           document.body.classList.remove('mobile');
         }
-        resizeVideo(canvas.width, canvas.height);
+        resizeVideo();
       });
+      window.addEventListener('orientationchange', resizeVideo);
 
       document.forms.settingsForm.addEventListener('change', ({ target: { name, value } }) => {
         switch (name) {
@@ -1304,7 +1313,7 @@
             fpsMeter.tickStart();
           });
           Module.onFrameEnd(() => fpsMeter.tick());
-          Module.whenResize((width, height) => resizeVideo(width, height));
+          Module.onResize(resizeVideo);
 
           // Adjust the UI based on whether the CPU profiler is present or not
           configureCPUProfiler();
@@ -1316,6 +1325,9 @@
             Module.setStatus('WebGL context lost. You will need to reload the page.'); 
             e.preventDefault(); 
           }, false);
+
+          // Optimize canvas
+          canvas.getContext('2d', { alpha: false });
 
           populateSelectGameList();
 
@@ -1912,23 +1924,8 @@
         }
       }
 
-      function resizeVideo(frameWidth, frameHeight) {
+      function resizeVideo() {
         if (device.isMobile) {
-          // resize for mobile
-          let w = window.innerWidth;
-          let h = window.innerHeight;
-
-          if (window.matchMedia('(min-aspect-ratio: 4/3)').matches) {
-            w = h * 1.333;
-            canvas.style.width = w + 'px';
-            canvas.style.height = h + 'px';
-          } else {
-            // portrait
-            h = w * 0.75;
-            canvas.style.width = w + 'px';
-            canvas.style.height = h + 'px';
-          }
-
           // prevent document overflowing below viewport because it is pushed down by browser bars (especially on some iPhones with landscape rotation)
           document.body.style.height = window.innerHeight + "px";
 
@@ -1937,9 +1934,6 @@
             displayControllerForEmulator();
           }
         } else {
-          // resize for desktop
-          canvas.style.width = '100%';
-          canvas.style.height = '100%';
           document.body.style.height = 'auto';
         }
       }
