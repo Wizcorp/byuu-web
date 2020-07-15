@@ -7,6 +7,16 @@
     <meta name='apple-mobile-web-app-capable' content='yes' />
     <meta name='apple-mobile-web-app-status-bar-style' content='black-translucent'/>
 
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png">
+    <link rel="manifest" href="/assets/icons/site.webmanifest">
+    <link rel="mask-icon" href="/assets/icons/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="/assets/icons/favicon.ico">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-config" content="/assets/icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+
     <title>byuu \\ web</title>
 
     <!-- Bootstrap -->
@@ -199,6 +209,22 @@
         background-color: #5a6268;
         margin: 4px;
         padding: 4px;
+      }
+
+      #settingsArea .settingEntry.mobileSetting {
+        display: none;
+      }
+
+      .mobile #settingsArea .settingEntry.mobileSetting {
+        display: flex;
+      }
+
+      #settingsArea .settingEntry.desktopSetting {
+        display: flex;
+      }
+
+      .mobile #settingsArea .settingEntry.desktopSetting {
+        display: none;
       }
 
       #settingsArea .label {
@@ -697,13 +723,13 @@
         </div>
         <div id="settingsArea">
           <form name="settingsForm">
-            <div class="settingEntry">
+            <div class="settingEntry mobileSetting">
               <div class="label">Gamepad opacity</div>
               <div class="values">
                 <input type="range" name="gamepadOpacity" id="" min="0" max="1" step="0.01" value="0.7">
               </div>
             </div>
-            <div class="settingEntry">
+            <div class="settingEntry mobileSetting">
               <div class="label">Gamepad colored</div>
               <div class="values">
                 <input type="radio" id="gamepadColored_off" name="gamepadColored" value="off" checked>
@@ -712,7 +738,7 @@
                 <label for="gamepadColored_on">On</label>
               </div>
             </div>
-            <div class="settingEntry">
+            <div class="settingEntry mobileSetting">
               <div class="label">Gamepad position</div>
               <div class="values">
                 <input type="radio" id="gamepadPosition_low" name="gamepadPosition" value="low" checked>
@@ -721,7 +747,7 @@
                 <label for="gamepadPosition_high">High</label>
               </div>
             </div>
-            <div class="settingEntry">
+            <div class="settingEntry mobileSetting">
               <div class="label">Gamepad touch area</div>
               <div class="values">
                 <input type="radio" id="touchArea_narrow" name="touchArea" value="narrow">
@@ -1073,8 +1099,6 @@
         virtualGamepadElement.addEventListener('touchstart', vGamepad.onTouchStart);
         virtualGamepadElement.addEventListener('touchmove', vGamepad.onTouchMove);
         virtualGamepadElement.addEventListener('touchend', vGamepad.onTouchEnd);
-      } else {
-        settingsButton.style.display = 'none';
       }
 
       // Devtool detection
@@ -1644,8 +1668,12 @@
 
       // Todo: map per console
       const gamepadButtonKeymaps = {
-        // L/R duplicated for convenience
+        // L/R duplicated for convenience (xinput is for Firefox)
         'Xbox 360 Controller (XInput STANDARD GAMEPAD)': [
+          'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+          'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+        ],
+        'xinput': [
           'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
           'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
         ],
