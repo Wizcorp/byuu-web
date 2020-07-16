@@ -1,4 +1,4 @@
-const currentVersion = '5212201';
+const currentVersion = '6212201';
 
 self.addEventListener('fetch', (event) => {
     event.respondWith(
@@ -23,7 +23,6 @@ self.addEventListener('install', (event) => {
                     './byuu-web.wasm',
                     './assets/icons/favicon-32x32.png',
                     './assets/icons/favicon-16x16.png',
-                    './assets/icons/site.webmanifest',
                     './assets/icons/mstile-150x150.png',
                     './assets/icons/android-chrome-512x512.png',
                     './assets/icons/android-chrome-192x192.png',
