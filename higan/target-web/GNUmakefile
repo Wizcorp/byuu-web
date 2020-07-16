@@ -90,6 +90,7 @@ app: $(objects)
 
 	mv ./out/app/$(name).html ./out/app/index.html
 	cp -R ./target-web/assets ./out/app/
+	python ./target-web/build.py ./target-web/service-worker.js > ./out/app/service-worker.js
 
 all: package app
 
