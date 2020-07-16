@@ -7,6 +7,7 @@ export const Emulator = {
 export const EmulatorEvent = {
   FrameStart: 'frame.start',
   FrameEnd: 'frame.end',
+  Resize: 'resize',
 }
 
 let lib;
