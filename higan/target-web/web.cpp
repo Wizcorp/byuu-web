@@ -1,12 +1,20 @@
 #include "web.hpp"
 
 WebPlatform *webplatform = new WebPlatform();
+emscripten::val scheduledStateSave = emscripten::val::null();
 
 /* lifecycle */
 bool isStarted() { return webplatform->started; }
 bool isRunning() { return webplatform->running; }
 
-void run() { webplatform->run(); }
+void run() { 
+    webplatform->run();
+
+    if (!scheduledStateSave.isNull()) {
+        webplatform->stateSave(scheduledStateSave); 
+        scheduledStateSave = emscripten::val::null();
+    }
+}
 
 void onFrameStart(emscripten::val callback) {
     webplatform->onFrameStart = callback;
@@ -71,7 +79,14 @@ bool setButton(std::string portName, std::string buttonName, int16_t value) {
 }
 
 /* state save, memory saves */
-void stateSave(emscripten::val callback) { return webplatform->stateSave(callback); }
+void stateSave(emscripten::val callback) { 
+    if (!webplatform->running) {
+        return webplatform->stateSave(callback); 
+    }
+
+    scheduledStateSave = callback;
+}
+
 bool stateLoad(std::string state) { return webplatform->stateLoad(state.c_str(), state.size()); }
 emscripten::val save() { return webplatform->save(); }
 
