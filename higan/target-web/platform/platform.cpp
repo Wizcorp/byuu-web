@@ -178,7 +178,7 @@ auto WebPlatform::onResize(emscripten::val callback) -> void {
 }
 
 auto WebPlatform::setVolume(uint volume) -> void {
-    webaudio.volume = volume;
+    webaudio.setVolume(volume);
 };
 
 auto WebPlatform::setMute(bool mute) -> void {
@@ -235,16 +235,6 @@ auto WebPlatform::audio(Node::Stream stream) -> void {
                 samples[0] += buffer[0];
                 samples[1] += buffer[1];
             }
-        }
-
-        //apply volume, balance, and clamping to the output frame
-        double volume = webaudio.muted ? 0.0 : ((double) webaudio.volume) / 100;
-        double balance = 0; // todo: make audio balance reconfigurable
-
-        for(uint c : range(2)) {
-            samples[c] = max(-1.0, min(+1.0, samples[c] * volume));
-            if(balance < 0.0) samples[1] *= 1.0 + balance;
-            if(balance > 0.0) samples[0] *= 1.0 - balance;
         }
 
         webaudio.output(samples);

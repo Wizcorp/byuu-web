@@ -34,10 +34,6 @@ bool stop() {
     webplatform->started = false;
     emscripten_cancel_main_loop(); 
     
-    while (webplatform->running) {
-        emscripten_sleep(1);
-    }
-
     return true;
 }
 

@@ -37,7 +37,6 @@ flags += \
 	-ffinite-math-only \
 	-ffp-model=fast \
 	-fomit-frame-pointer \
-	-lopenal \
 	--bind \
 	-s ENVIRONMENT=web \
 	-s ASYNCIFY=1 \

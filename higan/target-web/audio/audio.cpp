@@ -16,6 +16,7 @@ void WebAudio::initialize() {
         // generate audio source
         alGenSources(1, &source);
 
+        setVolume(volume);
         alListener3f(AL_POSITION, 0.0, 0.0, 0.0);
         alListener3f(AL_VELOCITY, 0.0, 0.0, 0.0);
         ALfloat listenerOrientation[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -35,6 +36,17 @@ void WebAudio::initialize() {
         });
     }
 
+    // See: https://emscripten.org/docs/porting/Audio.html#useful-implementation-details-of-openal-capture
+    if (!frequency) {
+        frequency = EM_ASM_INT({
+            var AudioContext = window.AudioContext || window.webkitAudioContext;
+            var ctx = new AudioContext();
+            var sr = ctx.sampleRate;
+            ctx.close();
+            return sr;
+        });
+    }
+
     uint size = frequency * latency / 1000.0 + 0.5;
 
     if (size != bufferSize) {
@@ -42,6 +54,11 @@ void WebAudio::initialize() {
         bufferSize = size;
         buffer = new uint32_t[bufferSize]();
     }
+}
+
+void WebAudio::setVolume(uint volume) {
+    alSourcef(source, AL_GAIN, (float) volume / 100.0f);
+    this->volume = volume;
 }
 
 void WebAudio::terminate() {
@@ -69,13 +86,20 @@ bool WebAudio::resume() {
 }
 
 void WebAudio::output(double samples[2]) {
+    if (muted) {
+        return;
+    }
+
     buffer[bufferLength]  = (uint16_t)sclamp<16>(samples[0] * 32767.0) <<  0;
     buffer[bufferLength] |= (uint16_t)sclamp<16>(samples[1] * 32767.0) << 16;
     
-    if(++bufferLength < bufferSize) return;
+    if(++bufferLength < bufferSize) {
+        return;
+    }
 
     ALuint alBuffer = 0;
     int processed = 0;
+    
     while(true) {
         alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
         while(processed--) {

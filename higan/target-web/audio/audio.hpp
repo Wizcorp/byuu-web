@@ -8,7 +8,7 @@ struct WebAudio {
 	ALCcontext *context;
 	ALuint source = 0;
 
-	uint frequency = 48000;
+	uint frequency;
 	uint latency = 120;
 	uint volume = 100;
 
@@ -24,5 +24,6 @@ struct WebAudio {
 	void terminate();
 
 	bool resume();
+	void setVolume(uint volume);
 	void output(double samples[2]);
 };

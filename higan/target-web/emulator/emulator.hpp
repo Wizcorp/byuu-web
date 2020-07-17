@@ -4,6 +4,8 @@ struct Emulator {
   inline static string GameFolder = "/gamefiles/";
   inline static string FirmwaresFolder = "/firmwares/";
 
+  virtual ~Emulator() {};
+
   static auto construct() -> void;
   auto locate(const string& location, const string& suffix, const string& path = "") -> string;
   auto manifest() -> shared_pointer<vfs::file>;
