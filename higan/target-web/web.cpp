@@ -7,12 +7,17 @@ emscripten::val scheduledStateSave = emscripten::val::null();
 bool isStarted() { return webplatform->started; }
 bool isRunning() { return webplatform->running; }
 
-void run() { 
+void run() {
     webplatform->run();
 
     if (!scheduledStateSave.isNull()) {
         webplatform->stateSave(scheduledStateSave); 
         scheduledStateSave = emscripten::val::null();
+    }
+
+    // Cancel main loop if we are not running
+    if (!webplatform->started) {
+        emscripten_cancel_main_loop(); 
     }
 }
 
@@ -30,7 +35,7 @@ bool start() {
     }
 
     webplatform->started = true;
-    emscripten_set_main_loop(run, 0, 0); 
+    emscripten_set_main_loop(run, 0, 0);
     return true;
 }
 
@@ -80,11 +85,12 @@ bool setButton(std::string portName, std::string buttonName, int16_t value) {
 
 /* state save, memory saves */
 void stateSave(emscripten::val callback) { 
-    if (!webplatform->running) {
-        return webplatform->stateSave(callback); 
-    }
-
     scheduledStateSave = callback;
+
+    // Run one cycle then stop
+    if (!webplatform->started) {
+        emscripten_set_main_loop(run, 0, 0);
+    }
 }
 
 bool stateLoad(std::string state) { return webplatform->stateLoad(state.c_str(), state.size()); }

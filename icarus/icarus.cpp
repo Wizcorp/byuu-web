@@ -17,14 +17,21 @@ auto operator+=(string& lhs, const string& rhs) -> string& {
   return lhs;
 }
 
+#if !defined(ICARUS_LIBRARY)
 #include "settings/settings.cpp"
+#endif
+
 #include "media/media.cpp"
 #include "cartridge/cartridge.cpp"
 #include "compact-disc/compact-disc.cpp"
 #include "floppy-disk/floppy-disk.cpp"
+
+#if !defined(ICARUS_LIBRARY)
 #include "program/program.cpp"
+#endif
 
 auto construct() -> void {
+#if !defined(ICARUS_LIBRARY)
   media.append(new BSMemory);
   media.append(new ColecoVision);
   media.append(new Famicom);
@@ -50,9 +57,62 @@ auto construct() -> void {
   media.append(new SuperGrafx);
   media.append(new WonderSwan);
   media.append(new WonderSwanColor);
+#else
+#ifdef CORE_FC
+  media.append(new Famicom);
+  media.append(new FamicomDisk);
+#endif
+
+#ifdef CORE_GB
+  media.append(new GameBoy);
+#endif
+
+#ifdef CORE_GBA
+  media.append(new GameBoyAdvance);
+#endif
+
+#ifdef CORE_MD
+  media.append(new MegaCD);
+  media.append(new MegaDrive);
+#endif
+
+#ifdef CORE_MS
+  media.append(new MasterSystem);
+#endif
+
+#ifdef CORE_MSX
+  media.append(new MSX);
+  media.append(new MSX2);
+#endif
+
+#ifdef CORE_NGP
+  media.append(new NeoGeoPocket);
+  media.append(new NeoGeoPocketColor);
+#endif
+
+#ifdef CORE_PCE
+  media.append(new PCEngine);
+  media.append(new PCEngineCD);
+#endif
+
+#ifdef CORE_SFC
+  media.append(new SuperFamicom);
+#endif
+
+#ifdef CORE_SG
+  media.append(new SG1000);
+#endif
+
+#ifdef CORE_WS
+  media.append(new WonderSwan);
+  media.append(new WonderSwanColor);
+#endif
+#endif
+
   for(auto& medium : media) medium->construct();
 }
 
+#if !defined(ICARUS_LIBRARY)
 auto main(Arguments arguments) -> void {
   Application::setName("icarus");
 
@@ -112,14 +172,12 @@ auto main(Arguments arguments) -> void {
   directory::create({Path::userSettings(), "icarus/"});
   file::write({Path::userSettings(), "icarus/settings.bml"}, settings.serialize());
 }
-
+#endif
 }
 
 #if !defined(ICARUS_LIBRARY)
-
 #include <nall/main.hpp>
 auto nall::main(Arguments arguments) -> void {
   icarus::main(arguments);
 }
-
 #endif

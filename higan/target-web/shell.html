@@ -939,9 +939,9 @@
       };
 
       const vGamepad = {
-        displayButtons = {},
-        buttonElements = {},
-        touchInfos = {}, // to track multiple fingers
+        displayButtons: {},
+        buttonElements: {},
+        touchInfos: {}, // to track multiple fingers
         port: null,
         onTouchStart: (e) => {
           e.preventDefault();
@@ -1364,9 +1364,6 @@
             Module.setStatus('WebGL context lost. You will need to reload the page.'); 
             e.preventDefault(); 
           }, false);
-
-          // Optimize canvas
-          canvas.getContext('2d', { alpha: false });
 
           populateSelectGameList();
 

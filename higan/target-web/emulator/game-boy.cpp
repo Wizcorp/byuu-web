@@ -4,20 +4,24 @@ struct GameBoy : Emulator {
   GameBoy();
   auto load() -> bool override;
   auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> override;
-  auto input(higan::Node::Input) -> void override;
 };
 
 struct GameBoyColor : Emulator {
   GameBoyColor();
   auto load() -> bool override;
   auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> override;
-  auto input(higan::Node::Input) -> void override;
 };
 
 GameBoy::GameBoy() {
   interface = new higan::GameBoy::GameBoyInterface;
   name = "Game Boy";
   extensions = {"gb"};
+  ports = {};
+  buttons = {
+      "Up", "Down", "Left", "Right", 
+      "B", "A"
+      "Select", "Start"
+  };
 }
 
 auto GameBoy::load() -> bool {
@@ -52,30 +56,18 @@ auto GameBoy::open(higan::Node::Object node, string name, vfs::file::mode mode, 
   return {};
 }
 
-auto GameBoy::input(higan::Node::Input node) -> void {
-  auto name = node->name();
-  maybe<InputMapping&> mapping;
-  if(name == "Up"    ) mapping = virtualPad.up;
-  if(name == "Down"  ) mapping = virtualPad.down;
-  if(name == "Left"  ) mapping = virtualPad.left;
-  if(name == "Right" ) mapping = virtualPad.right;
-  if(name == "B"     ) mapping = virtualPad.a;
-  if(name == "A"     ) mapping = virtualPad.b;
-  if(name == "Select") mapping = virtualPad.select;
-  if(name == "Start" ) mapping = virtualPad.start;
-
-  if(mapping) {
-    auto value = mapping->value();
-    if(auto button = node->cast<higan::Node::Button>()) {
-      button->setValue(value);
-    }
-  }
-}
-
 GameBoyColor::GameBoyColor() {
   interface = new higan::GameBoy::GameBoyColorInterface;
   name = "Game Boy Color";
   extensions = {"gbc"};
+  ports = {
+    "Controller"
+  };
+  buttons = {
+      "Up", "Down", "Left", "Right", 
+      "B", "A"
+      "Select", "Start"
+  };
 }
 
 auto GameBoyColor::load() -> bool {
@@ -108,24 +100,4 @@ auto GameBoyColor::open(higan::Node::Object node, string name, vfs::file::mode m
   }
 
   return {};
-}
-
-auto GameBoyColor::input(higan::Node::Input node) -> void {
-  auto name = node->name();
-  maybe<InputMapping&> mapping;
-  if(name == "Up"    ) mapping = virtualPad.up;
-  if(name == "Down"  ) mapping = virtualPad.down;
-  if(name == "Left"  ) mapping = virtualPad.left;
-  if(name == "Right" ) mapping = virtualPad.right;
-  if(name == "B"     ) mapping = virtualPad.a;
-  if(name == "A"     ) mapping = virtualPad.b;
-  if(name == "Select") mapping = virtualPad.select;
-  if(name == "Start" ) mapping = virtualPad.start;
-
-  if(mapping) {
-    auto value = mapping->value();
-    if(auto button = node->cast<higan::Node::Button>()) {
-      button->setValue(value);
-    }
-  }
 }

@@ -1,0 +1,12 @@
+[
+    "dynCall_vi(*)",
+    "*emscripten*",
+    "thread_entry*",
+    "*run*",
+    "*::Scheduler::power(*)",
+    "*::Famicom::CPU::main()",
+    "*::Famicom::CPU::read(*)",
+    "*::Famicom::CPU::write(*)",
+    "*::SuperFamicom::CPU::main()",
+    "*::MOS6502::instruction()"
+]

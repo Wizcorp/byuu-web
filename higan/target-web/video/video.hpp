@@ -1,8 +1,8 @@
 #include <SDL2/SDL.h>
 
 struct WebVideo {
-	SDL_Window *window;
-	SDL_Renderer *renderer;
+	SDL_Window *window = nullptr;
+	SDL_Renderer *renderer = nullptr;
 	SDL_Texture *texture = nullptr;
 
 	uint width = 256;

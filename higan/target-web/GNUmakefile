@@ -8,10 +8,12 @@ profiler := false
 synchro := true
 eventinstruction_notify := false
 
+PYTHON=$(shell which python3 || which python)
+
 ifeq ($(wasm), true)
   flags += -s WASM=1 
   ifeq ($(debug), true)
-	flags += -DWEB_DEBUG -g4 
+	flags += -g4 -DWEB_DEBUG
   endif
   ifeq ($(profiler), true) 
 	flags += --profiling --cpuprofiler 
@@ -23,26 +25,28 @@ endif
 
 ifeq ($(synchro),true)
   flags += -DSCHEDULER_SYNCHRO
+  # Optimize how Asyncify processes the compiled bytecode
+  flags += -s ASYNCIFY_IGNORE_INDIRECT
+  flags += -s ASYNCIFY_ADD="@./target-web/asyncify.txt"
 endif
 
 ifeq ($(eventinstruction_notify), false)
   flags += -DNO_EVENTINSTRUCTION_NOTIFY
 endif
-
-# -Werror 
+	
 flags += \
-	-fPIC \
 	-DICARUS_LIBRARY \
 	-ffast-math \
 	-ffinite-math-only \
 	-ffp-model=fast \
-	-fomit-frame-pointer \
 	--bind \
 	-s ENVIRONMENT=web \
-	-s ASYNCIFY=1 \
+	-s ASYNCIFY \
 	-s DISABLE_EXCEPTION_CATCHING=1 \
 	-s USE_SDL=2 \
-	-s TOTAL_MEMORY=200MB \
+	-s USE_SDL_MIXER=0 \
+	-s USE_SDL_IMAGE=0 \
+	-s TOTAL_MEMORY=120MB \
 	-s ALLOW_MEMORY_GROWTH=0
 
 objects += web-resource web-emulator web-video web-audio web-platform web
@@ -65,17 +69,18 @@ package: $(objects)
 		-s MODULARIZE=1 \
 		-s EXPORT_ES6=1 \
 		-s USE_ES6_IMPORT_META=0 \
-		--source-map-base http://$(debug_host):8000/ \
 		-o ./out/package/$(name)-lib.js \
 		$(objects)
+
+	wasm-strip ./out/package/byuu-web-lib.wasm
 
 	cp ./target-web/package.json ./out/package/
 	cp ../README.md ./out/package/
 	cp ../CHANGELOG.md ./out/package/
 	cp ../LICENSE.txt ./out/package/
 
-	python ./target-web/build.py ./target-web/api.js > ./out/package/api.js
-	python ./target-web/build.py ./target-web/api.d.ts > ./out/package/api.d.ts
+	$(PYTHON) ./target-web/build.py ./target-web/api.js > ./out/package/api.js
+	$(PYTHON) ./target-web/build.py ./target-web/api.d.ts > ./out/package/api.d.ts
 
 app: $(objects)
 	mkdir -p ./out/app
@@ -86,10 +91,9 @@ app: $(objects)
 		-o ./out/app/$(name).html \
 		$(objects)
 		
-
 	mv ./out/app/$(name).html ./out/app/index.html
 	cp -R ./target-web/assets ./out/app/
-	python ./target-web/build.py ./target-web/service-worker.js > ./out/app/service-worker.js
+	$(PYTHON) ./target-web/build.py ./target-web/service-worker.js > ./out/app/service-worker.js
 
 all: package app
 

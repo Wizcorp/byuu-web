@@ -31,6 +31,13 @@ auto CPU::unload() -> void {
 }
 
 auto CPU::main() -> void {
+#if defined(SCHEDULER_SYNCHRO)
+  if (ppu.hasRendered) {
+    ppu.hasRendered = false;
+    scheduler.exit(Event::Frame);
+  }
+#endif
+
   if(r.wai) return instructionWait();
   if(r.stp) return instructionStop();
 

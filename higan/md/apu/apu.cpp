@@ -50,7 +50,11 @@ auto APU::main() -> void {
 
 auto APU::step(uint clocks) -> void {
   Thread::step(clocks);
+#if defined(SCHEDULER_SYNCHRO)
+  Thread::synchronize(vdp, psg, ym2612);
+#else
   Thread::synchronize(cpu, vdp, psg, ym2612);
+#endif
 }
 
 auto APU::setNMI(bool value) -> void {

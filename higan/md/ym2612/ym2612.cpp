@@ -162,7 +162,9 @@ auto YM2612::sample() -> void {
 
 auto YM2612::step(uint clocks) -> void {
   Thread::step(clocks);
+#if !defined(SCHEDULER_SYNCHRO)
   Thread::synchronize(cpu, apu);
+#endif
 }
 
 auto YM2612::power(bool reset) -> void {

@@ -1,12 +1,26 @@
 #include "../web.hpp"
 
 void WebVideo::initialize(const char* windowTitle) {
+    SDL_SetHint(SDL_HINT_EMSCRIPTEN_ASYNCIFY, "0");
+
     if (!renderer) {
         DEBUG_LOG("Initializing video\n");
+
+        // Disable event handler setup
+        EM_ASM({
+             window.realHandler = JSEvents.registerOrRemoveHandler;
+             JSEvents.registerOrRemoveHandler = () => true;
+        });
 
         assert(SDL_Init(SDL_INIT_VIDEO) == 0);
         window = SDL_CreateWindow(windowTitle, 0, 0, width, height, SDL_WINDOW_SHOWN);
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+        // Re-enable event handler setup
+        EM_ASM({
+             JSEvents.registerOrRemoveHandler = window.realHandler;
+             delete window.realHandler;
+        });
     }
 }
 

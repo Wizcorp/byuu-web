@@ -2,6 +2,8 @@
 export const Emulator = {
   Famicom: 'Famicom',
   SuperFamicom: 'Superfamicom',
+  GameBoy: 'GameBoy',
+  GameBoyAdvance: 'GameBoyAdvance'
 }
 
 export const EmulatorEvent = {
@@ -106,7 +108,7 @@ byuu.initialize = async function (parent, ctxOptions) {
   return new Promise((resolve) => {
     // Module isn't a real promise, and unless we set
     // things as follow the code seem to tight-loop
-    Module({ 
+    Module({
       locateFile: (filename, prefix) =>  {
         if (filename === 'byuu-web-lib.wasm') {
           return getBinaryPath()

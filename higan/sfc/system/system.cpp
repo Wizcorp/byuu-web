@@ -10,7 +10,9 @@ System system;
 
 auto System::run() -> void {
   if(scheduler.enter() == Event::Frame) {
+#if !defined(SCHEDULER_SYNCHRO)
     ppu.refresh();
+#endif
 
     auto reset = controls.reset->value();
     controls.poll();

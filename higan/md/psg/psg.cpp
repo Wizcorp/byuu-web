@@ -34,7 +34,9 @@ auto PSG::main() -> void {
 
 auto PSG::step(uint clocks) -> void {
   Thread::step(clocks);
+#if !defined(SCHEDULER_SYNCHRO)
   Thread::synchronize(cpu, apu);
+#endif
 }
 
 auto PSG::power(bool reset) -> void {

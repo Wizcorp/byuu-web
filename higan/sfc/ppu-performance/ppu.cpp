@@ -91,7 +91,13 @@ auto PPU::main() -> void {
   }
 
   if(vcounter() == 240) {
+#if defined(SCHEDULER_SYNCHRO)
+    // Render early, exit at the top of CPU::main
+    ppu.refresh();
+    hasRendered = true;
+#else
     scheduler.exit(Event::Frame);
+#endif
   }
 
   step(hperiod() - hcounter());

@@ -4,6 +4,8 @@ struct PPU : Thread, PPUcounter {
   Node::String region;
   Node::Boolean colorEmulation;
 
+  bool hasRendered = false;
+
   inline auto hires() const -> bool { return io.pseudoHires || io.bgMode == 5 || io.bgMode == 6; }
   inline auto interlace() const -> bool { return state.interlace; }
   inline auto overscan() const -> bool { return state.overscan; }

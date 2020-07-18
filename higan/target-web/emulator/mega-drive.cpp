@@ -4,14 +4,12 @@ struct MegaDrive : Emulator {
   MegaDrive();
   auto load() -> bool override;
   auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> override;
-  auto input(higan::Node::Input) -> void override;
 };
 
 struct MegaCD : Emulator {
   MegaCD();
   auto load() -> bool override;
   auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> override;
-  auto input(higan::Node::Input) -> void override;
 
   uint regionID = 0;
 };
@@ -23,6 +21,11 @@ MegaDrive::MegaDrive() {
   ports = {
     "Controller Port 1",
     "Controller Port 2"
+  };
+  buttons = {
+    "Up", "Down", "Left", "Right", 
+    "A", "B", "C", "X", "Y", "Z",
+    "Mode", "Start"
   };
 }
 
@@ -58,30 +61,6 @@ auto MegaDrive::open(higan::Node::Object node, string name, vfs::file::mode mode
   return {};
 }
 
-auto MegaDrive::input(higan::Node::Input node) -> void {
-  auto name = node->name();
-  maybe<InputMapping&> mapping;
-  if(name == "Up"   ) mapping = virtualPad.up;
-  if(name == "Down" ) mapping = virtualPad.down;
-  if(name == "Left" ) mapping = virtualPad.left;
-  if(name == "Right") mapping = virtualPad.right;
-  if(name == "A"    ) mapping = virtualPad.x;
-  if(name == "B"    ) mapping = virtualPad.a;
-  if(name == "C"    ) mapping = virtualPad.b;
-  if(name == "X"    ) mapping = virtualPad.y;
-  if(name == "Y"    ) mapping = virtualPad.l;
-  if(name == "Z"    ) mapping = virtualPad.r;
-  if(name == "Mode" ) mapping = virtualPad.select;
-  if(name == "Start") mapping = virtualPad.start;
-
-  if(mapping) {
-    auto value = mapping->value();
-    if(auto button = node->cast<higan::Node::Button>()) {
-      button->setValue(value);
-    }
-  }
-}
-
 MegaCD::MegaCD() {
   interface = new higan::MegaDrive::MegaDriveInterface;
   name = "Mega CD";
@@ -89,7 +68,12 @@ MegaCD::MegaCD() {
   ports = {
     "Controller Port 1",
     "Controller Port 2"
-  }
+  };
+  buttons = {
+    "Up", "Down", "Left", "Right", 
+    "A", "B", "C", "X", "Y", "Z",
+    "Mode", "Start"
+  };
 
   firmware.append({"BIOS", "US"});
   firmware.append({"BIOS", "Japan"});
@@ -194,28 +178,4 @@ auto MegaCD::open(higan::Node::Object node, string name, vfs::file::mode mode, b
   }
 
   return {};
-}
-
-auto MegaCD::input(higan::Node::Input node) -> void {
-  auto name = node->name();
-  maybe<InputMapping&> mapping;
-  if(name == "Up"   ) mapping = virtualPad.up;
-  if(name == "Down" ) mapping = virtualPad.down;
-  if(name == "Left" ) mapping = virtualPad.left;
-  if(name == "Right") mapping = virtualPad.right;
-  if(name == "A"    ) mapping = virtualPad.x;
-  if(name == "B"    ) mapping = virtualPad.a;
-  if(name == "C"    ) mapping = virtualPad.b;
-  if(name == "X"    ) mapping = virtualPad.y;
-  if(name == "Y"    ) mapping = virtualPad.l;
-  if(name == "Z"    ) mapping = virtualPad.r;
-  if(name == "Mode" ) mapping = virtualPad.select;
-  if(name == "Start") mapping = virtualPad.start;
-
-  if(mapping) {
-    auto value = mapping->value();
-    if(auto button = node->cast<higan::Node::Button>()) {
-      button->setValue(value);
-    }
-  }
 }

@@ -4,8 +4,8 @@
 struct WebAudio {
 	bool initialized = false;
 
-	ALCdevice *device;
-	ALCcontext *context;
+	ALCdevice *device = nullptr;
+	ALCcontext *context = nullptr;
 	ALuint source = 0;
 
 	uint frequency;
