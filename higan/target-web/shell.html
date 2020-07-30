@@ -1603,7 +1603,10 @@
             const arr = Array.from(controller.children);
             arr.forEach((element) => {
               const { label, x, y } = element.dataset;
-              vGamepad.displayButtons[label] = { x, y };
+              vGamepad.displayButtons[label] = {
+                x: parseInt(x, 10),
+                y: parseInt(y, 10),
+              };
               vGamepad.buttonElements[label] = element;
             });
           } else {
