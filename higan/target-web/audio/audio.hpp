@@ -25,5 +25,5 @@ struct WebAudio {
 
 	bool resume();
 	void setVolume(uint volume);
-	void output(double samples[2]);
+	void output(float samples[2]);
 };

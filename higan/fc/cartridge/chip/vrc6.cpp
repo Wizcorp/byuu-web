@@ -114,7 +114,7 @@ struct VRC6 : Chip {
     pulse1.clock();
     pulse2.clock();
     sawtooth.clock();
-    double output = (pulse1.output + pulse2.output + sawtooth.output) / 61.0 * 0.25;
+    float output = (pulse1.output + pulse2.output + sawtooth.output) / 61.0 * 0.25;
     stream->sample(-output);
 
     tick();

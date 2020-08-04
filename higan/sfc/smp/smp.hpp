@@ -2,6 +2,13 @@
 
 struct SMP : SPC700, Thread {
   int firstRun = 1;
+  
+  struct Lockstep {
+    bool enabled = true;
+    uint cycle = 0;
+    uint clocks = 0;
+  } lockstep;
+  
 
   Node::Component node;
   Node::Instruction eventInstruction;

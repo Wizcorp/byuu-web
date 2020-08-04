@@ -9,6 +9,20 @@ struct CPU : WDC65816, Thread, PPUcounter {
   inline auto refresh() const -> bool { return status.dramRefresh == 1; }
   inline auto synchronizing() const -> bool override { return scheduler.synchronizing(); }
 
+  // Overclock the CPU
+  double overclock = 1.0;
+
+  // See: https://github.com/bsnes-emu/bsnes/blob/8e80d2f8a43e34a82931e25143b279e5fbcfaedc/bsnes/sfc/interface/configuration.cpp#L23
+  bool fastMath = true;
+
+  // Set to false to group step executions and execute them once
+  // every 4 cycles
+  struct Lockstep {
+    bool enabled = true;
+    uint cycle = 0;
+    uint clocks = 0;
+  } lockstep;
+  
   //cpu.cpp
   auto load(Node::Object parent, Node::Object from) -> void;
   auto unload() -> void;
@@ -80,6 +94,11 @@ private:
     uint cpu = 0;
     uint dma = 0;
   } counter;
+
+  struct Overclocking {
+    uint counter = 0;
+    uint target = 0;
+  } overclocking;
 
   struct Status {
     uint clockCount = 0;

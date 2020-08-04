@@ -22,6 +22,8 @@ struct AbstractMemory {
 #include "protectable.hpp"
 
 struct Bus {
+  enum fastmode_t { FastModeNone, FastModeReadOnly, FastModeReadWrite } fastmode;
+
   alwaysinline static auto mirror(uint address, uint size) -> uint;
   alwaysinline static auto reduce(uint address, uint mask) -> uint;
 
@@ -34,13 +36,20 @@ struct Bus {
   auto map(
     const function<uint8 (uint24, uint8)>& read,
     const function<void  (uint24, uint8)>& write,
-    const string& address, uint size = 0, uint base = 0, uint mask = 0
+    const string& address, uint size = 0, uint base = 0, uint mask = 0,
+    unsigned fastmode = 0, uint8* fast_ptr = NULL
   ) -> uint;
   auto unmap(const string& address) -> void;
 
 private:
-  uint8* lookup = nullptr;
-  uint32* target = nullptr;
+  uint8 lookup[16 * 1024 * 1024];
+  uint32 target[16 * 1024 * 1024];
+
+  static const unsigned fast_page_size_bits = 13;//keep at 13 or lower so the RAM mirrors can be on the fast path
+  static const unsigned fast_page_size = (1 << fast_page_size_bits);
+  static const unsigned fast_page_size_mask = (fast_page_size - 1);
+  uint8* fast_read[0x1000000>>fast_page_size_bits];
+  uint8* fast_write[0x1000000>>fast_page_size_bits];
 
   function<uint8 (uint24, uint8)> reader[256];
   function<void  (uint24, uint8)> writer[256];

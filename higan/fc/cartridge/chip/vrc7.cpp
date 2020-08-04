@@ -42,7 +42,7 @@ struct VRC7 : YM2413, Chip {
 
     if(++divider == 36) {
       divider = 0;
-      double sample = 0.0;
+      float sample = 0.0;
       if(!disableFM) sample = YM2413::clock();
       stream->sample(sample);
     }

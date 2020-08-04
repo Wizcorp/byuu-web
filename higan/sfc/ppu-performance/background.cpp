@@ -39,7 +39,7 @@ auto PPU::Background::render() -> void {
 
   uint mosaicCounter = 1;
   uint mosaicPalette = 0;
-  uint mosaicPriority = 0;
+  uint8 mosaicPriority = 0;
   uint15 mosaicColor = 0;
 
   int x = 0 - (hscroll & 7);

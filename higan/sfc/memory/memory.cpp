@@ -4,10 +4,7 @@ namespace higan::SuperFamicom {
 
 Bus bus;
 
-Bus::~Bus() {
-  if(lookup) delete[] lookup;
-  if(target) delete[] target;
-}
+Bus::~Bus() {}
 
 auto Bus::reset() -> void {
   for(auto id : range(256)) {
@@ -15,12 +12,6 @@ auto Bus::reset() -> void {
     writer[id].reset();
     counter[id] = 0;
   }
-
-  if(lookup) delete[] lookup;
-  if(target) delete[] target;
-
-  lookup = new uint8 [16 * 1024 * 1024]();
-  target = new uint32[16 * 1024 * 1024]();
 
   reader[0] = [](uint24, uint8 data) -> uint8 { return data; };
   writer[0] = [](uint24, uint8) -> void {};
@@ -32,7 +23,8 @@ auto Bus::reset() -> void {
 auto Bus::map(
   const function<uint8 (uint24, uint8)>& read,
   const function<void  (uint24, uint8)>& write,
-  const string& addr, uint size, uint base, uint mask
+  const string& addr, uint size, uint base, uint mask,
+  unsigned fastmode, uint8* fastptr
 ) -> uint {
   uint id = 1;
   while(counter[id]) {
@@ -55,6 +47,18 @@ auto Bus::map(
       uint addrHi = addrRange(1, addrRange(0)).hex();
 
       for(uint bank = bankLo; bank <= bankHi; bank++) {
+        if (fastmode > 0) {
+          for(unsigned addr = addrLo&~fast_page_size_mask; addr<=addrHi; addr+=fast_page_size) {
+            unsigned origpos = (bank << 16 | addr);
+            unsigned fastoffset = origpos >> fast_page_size_bits;
+
+            unsigned accesspos = reduce(origpos, mask);
+            if(size) accesspos = base + mirror(accesspos, size - base);
+            if (fastmode > Bus::FastModeNone) fast_read[fastoffset] = fastptr - origpos + accesspos;
+            if (fastmode == Bus::FastModeReadWrite) fast_write[fastoffset] = fastptr - origpos + accesspos;
+          }
+        }
+
         for(uint addr = addrLo; addr <= addrHi; addr++) {
           uint pid = lookup[bank << 16 | addr];
           if(pid && --counter[pid] == 0) {

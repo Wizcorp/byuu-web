@@ -67,7 +67,7 @@ auto PPU::main() -> void {
     width512 = 0;
   }
 
-  if(vcounter() && vcounter() < vdisp() && !runAhead()) {
+  if(vcounter() && vcounter() < vdisp() && !runAhead() && (!isSkipping || !skip)) {
     uint width = hires() ? 512 : 256;
     if(width == 256) width256 = 1;
     if(width == 512) width512 = 1;
@@ -93,7 +93,11 @@ auto PPU::main() -> void {
   if(vcounter() == 240) {
 #if defined(SCHEDULER_SYNCHRO)
     // Render early, exit at the top of CPU::main
-    ppu.refresh();
+    if (!isSkipping || !skip) {
+      ppu.refresh();
+    }
+
+    skip = !skip;
     hasRendered = true;
 #else
     scheduler.exit(Event::Frame);

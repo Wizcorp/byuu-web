@@ -85,7 +85,7 @@ bool WebAudio::resume() {
     });
 }
 
-void WebAudio::output(double samples[2]) {
+void WebAudio::output(float samples[2]) {
     if (muted) {
         return;
     }

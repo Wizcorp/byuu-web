@@ -30,8 +30,12 @@ void DSP::main() {
   // this will properly sync up with other subsystem threads regardless of how
   // many ticks we jump
   uintmax clocks = 32;
-  spc_dsp.run(clocks);
+  
+  if(enabled) spc_dsp.run(clocks);
+
   step(clocks);
+  
+  if(!enabled) return;
 
   // The above will generate a sample every 32 ticks, if there is a sample we
   // need to pass it onto the client for playback

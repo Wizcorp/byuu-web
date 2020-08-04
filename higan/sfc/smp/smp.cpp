@@ -21,6 +21,8 @@ auto SMP::unload() -> void {
   node = {};
 }
 
+static uint ct = 0;
+
 auto SMP::main() -> void {
   #if defined(SCHEDULER_SYNCHRO)
   if (!firstRun) {
@@ -29,6 +31,15 @@ auto SMP::main() -> void {
   #endif
 
   firstRun = 0;
+
+  if (lockstep.enabled == false) {
+    if (lockstep.cycle == -1) {
+      step(-1);
+      lockstep.cycle = 4;
+    }
+
+    lockstep.cycle--;
+  }
 
   if(r.wait) return instructionWait();
   if(r.stop) return instructionStop();

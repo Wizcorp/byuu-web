@@ -1,15 +1,37 @@
 // String enums
 export const Emulator = {
   Famicom: 'Famicom',
-  SuperFamicom: 'Superfamicom',
+  SuperFamicom: 'Super Famicom',
   GameBoy: 'GameBoy',
-  GameBoyAdvance: 'GameBoyAdvance'
+  GameBoyAdvance: 'GameBoy Advance'
 }
 
 export const EmulatorEvent = {
   FrameStart: 'frame.start',
   FrameEnd: 'frame.end',
   Resize: 'resize',
+}
+
+export const Settings = {
+  ['Super Famicom']: {
+    CPU: {
+      Lockstep: 'cpu/lockstep',
+      Fastmath: 'cpu/fastmath',
+      Overclock: 'cpu/overclock'
+    },
+    SMP: {
+      Lockstep: 'smp/lockstep'
+    },
+    DSP: {
+      Enabled: 'dsp/enabled'
+    }, 
+    PPU: {
+      Skipframe: 'ppu/skipframe'
+    }
+  },
+  ['Famicom']: {
+
+  }
 }
 
 let lib;

@@ -22,7 +22,7 @@ struct Sunsoft5B : YM2149, Board {
 
     if(!++divider) {
       auto channels = YM2149::clock();
-      double output = 0.0;
+      float output = 0.0;
       output += volume[channels[0]];
       output += volume[channels[1]];
       output += volume[channels[2]];

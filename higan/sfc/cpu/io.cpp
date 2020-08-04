@@ -3,7 +3,9 @@ auto CPU::readRAM(uint24 address, uint8 data) -> uint8 {
 }
 
 auto CPU::readAPU(uint24 address, uint8 data) -> uint8 {
+#if !defined(PROFILE_PERFORMANCE)
   synchronize(smp);
+#endif
   return smp.portRead(address.bit(0,1));
 }
 
@@ -94,7 +96,9 @@ auto CPU::writeRAM(uint24 address, uint8 data) -> void {
 }
 
 auto CPU::writeAPU(uint24 address, uint8 data) -> void {
+#if !defined(PROFILE_PERFORMANCE)
   synchronize(smp);
+#endif
   return smp.portWrite(address.bit(0,1), data);
 }
 
@@ -144,9 +148,12 @@ auto CPU::writeCPU(uint24 address, uint8 data) -> void {
 
     io.wrmpyb = data;
     io.rddiv = io.wrmpyb << 8 | io.wrmpya;
-
-    alu.mpyctr = 8;  //perform multiplication over the next eight cycles
-    alu.shift = io.wrmpyb;
+    if (fastMath) {
+      io.rdmpy = io.wrmpya * io.wrmpyb;
+    } else {
+      alu.mpyctr = 8;  //perform multiplication over the next eight cycles
+      alu.shift = io.wrmpyb;
+    }
     return;
 
   case 0x4204:  //WRDIVL
@@ -163,8 +170,18 @@ auto CPU::writeCPU(uint24 address, uint8 data) -> void {
 
     io.wrdivb = data;
 
-    alu.divctr = 16;  //perform division over the next sixteen cycles
-    alu.shift = io.wrdivb << 16;
+    if (fastMath) {
+      if(io.wrdivb) {
+        io.rddiv = io.wrdiva / io.wrdivb;
+        io.rdmpy = io.wrdiva % io.wrdivb;
+      } else {
+        io.rddiv = 0xffff;
+        io.rdmpy = io.wrdiva;
+      }
+    } else {
+      alu.divctr = 16;  // perform division over the next sixteen cycles
+      alu.shift = io.wrdivb << 16;
+    }
     return;
 
   case 0x4207:  //HTIMEL

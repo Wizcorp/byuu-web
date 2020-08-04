@@ -3,10 +3,12 @@ wasm := true
 debug := false
 profiler := false
 synchro := true
+simd := false
 
 .DEFAULT:
 	$(MAKE) ${@} -C higan target=web \
 		wasm=$(wasm) \
+		simd=$(simd) \
 		synchro=$(synchro) \
 		debug=$(debug) \
 		profiler=$(profiler) \

@@ -237,6 +237,11 @@
         display: none;
       }
 
+      #settingsArea #core-specific-settings > div {
+        display: none;
+        width: 100%;
+      }
+
       #settingsArea .label {
         flex: 1;
         text-align: right;
@@ -768,12 +773,30 @@
                 <label for="touchArea_full">Full</label>
               </div>
             </div>
+            
             <div class="settingEntry">
               <div class="label">Audio volume</div>
               <div class="values">
                 <input type="range" name="volume" id="volume" min="0" max="100" step="1" value="100">
                 <input type="checkbox" name="mute" id="mute" />
                 <label for="mute">Mute</label>
+              </div>
+            </div>
+            <div class="settingEntry" id="core-specific-settings">
+              <div data-console="Super Famicom">
+                <div class="label">SFC Core</div>
+                <div class="values">
+                  <input type="checkbox" name="sfc-fastmath" id="sfc-fastmath" checked />
+                  <label for="sfc-fastmath">Fast math</label>
+                  <input type="checkbox" name="sfc-overclock" id="sfc-overclock">
+                  <label for="sfc-overclock">Overclock</label>
+                  <input type="checkbox" name="sfc-lockstep" id="sfc-lockstep" checked />
+                  <label for="sfc-lockstep">Lockstep</label>
+                  <input type="checkbox" name="sfc-skipframe" id="sfc-skipframe" />
+                  <label for="sfc-skipframe">Skip frame</label>
+                  <input type="checkbox" name="sfc-dsp" id="sfc-dsp" checked />
+                  <label for="sfc-dsp">DSP</label>
+                </div>
               </div>
             </div>
           </form>
@@ -1147,7 +1170,39 @@
       });
       window.addEventListener('orientationchange', resizeVideo);
 
-      document.forms.settingsForm.addEventListener('change', ({ target: { name, value , checked } }) => {
+      // Settings 
+      function configureEmulatorCore(id, value) {
+        const [core, name] = id.split('-');
+        switch (core) {
+          case 'sfc':
+            switch (name) {
+              case 'lockstep': 
+                Module.configure('cpu/lockstep', value);
+                Module.configure('smp/lockstep', value);
+                return true;
+              case 'fastmath':
+                Module.configure('cpu/fastmath', value);
+                return true;
+                break;
+              case 'overclock':
+                Module.configure('cpu/overclock', value ? 2.0 : 1.0);
+                return true;
+                break;
+              case 'dsp':
+                Module.configure('dsp/enabled', value);
+                return true;
+                break;
+              case 'skipframe':
+                Module.configure('ppu/skipframe', value);
+                return true;
+                break;
+            }
+            return false;
+          case 'fc':
+            return false;
+        }
+      }
+      document.forms.settingsForm.addEventListener('change', ({ target: { name, value , checked } }) => {      
         switch (name) {
           case 'gamepadOpacity':
             virtualGamepadElement.style.opacity = value;
@@ -1175,8 +1230,13 @@
           case 'mute':
             Module.setMute(checked);
             break;
+          case 'dsp':
+            Module.setMute(checked);
+            break;
           default:
-            console.log('received unknown settings change event:', name, value);
+            if (!configureEmulatorCore(name, checked)) {
+              console.log('received unknown settings change event:', name, value);
+            }
         }
       });
 
@@ -1815,6 +1875,17 @@
         const save = await gameLoad(filename);
 
         Module.setEmulator(emulator);
+        document.querySelectorAll('#core-specific-settings > div').forEach((panel) => {
+          const { dataset, style } = panel;
+          
+          if (dataset.console !== emulator) {
+            style.display = 'none';
+            return;
+          }
+
+          style.display = 'flex';
+          panel.querySelectorAll('input').forEach(({ id, checked }) => configureEmulatorCore(id, checked))
+        });
         Module.load(romData, save);
 
         gameLoadingElement.style.display = 'none';

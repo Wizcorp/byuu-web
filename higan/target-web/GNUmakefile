@@ -7,6 +7,7 @@ debug := false
 profiler := false
 synchro := true
 eventinstruction_notify := false
+simd := false
 
 PYTHON=$(shell which python3 || which python)
 
@@ -32,6 +33,10 @@ endif
 
 ifeq ($(eventinstruction_notify), false)
   flags += -DNO_EVENTINSTRUCTION_NOTIFY
+endif
+
+ifeq ($(simd), true)
+  flags += -msimd128
 endif
 	
 flags += \

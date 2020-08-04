@@ -5,6 +5,9 @@ namespace higan {
 struct Interface {
   virtual ~Interface() = default;
 
+  //configuration
+  virtual auto configure(string name, uint value) -> void {}
+  
   //information
   virtual auto name() -> string { return {}; }
   virtual auto game() -> string { return {}; }

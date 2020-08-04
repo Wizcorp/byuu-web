@@ -3,18 +3,18 @@ struct Background {
   struct Mode { enum : uint { BPP2, BPP4, BPP8, Mode7, Inactive }; };
 
   const uint id;
-  Background(uint id) : id(id) {}
+  alwaysinline Background(uint id) : id(id) {}
 
   //background.cpp
-  auto render() -> void;
-  auto getTile(uint hoffset, uint voffset) -> uint16;
+  alwaysinline auto render() -> void;
+  alwaysinline auto getTile(uint hoffset, uint voffset) -> uint16;
   auto power() -> void;
 
   //mode7.cpp
   auto renderMode7() -> void;
 
   //serialization.cpp
-  auto serialize(serializer&) -> void;
+  alwaysinline auto serialize(serializer&) -> void;
 
   struct IO {
      uint2 screenSize;

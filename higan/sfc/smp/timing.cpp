@@ -19,7 +19,19 @@ auto SMP::wait(bool halve, maybe<uint16> address) -> void {
   stepTimers(timerWaitStates[waitStates] >> halve);
 }
 
+static uint count = 0;
+
 auto SMP::step(uint clocks) -> void {
+  if (lockstep.enabled == false) {
+    if (clocks != -1) {
+      lockstep.clocks += clocks;
+      return;
+    }
+
+    clocks = lockstep.clocks;
+    lockstep.clocks = 0;
+  }
+
   Thread::step(clocks);
 
 #if defined(SCHEDULER_SYNCHRO)

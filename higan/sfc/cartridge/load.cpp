@@ -88,14 +88,14 @@ auto Cartridge::loadMemory(AbstractMemory& ram, Markup::Node node, bool required
 }
 
 template<typename T>  //T = ReadableMemory, WritableMemory, ProtectableMemory
-auto Cartridge::loadMap(Markup::Node map, T& memory) -> uint {
+auto Cartridge::loadMap(Markup::Node map, T& memory, unsigned mode) -> uint {
   auto address = map["address"].text();
   auto size = map["size"].natural();
   auto base = map["base"].natural();
   auto mask = map["mask"].natural();
   if(size == 0) size = memory.size();
   if(size == 0) return print("loadMap(): size=0\n"), 0;  //does this ever actually occur?
-  return bus.map({&T::read, &memory}, {&T::write, &memory}, address, size, base, mask);
+  return bus.map({&T::read, &memory}, {&T::write, &memory}, address, size, base, mask, mode, memory.data());
 }
 
 auto Cartridge::loadMap(
@@ -113,13 +113,13 @@ auto Cartridge::loadMap(
 //memory(type=ROM,content=Program)
 auto Cartridge::loadROM(Markup::Node node) -> void {
   loadMemory(rom, node, File::Required);
-  for(auto leaf : node.find("map")) loadMap(leaf, rom);
+  for(auto leaf : node.find("map")) loadMap(leaf, rom, Bus::FastModeReadOnly);
 }
 
 //memory(type=RAM,content=Save)
 auto Cartridge::loadRAM(Markup::Node node) -> void {
   loadMemory(ram, node, File::Optional);
-  for(auto leaf : node.find("map")) loadMap(leaf, ram);
+  for(auto leaf : node.find("map")) loadMap(leaf, ram, Bus::FastModeReadWrite);
 }
 
 //processor(identifier=ICD)

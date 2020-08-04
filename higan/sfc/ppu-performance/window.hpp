@@ -3,12 +3,12 @@ struct Window {
   struct Color;
 
   //window.cpp
-  auto render(Layer&, bool enable, bool output[256]) -> void;
-  auto render(Color&, uint mask, bool output[256]) -> void;
+  alwaysinline auto render(Layer&, bool enable, bool output[256]) -> void;
+  alwaysinline auto render(Color&, uint mask, bool output[256]) -> void;
   auto power() -> void;
 
   //serialization.cpp
-  auto serialize(serializer&) -> void;
+  alwaysinline auto serialize(serializer&) -> void;
 
   struct Layer {
     uint1 oneInvert;

@@ -2,11 +2,11 @@ struct Object {
   //object.cpp
   alwaysinline auto addressReset() -> void;
   alwaysinline auto setFirstSprite() -> void;
-  auto render() -> void;
+  alwaysinline auto render() -> void;
   auto power() -> void;
 
   //serialization.cpp
-  auto serialize(serializer&) -> void;
+  alwaysinline auto serialize(serializer&) -> void;
 
   OAM oam;
 

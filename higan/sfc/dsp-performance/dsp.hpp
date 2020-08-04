@@ -4,6 +4,8 @@ struct DSP : Thread {
   Node::Component node;
   Node::Stream stream;
 
+  bool enabled = true;
+
   uint8 apuram[64 * 1024];
 
   void main();

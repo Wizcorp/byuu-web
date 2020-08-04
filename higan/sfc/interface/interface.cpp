@@ -4,6 +4,22 @@ namespace higan::SuperFamicom {
 
 Interface* interface = nullptr;
 
+auto SuperFamicomInterface::configure(string name, uint value) -> void {
+  if(name.match("cpu/lockstep")) {
+    cpu.lockstep.enabled = (bool) value;
+  } else if(name.match("cpu/fastmath")) {
+    cpu.fastMath = (bool) value;
+  } else if(name.match("cpu/overclock")) {
+    cpu.overclock = (double) value;
+  } else if(name.match("smp/lockstep")) {
+    smp.lockstep.enabled = (bool) value;
+  } else if(name.match("dsp/enabled")) {
+    dsp.enabled = (bool) value;
+  } else if(name.match("ppu/skipframe")) {
+    ppu.isSkipping = (bool) value;
+  }
+}
+
 auto SuperFamicomInterface::game() -> string {
   #if defined(CORE_GB)
   if(cartridge.has.GameBoySlot && GameBoy::cartridge.node) {

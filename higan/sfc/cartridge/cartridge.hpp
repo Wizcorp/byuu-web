@@ -60,7 +60,7 @@ private:
   auto loadBoard(string) -> Markup::Node;
   auto loadCartridge(Markup::Node) -> void;
   auto loadMemory(AbstractMemory&, Markup::Node, bool required) -> void;
-  template<typename T> auto loadMap(Markup::Node, T&) -> uint;
+  template<typename T> auto loadMap(Markup::Node, T&, unsigned mode = 0) -> uint;
   auto loadMap(Markup::Node, const function<uint8 (uint24, uint8)>&, const function<void (uint24, uint8)>&) -> uint;
 
   auto loadROM(Markup::Node) -> void;

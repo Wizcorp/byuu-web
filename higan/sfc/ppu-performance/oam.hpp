@@ -1,10 +1,10 @@
 struct OAM {
   //oam.cpp
-  auto read(uint10 address) -> uint8;
-  auto write(uint10 address, uint8 data) -> void;
+  alwaysinline auto read(uint10 address) -> uint8;
+  alwaysinline auto write(uint10 address, uint8 data) -> void;
 
   //serialization.cpp
-  auto serialize(serializer&) -> void;
+  alwaysinline auto serialize(serializer&) -> void;
 
   struct Object {
     //oam.cpp

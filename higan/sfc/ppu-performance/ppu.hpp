@@ -5,6 +5,8 @@ struct PPU : Thread, PPUcounter {
   Node::Boolean colorEmulation;
 
   bool hasRendered = false;
+  bool isSkipping = false;
+  bool skip = false;
 
   inline auto hires() const -> bool { return io.pseudoHires || io.bgMode == 5 || io.bgMode == 6; }
   inline auto interlace() const -> bool { return state.interlace; }

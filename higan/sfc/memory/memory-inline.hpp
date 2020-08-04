@@ -24,9 +24,17 @@ auto Bus::reduce(uint address, uint mask) -> uint {
 }
 
 auto Bus::read(uint24 address, uint8 data) -> uint8 {
+  if (fast_read[address>>fast_page_size_bits]) {
+    return fast_read[address>>fast_page_size_bits][address];
+  }
+
   return reader[lookup[address]](target[address], data);
 }
 
 auto Bus::write(uint24 address, uint8 data) -> void {
-  return writer[lookup[address]](target[address], data);
+  if (fast_write[address>>fast_page_size_bits]) {
+    fast_write[address>>fast_page_size_bits][address] = data;
+  } else {
+    writer[lookup[address]](target[address], data);
+  }
 }

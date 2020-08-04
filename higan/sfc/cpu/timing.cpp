@@ -9,6 +9,26 @@ auto CPU::joypadCounter() const -> uint {
 }
 
 auto CPU::step(uint clocks) -> void {
+  if (lockstep.enabled == false) {
+    if (clocks != -1) {
+      lockstep.clocks += clocks;
+      return;
+    }
+
+    clocks = lockstep.clocks;
+    lockstep.clocks = 0;
+  }
+
+  if(overclocking.target) {
+    overclocking.counter += clocks;
+    if(overclocking.counter < overclocking.target) {
+      #if !defined(PROFILE_PERFORMANCE)
+        for(auto coprocessor : coprocessors) Thread::synchronize(*coprocessor);
+      #endif
+      return;
+    }
+  }
+
   status.irqLock = 0;
   uint ticks = clocks >> 1;
   while(ticks--) {
@@ -18,7 +38,7 @@ auto CPU::step(uint clocks) -> void {
     if(joypadCounter() == 0) joypadEdge();
   }
 
-  if(!status.dramRefresh && hcounter() >= status.dramRefreshPosition) {
+  if(!fastMath && !status.dramRefresh && hcounter() >= status.dramRefreshPosition) {
     //note: pattern should technically be 5-3, 5-3, 5-3, 5-3, 5-3 per logic analyzer
     //result averages out the same as no coprocessor polls refresh() at > frequency()/2
     status.dramRefresh = 1; step(6); status.dramRefresh = 2; step(2); aluEdge();
@@ -47,10 +67,15 @@ auto CPU::step(uint clocks) -> void {
 
   Thread::step(clocks);
   for(auto peripheral : peripherals) Thread::synchronize(*peripheral);
+
+// Delayed sync optimization
+#if !defined(PROFILE_PERFORMANCE)
   for(auto coprocessor : coprocessors) Thread::synchronize(*coprocessor);
+#endif
 }
 
-//called by ppu.tick() when Hcounter=0
+// Called by ppu.tick() when Hcounter=0
+// See: https://github.com/bsnes-emu/bsnes/blob/8e80d2f8a43e34a82931e25143b279e5fbcfaedc/bsnes/sfc/cpu/timing.cpp#L80
 auto CPU::scanline() -> void {
   //forcefully sync S-CPU to other processors, in case chips are not communicating
   Thread::synchronize(smp, ppu);
@@ -64,14 +89,26 @@ auto CPU::scanline() -> void {
     status.autoJoypadCounter = 0;
   }
 
-  //DRAM refresh occurs once every scanline
-  if(io.version == 2) status.dramRefreshPosition = 530 + 8 - dmaCounter();
-  status.dramRefresh = 0;
+  if(!fastMath) {
+    //DRAM refresh occurs once every scanline
+    if(io.version == 2) status.dramRefreshPosition = 530 + 8 - dmaCounter();
+    status.dramRefresh = 0;
+  }
 
   //HDMA triggers once every visible scanline
   if(vcounter() < ppu.vdisp()) {
     status.hdmaPosition = 1104;
     status.hdmaTriggered = 0;
+  }
+
+  if(vcounter() == (Region::NTSC() ? 261 : 311)) {
+    overclocking.counter = 0;
+    overclocking.target = 0;
+    
+    if(overclock > 1.0) {
+      int clocks = (Region::NTSC() ? 262 : 312) * 1364;
+      overclocking.target = clocks * overclock - clocks;
+    }
   }
 }
 

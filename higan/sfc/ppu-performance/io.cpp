@@ -1,5 +1,9 @@
 auto PPU::latchCounters() -> void {
+// Line is skipped in BSNES
+// See: https://github.com/bsnes-emu/bsnes/blob/8e80d2f8a43e34a82931e25143b279e5fbcfaedc/bsnes/sfc/ppu-fast/io.cpp#L2
+#if !defined(PROFILE_PERFORMANCE)
   cpu.synchronize(ppu);
+#endif
   io.hcounter = cpu.hdot();
   io.vcounter = cpu.vcounter();
   latch.counters = 1;
@@ -17,7 +21,11 @@ auto PPU::addressVRAM() const -> uint16 {
 }
 
 auto PPU::readVRAM() -> uint16 {
+// No VRAM blocking
+// See: https://github.com/bsnes-emu/bsnes/blob/8e80d2f8a43e34a82931e25143b279e5fbcfaedc/bsnes/sfc/ppu-fast/io.cpp#L32
+#if !defined(PROFILE_PERFORMANCE)
   if(!io.displayDisable && cpu.vcounter() < vdisp()) return 0x0000;
+#endif
   auto address = addressVRAM();
   return vram[address];
 }

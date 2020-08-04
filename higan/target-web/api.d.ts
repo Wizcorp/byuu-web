@@ -11,9 +11,62 @@ type ByuuIsDirty = $dirty
  */
 export const enum Emulator {
   Famicom = 'Famicom',
-  SuperFamicom = 'Superfamicom',
+  SuperFamicom = 'Super Famicom',
   GameBoy = 'GameBoy',
-  GameBoyAdvance = 'GameBoyAdvance',
+  GameBoyAdvance = 'GameBoy Advance',
+}
+
+/**
+ * Per core configuration
+ */
+export interface SettingsEntries {
+  [emulator: Emulator]: {
+    [key: string]: any;
+  }
+}
+
+export const Settings: SettingsEntries = {
+  [Emulator.SuperFamicom]: {
+    CPU: {
+      /**
+       * Lockstep mode. When disabled, the CPU clock will be kept synchronized
+       * less frequently, which may provide better performance at the cost of
+       * accuracy.
+       */
+      Lockstep: 'cpu/lockstep',
+      /**
+       * Fast math. When enabled, immediately perform certain calculations instead
+       * of accurately spreading them accross multiple cycles.
+       */
+      Fastmath: 'cpu/fastmath',
+      /**
+       * Overclock. When value is greater than 1.0, will overclock the CPU
+       */
+      Overclock: 'cpu/overclock'
+    },
+    SMP: {
+      /**
+       * Lockstep mode. When disabled, the SMP clock will be kept synchronized
+       * less frequently with the DSP clock, which may provide better performance 
+       * at the cost of accuracy.
+       */
+      Lockstep: 'smp/lockstep'
+    },
+    DSP: {
+      /**
+       * Enable DSP. When disabled, audio will effectively be disabled, which may provide
+       * a small perfomance boost.
+       */
+      Enabled: 'dsp/enabled'
+    }, 
+    PPU: {
+      /**
+       * Skip frame. When enabled, skip the rendering of half the frames, which
+       * may provide slighgtly better performance.
+       */
+      Skipframe: 'ppu/skipframe'
+    }
+  }
 }
 
 /**

@@ -74,7 +74,7 @@ auto FDSAudio::unload() -> void {
 }
 
 auto FDSAudio::clock() -> void {
-  if(!enable) return stream->sample(0.0);
+  if(!enable) return stream->sample(0.0f);
 
   int frequency = carrier.frequency;
   if(envelopes && !waveform.halt) {
@@ -107,7 +107,7 @@ auto FDSAudio::updateOutput() -> void {
   integer level = min(carrier.gain, 32) * lookup[masterVolume];
 
   uint8 output = waveform.data[waveform.index] * level / 1152;
-  stream->sample(output / 255.0 * 0.5);
+  stream->sample(output / 255.0f * 0.5f);
 }
 
 auto FDSAudio::read(uint16 address, uint8 data) -> uint8 {

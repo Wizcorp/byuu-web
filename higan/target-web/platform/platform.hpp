@@ -62,6 +62,7 @@ struct WebPlatform : higan::Platform {
         auto unload() -> void;
 
         auto run() -> void;
+        auto configure(string name, uint value) -> void;
         auto setVolume(uint volume) -> void;
         auto setMute(bool mute) -> void;
 

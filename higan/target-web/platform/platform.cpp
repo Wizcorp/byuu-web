@@ -173,6 +173,14 @@ auto WebPlatform::run() -> void {
     }
 }
 
+auto WebPlatform::configure(string name, uint value) -> void {
+    if (!emulator) {
+        return;
+    }
+
+    emulator->interface->configure(name, value);
+}
+
 auto WebPlatform::onResize(emscripten::val callback) -> void {
     webvideo.onResize(callback);
 }
@@ -223,9 +231,9 @@ auto WebPlatform::audio(Node::Stream stream) -> void {
         }
 
         //mix all frames together
-        double samples[2] = {0.0, 0.0};
+        float samples[2] = {0.0, 0.0};
         for(auto& stream : streams) {
-            double buffer[2];
+            float buffer[2];
             uint channels = stream->read(buffer);
             if(channels == 1) {
                 //monaural -> stereo mixing

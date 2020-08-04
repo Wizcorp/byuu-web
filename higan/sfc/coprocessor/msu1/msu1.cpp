@@ -17,8 +17,8 @@ auto MSU1::unload() -> void {
 }
 
 auto MSU1::main() -> void {
-  double left  = 0.0;
-  double right = 0.0;
+  float left  = 0.0;
+  float right = 0.0;
 
   if(io.audioPlay) {
     if(audioFile) {
@@ -31,8 +31,8 @@ auto MSU1::main() -> void {
         }
       } else {
         io.audioPlayOffset += 4;
-        left  = (double)(int16)audioFile->readl(2) / 32768.0 * (double)io.audioVolume / 255.0;
-        right = (double)(int16)audioFile->readl(2) / 32768.0 * (double)io.audioVolume / 255.0;
+        left  = (float)(int16)audioFile->readl(2) / 32768.0 * (float)io.audioVolume / 255.0;
+        right = (float)(int16)audioFile->readl(2) / 32768.0 * (float)io.audioVolume / 255.0;
         if(dsp.mute()) left = 0, right = 0;
       }
     } else {

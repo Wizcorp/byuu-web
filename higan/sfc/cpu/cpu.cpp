@@ -30,6 +30,8 @@ auto CPU::unload() -> void {
   node = {};
 }
 
+static uint ct = 0;
+
 auto CPU::main() -> void {
 #if defined(SCHEDULER_SYNCHRO)
   if (ppu.hasRendered) {
@@ -37,6 +39,15 @@ auto CPU::main() -> void {
     scheduler.exit(Event::Frame);
   }
 #endif
+
+  if (lockstep.enabled == false) {
+    if (lockstep.cycle == -1) {
+      step(-1);
+      lockstep.cycle = 4;
+    }
+
+    lockstep.cycle--;
+  }
 
   if(r.wai) return instructionWait();
   if(r.stp) return instructionStop();
@@ -84,8 +95,8 @@ auto CPU::map() -> void {
 
   reader = {&CPU::readRAM, this};
   writer = {&CPU::writeRAM, this};
-  bus.map(reader, writer, "00-3f,80-bf:0000-1fff", 0x2000);
-  bus.map(reader, writer, "7e-7f:0000-ffff", 0x20000);
+  bus.map(reader, writer, "00-3f,80-bf:0000-1fff", 0x2000, 0, 0, Bus::FastModeReadWrite, wram); // fast
+  bus.map(reader, writer, "7e-7f:0000-ffff", 0x20000, 0, 0, Bus::FastModeReadWrite, wram); // fast
 
   reader = {&CPU::readAPU, this};
   writer = {&CPU::writeAPU, this};
@@ -97,7 +108,7 @@ auto CPU::map() -> void {
 
   reader = {&CPU::readDMA, this};
   writer = {&CPU::writeDMA, this};
-  bus.map(reader, writer, "00-3f,80-bf:4300-437f");
+  bus.map(reader, writer, "00-3f,80-bf:4300-437f"); //
 }
 
 auto CPU::power(bool reset) -> void {

@@ -44,17 +44,13 @@ auto PPU::Window::render(Color& color, uint mask, bool output[256]) -> void {
   if(!color.oneEnable && !color.twoEnable) {
     memory::fill<bool>(output, 256, clear);
     return;
-  }
-
-  if(color.oneEnable && !color.twoEnable) {
+  } else if(color.oneEnable && !color.twoEnable) {
     if(color.oneInvert) set ^= 1, clear ^= 1;
     for(uint x : range(256)) {
       output[x] = x >= io.oneLeft && x <= io.oneRight ? set : clear;
     }
     return;
-  }
-
-  if(!color.oneEnable && color.twoEnable) {
+  } else if(!color.oneEnable && color.twoEnable) {
     if(color.twoInvert) set ^= 1, clear ^= 1;
     for(uint x : range(256)) {
       output[x] = x >= io.twoLeft && x <= io.twoRight ? set : clear;
@@ -62,15 +58,35 @@ auto PPU::Window::render(Color& color, uint mask, bool output[256]) -> void {
     return;
   }
 
-  for(uint x : range(256)) {
-    bool oneMask = (x >= io.oneLeft && x <= io.oneRight) ^ color.oneInvert;
-    bool twoMask = (x >= io.twoLeft && x <= io.twoRight) ^ color.twoInvert;
-    switch(color.mask) {
-    case 0: output[x] = (oneMask | twoMask) == 1 ? set : clear; break;
-    case 1: output[x] = (oneMask & twoMask) == 1 ? set : clear; break;
-    case 2: output[x] = (oneMask ^ twoMask) == 1 ? set : clear; break;
-    case 3: output[x] = (oneMask ^ twoMask) == 0 ? set : clear; break;
-    }
+  switch(color.mask) {
+    case 0: 
+      for(uint x : range(256)) {
+        bool oneMask = (x >= io.oneLeft && x <= io.oneRight) ^ color.oneInvert;
+        bool twoMask = (x >= io.twoLeft && x <= io.twoRight) ^ color.twoInvert;
+        output[x] = (oneMask | twoMask) == 1 ? set : clear; 
+      }
+      break;
+    case 1:
+      for(uint x : range(256)) {
+        bool oneMask = (x >= io.oneLeft && x <= io.oneRight) ^ color.oneInvert;
+        bool twoMask = (x >= io.twoLeft && x <= io.twoRight) ^ color.twoInvert;
+        output[x] = (oneMask & twoMask) == 1 ? set : clear; 
+      }
+      break;
+    case 2:
+      for(uint x : range(256)) {
+        bool oneMask = (x >= io.oneLeft && x <= io.oneRight) ^ color.oneInvert;
+        bool twoMask = (x >= io.twoLeft && x <= io.twoRight) ^ color.twoInvert;
+        output[x] = (oneMask ^ twoMask) == 1 ? set : clear; 
+      }
+      break;
+    case 3:
+      for(uint x : range(256)) {
+        bool oneMask = (x >= io.oneLeft && x <= io.oneRight) ^ color.oneInvert;
+        bool twoMask = (x >= io.twoLeft && x <= io.twoRight) ^ color.twoInvert;
+        output[x] = (oneMask ^ twoMask) == 0 ? set : clear; 
+      }
+      break;
   }
 }
 

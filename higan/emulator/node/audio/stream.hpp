@@ -3,27 +3,27 @@ struct Stream : Object {
   using Object::Object;
 
   inline auto channels() const -> uint { return _channels.size(); }
-  inline auto frequency() const -> double { return _frequency; }
-  inline auto resamplerFrequency() const -> double { return _resamplerFrequency; }
+  inline auto frequency() const -> float { return _frequency; }
+  inline auto resamplerFrequency() const -> float { return _resamplerFrequency; }
 
   auto setChannels(uint channels) -> void;
-  auto setFrequency(double frequency) -> void;
-  auto setResamplerFrequency(double resamplerFrequency) -> void;
+  auto setFrequency(float frequency) -> void;
+  auto setResamplerFrequency(float resamplerFrequency) -> void;
 
   auto resetFilters() -> void;
-  auto addLowPassFilter(double cutoffFrequency, uint order, uint passes = 1) -> void;
-  auto addHighPassFilter(double cutoffFrequency, uint order, uint passes = 1) -> void;
-  auto addLowShelfFilter(double cutoffFrequency, uint order, double gain, double slope) -> void;
-  auto addHighShelfFilter(double cutoffFrequency, uint order, double gain, double slope) -> void;
+  auto addLowPassFilter(float cutoffFrequency, uint order, uint passes = 1) -> void;
+  auto addHighPassFilter(float cutoffFrequency, uint order, uint passes = 1) -> void;
+  auto addLowShelfFilter(float cutoffFrequency, uint order, float gain, float slope) -> void;
+  auto addHighShelfFilter(float cutoffFrequency, uint order, float gain, float slope) -> void;
 
   auto pending() const -> bool;
-  auto read(double samples[]) -> uint;
-  auto write(const double samples[]) -> void;
+  auto read(float samples[]) -> uint;
+  auto write(const float samples[]) -> void;
 
   template<typename... P>
   inline auto sample(P&&... p) -> void {
     if(runAhead()) return;
-    double samples[sizeof...(p)] = {forward<P>(p)...};
+    float samples[sizeof...(p)] = {forward<P>(p)...};
     write(samples);
   }
 
@@ -41,6 +41,6 @@ protected:
     DSP::Resampler::Cubic resampler;
   };
   vector<Channel> _channels;
-  double _frequency = 48000.0;
-  double _resamplerFrequency = 48000.0;
+  float _frequency = 48000.0;
+  float _resamplerFrequency = 48000.0;
 };

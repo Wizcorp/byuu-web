@@ -1,8 +1,8 @@
 struct Mosaic {
   //mosaic.cpp
-  inline auto enable() const -> bool;
-  inline auto voffset() const -> uint;
-  auto scanline() -> void;
+  alwaysinline auto enable() const -> bool;
+  alwaysinline auto voffset() const -> uint;
+  alwaysinline auto scanline() -> void;
   auto power() -> void;
 
   //serialization.cpp
