@@ -17,9 +17,7 @@ auto operator+=(string& lhs, const string& rhs) -> string& {
   return lhs;
 }
 
-#if !defined(ICARUS_LIBRARY)
 #include "settings/settings.cpp"
-#endif
 
 #include "media/media.cpp"
 #include "cartridge/cartridge.cpp"

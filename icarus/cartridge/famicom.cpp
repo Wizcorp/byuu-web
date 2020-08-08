@@ -182,6 +182,12 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
     break;
 
+  case  68:
+    s += "  board:  SUNSOFT-4\n";
+    s += "    chip type=4\n";
+    prgram = 8192;
+    break;
+
   case  69:
     s += "  board:  SUNSOFT-5B\n";
     s += "    chip type=5B\n";
@@ -204,6 +210,13 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     s += "  board:  NAMCOT-3446\n";
     s += "    chip type=Namcot108\n";
     s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
+    break;
+
+  case  78:
+    // Todo: adde NES 2.0 support to correctly detect the submapper; this will be needed 
+    // for Holy Diver to work correctly
+    s += "  board:  JALECO-JF16\n";
+    s += "    submapper id=1\n";
     break;
 
   case  85:

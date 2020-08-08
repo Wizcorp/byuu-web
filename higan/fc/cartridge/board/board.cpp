@@ -2,6 +2,7 @@
 #include "discrete-74x139x74.cpp"
 #include "hvc-fmr.cpp"
 #include "jaleco-jf.cpp"
+#include "jaleco-jf16.cpp"
 #include "konami-vrc1.cpp"
 #include "konami-vrc2.cpp"
 #include "konami-vrc3.cpp"
@@ -24,6 +25,7 @@
 #include "nes-uxrom.cpp"
 #include "sunsoft-1.cpp"
 #include "sunsoft-2.cpp"
+#include "sunsoft-4.cpp"
 #include "sunsoft-5b.cpp"
 
 Board::Board(Markup::Node document) {
@@ -151,7 +153,8 @@ auto Board::load(string manifest) -> Board* {
 
   if(type == "HVC-FMR"     ) return new HVC_FMR(document);
 
-  if(type == "JALECO-JF"   ) return new JalecoJF(document);
+  if(type == "JALECO-JF"  ) return new JalecoJF(document);
+  if(type == "JALECO-JF16") return new JalecoJF16(document);
 
   if(type == "KONAMI-VRC-1") return new KonamiVRC1(document);
   if(type == "KONAMI-VRC-2") return new KonamiVRC2(document);
@@ -249,6 +252,7 @@ auto Board::load(string manifest) -> Board* {
 
   if(type == "SUNSOFT-1"   ) return new Sunsoft1(document);
   if(type == "SUNSOFT-2"   ) return new Sunsoft2(document);
+  if(type == "SUNSOFT-4"  ) return new Sunsoft4(document);
   if(type == "SUNSOFT-5B"  ) return new Sunsoft5B(document);
 
   return nullptr;
