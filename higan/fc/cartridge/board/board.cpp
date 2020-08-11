@@ -1,5 +1,7 @@
 #include "bandai-fcg.cpp"
+#include "discrete-74x139x74.cpp"
 #include "hvc-fmr.cpp"
+#include "jaleco-jf.cpp"
 #include "konami-vrc1.cpp"
 #include "konami-vrc2.cpp"
 #include "konami-vrc3.cpp"
@@ -7,6 +9,7 @@
 #include "konami-vrc5.cpp"
 #include "konami-vrc6.cpp"
 #include "konami-vrc7.cpp"
+#include "namco-34xx.cpp"
 #include "nes-axrom.cpp"
 #include "nes-bnrom.cpp"
 #include "nes-cnrom.cpp"
@@ -19,6 +22,8 @@
 #include "nes-sxrom.cpp"
 #include "nes-txrom.cpp"
 #include "nes-uxrom.cpp"
+#include "sunsoft-1.cpp"
+#include "sunsoft-2.cpp"
 #include "sunsoft-5b.cpp"
 
 Board::Board(Markup::Node document) {
@@ -142,8 +147,11 @@ auto Board::load(string manifest) -> Board* {
   string type = document["game/board"].text();
 
   if(type == "BANDAI-FCG"  ) return new BandaiFCG(document);
+  if(type == "DISCRETE-74x139x74") return new DISCRETE74x139x74(document);
 
   if(type == "HVC-FMR"     ) return new HVC_FMR(document);
+
+  if(type == "JALECO-JF"   ) return new JalecoJF(document);
 
   if(type == "KONAMI-VRC-1") return new KonamiVRC1(document);
   if(type == "KONAMI-VRC-2") return new KonamiVRC2(document);
@@ -152,6 +160,20 @@ auto Board::load(string manifest) -> Board* {
   if(type == "KONAMI-VRC-5") return new KonamiVRC5(document);
   if(type == "KONAMI-VRC-6") return new KonamiVRC6(document);
   if(type == "KONAMI-VRC-7") return new KonamiVRC7(document);
+
+  if(type == "NAMCOT-3401") return new Namco34xx(document);
+  if(type == "NAMCOT-3406") return new Namco34xx(document);
+  if(type == "NAMCOT-3407") return new Namco34xx(document);
+  if(type == "NAMCOT-3413") return new Namco34xx(document);
+  if(type == "NAMCOT-3414") return new Namco34xx(document);
+  if(type == "NAMCOT-3415") return new Namco34xx(document);
+  if(type == "NAMCOT-3416") return new Namco34xx(document);
+  if(type == "NAMCOT-3417") return new Namco34xx(document);
+  if(type == "NAMCOT-3425") return new Namco34xx(document);
+  if(type == "NAMCOT-3443") return new Namco34xx(document);
+  if(type == "NAMCOT-3446") return new Namco34xx(document);
+  if(type == "NAMCOT-3451") return new Namco34xx(document);
+  if(type == "NAMCOT-3453") return new Namco34xx(document);
 
   if(type == "NES-AMROM"   ) return new NES_AxROM(document);
   if(type == "NES-ANROM"   ) return new NES_AxROM(document);
@@ -225,6 +247,8 @@ auto Board::load(string manifest) -> Board* {
   if(type == "NES-UNROM"   ) return new NES_UxROM(document);
   if(type == "NES-UOROM"   ) return new NES_UxROM(document);
 
+  if(type == "SUNSOFT-1"   ) return new Sunsoft1(document);
+  if(type == "SUNSOFT-2"   ) return new Sunsoft2(document);
   if(type == "SUNSOFT-5B"  ) return new Sunsoft5B(document);
 
   return nullptr;

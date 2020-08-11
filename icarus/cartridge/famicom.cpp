@@ -139,6 +139,11 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     eeprom = 128;
     break;
 
+  case  18:
+    s += "  board:  JALECO-JF\n";
+    s += "    chip type=SS88006\n";
+    break;
+
   case  21:
   case  23:
   case  25:
@@ -195,10 +200,57 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     s += "    chip type=VRC1\n";
     break;
 
+  case  76:
+    s += "  board:  NAMCOT-3446\n";
+    s += "    chip type=Namcot108\n";
+    s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
+    break;
+
   case  85:
     s += "  board:  KONAMI-VRC-7\n";
     s += "    chip type=VRC7\n";
     prgram = 8192;
+    break;
+
+  case  87:
+    s += "  board:  DISCRETE-74x139x74\n";
+    s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
+    prgram = 8192;
+    break;
+
+  case  88:
+    s += "  board:  NAMCOT-3443\n";
+    s += "    chip type=Namcot108\n";
+    s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
+    break;
+  
+  case  93:
+    s += "  board:  SUNSOFT-2\n";
+    s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
+    break;
+
+  case  95:
+    s += "  board:  NAMCOT-3425\n";
+    s += "    chip type=Namcot108\n";
+    s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
+    break;
+
+  case  154:
+    s += "  board:  NAMCOT-3453\n";
+    s += "    chip type=Namcot108\n";
+    s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
+    break;
+
+  case  184:
+    s += "  board:  SUNSOFT-1\n";
+    s += "    chip type=1\n";
+    s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
+    break;
+
+  case  206:
+    s += "  board:  NAMCOT-3401\n";
+    s += "    chip type=Namcot108\n";
+    s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
     break;
   }
 
