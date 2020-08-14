@@ -175,5 +175,10 @@ The emulator will be served at http://localhost:8000.
 
 ## Acknowledgements
 
-We would like to give our sincere thanks to byuu for his contributions, help,
-and support.
+We would like to give our sincere thanks to:
+
+- byuu for his contributions, help, and support
+- [hex-usr](https://gitlab.com/hex-usr), maintainer of the [nSide](https://gitlab.com/hex-usr/nSide) fork
+  (from which we have adapted some of the FC mappers)
+- [Andrew Reading](https://gitlab.com/areading), maintainer of [bsnes-mcfly](https://gitlab.com/areading/bsnes-mcfly)
+  (which we've looked into for ideas on optimization)
