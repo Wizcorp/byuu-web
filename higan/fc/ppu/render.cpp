@@ -77,10 +77,7 @@ auto PPU::renderSprite() -> void {
   o.x    = oam[n * 4 + 3];
 }
 
-auto PPU::renderScanline() -> void {
-  //Vblank
-  if(io.ly >= 240 && io.ly <= vlines() - 2) return step(341), scanline();
-
+auto PPU::renderScanline1() -> void {
   latch.oamIterator = 0;
   latch.oamCounter = 0;
 
@@ -131,7 +128,9 @@ auto PPU::renderScanline() -> void {
     latch.tiledataLo = latch.tiledataLo << 8 | tiledataLo;
     latch.tiledataHi = latch.tiledataHi << 8 | tiledataHi;
   }
+}
 
+auto PPU::renderScanline2() -> void {
   for(auto n : range(8)) latch.oam[n] = latch.soam[n];
 
   //257-320
@@ -167,7 +166,9 @@ auto PPU::renderScanline() -> void {
       io.v.address = io.t.address;
     }
   }
+}
 
+auto PPU::renderScanline3() -> void {
   //321-336
   for(uint tile : range(2)) {
     uint nametable = loadCHR(0x2000 | (uint12)io.v.address);
@@ -208,4 +209,23 @@ auto PPU::renderScanline() -> void {
   if(!skip) step(1);
 
   return scanline();
+}
+
+auto PPU::renderScanline() -> void {
+  //Vblank
+  if(io.ly >= 240 && io.ly <= vlines() - 2) return step(341), scanline();
+
+#if defined(SCHEDULER_SYNCHRO)
+  static uint counter = 0;
+
+  switch(counter++) {
+    case 1: return renderScanline1();
+    case 2: return renderScanline2();
+    case 3: return counter = 0, renderScanline3();
+  }
+#else
+  renderScanline1();
+  renderScanline2();
+  renderScanline3();
+#endif
 }

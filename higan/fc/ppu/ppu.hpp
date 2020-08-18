@@ -8,6 +8,11 @@ struct PPU : Thread {
   inline auto vlines() const -> uint { return Region::PAL() ? 312 : 262; }
 
   //ppu.cpp
+  #if defined(SCHEDULER_SYNCHRO)
+  // Clocks count cumulator
+  uint cumulatedClocks = 0;
+  #endif
+
   auto load(Node::Object, Node::Object) -> void;
   auto unload() -> void;
 
@@ -36,6 +41,9 @@ struct PPU : Thread {
 
   inline auto renderPixel() -> void;
   inline auto renderSprite() -> void;
+  inline auto renderScanline1() -> void;
+  inline auto renderScanline2() -> void;
+  inline auto renderScanline3() -> void;
   inline auto renderScanline() -> void;
 
   //color.cpp

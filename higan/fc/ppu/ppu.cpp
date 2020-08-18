@@ -42,8 +42,9 @@ auto PPU::main() -> void {
   renderScanline();
 
   #if defined(SCHEDULER_SYNCHRO)
-  Thread::step(rate() * 341);
+  Thread::step(rate() * cumulatedClocks);
   Thread::synchronize(cpu);
+  cumulatedClocks = 0;
   #endif
 }
 
@@ -59,6 +60,8 @@ auto PPU::step(uint clocks) -> void {
 
     if(io.ly == L-1 && io.lx ==   0) io.nmiFlag = io.nmiHold = 0;
     if(io.ly == L-1 && io.lx ==   2) cpu.nmiLine(io.nmiEnable && io.nmiFlag);
+
+    cumulatedClocks++;
     #else
     if(io.ly == 240 && io.lx == 340) io.nmiHold = 1;
     if(io.ly == 241 && io.lx ==   0) io.nmiFlag = io.nmiHold;
