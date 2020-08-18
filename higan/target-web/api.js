@@ -30,7 +30,9 @@ export const Settings = {
     }
   },
   ['Famicom']: {
-
+    PPU: {
+      Overscan: 'ppu/overscan'
+    }
   }
 }
 

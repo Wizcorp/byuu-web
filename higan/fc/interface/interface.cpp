@@ -4,6 +4,12 @@ namespace higan::Famicom {
 
 Interface* interface = nullptr;
 
+auto FamicomInterface::configure(string name, uint value) -> void {
+   if(name.match("ppu/overscan")) {
+    ppu.overscan->writeValue((bool) value);
+  }
+}
+
 auto FamicomInterface::game() -> string {
   if(fds.node) {
     return fds.name();

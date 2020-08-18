@@ -66,6 +66,15 @@ export const Settings: SettingsEntries = {
        */
       Skipframe: 'ppu/skipframe'
     }
+  },
+  [Emulator.Famicom]: {
+    PPU: {
+      /**
+       * Display pixels at the top and bottom of the screen which would normally have been
+       * cropped away by CRT screens of the era.
+       */
+      Overscan: 'ppu/overscan'
+    }
   }
 }
 

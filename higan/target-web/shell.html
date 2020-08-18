@@ -68,7 +68,7 @@
       #main {
         position: absolute;
         top: 0;
-        bottom: 126px;
+        bottom: 166px;
         left: 0;
         right: 0;
       }
@@ -783,6 +783,13 @@
               </div>
             </div>
             <div class="settingEntry" id="core-specific-settings">
+              <div data-console="Famicom">
+                <div class="label">FC Core</div>
+                <div class="values">
+                  <input type="checkbox" name="fc-overscan" id="fc-overscan" />
+                  <label for="fc-overscan">Overscan</label>
+                </div>
+              </div>
               <div data-console="Super Famicom">
                 <div class="label">SFC Core</div>
                 <div class="values">
@@ -1183,22 +1190,23 @@
               case 'fastmath':
                 Module.configure('cpu/fastmath', value);
                 return true;
-                break;
               case 'overclock':
                 Module.configure('cpu/overclock', value ? 2.0 : 1.0);
                 return true;
-                break;
               case 'dsp':
                 Module.configure('dsp/enabled', value);
                 return true;
-                break;
               case 'skipframe':
                 Module.configure('ppu/skipframe', value);
                 return true;
-                break;
             }
             return false;
           case 'fc':
+            switch (name) {
+              case 'overscan':
+                Module.configure('ppu/overscan', value);
+                return true;
+            }
             return false;
         }
       }
@@ -1875,6 +1883,8 @@
         const save = await gameLoad(filename);
 
         Module.setEmulator(emulator);
+        Module.load(romData, save);
+        
         document.querySelectorAll('#core-specific-settings > div').forEach((panel) => {
           const { dataset, style } = panel;
           
@@ -1886,7 +1896,6 @@
           style.display = 'flex';
           panel.querySelectorAll('input').forEach(({ id, checked }) => configureEmulatorCore(id, checked))
         });
-        Module.load(romData, save);
 
         gameLoadingElement.style.display = 'none';
         localStorage.setItem(LAST_GAME, select.value);
