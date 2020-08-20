@@ -3,9 +3,7 @@ auto CPU::readRAM(uint24 address, uint8 data) -> uint8 {
 }
 
 auto CPU::readAPU(uint24 address, uint8 data) -> uint8 {
-#if !defined(PROFILE_PERFORMANCE)
-  synchronize(smp);
-#endif
+  if (lockstep.enabled) synchronize(smp);
   return smp.portRead(address.bit(0,1));
 }
 
@@ -96,9 +94,7 @@ auto CPU::writeRAM(uint24 address, uint8 data) -> void {
 }
 
 auto CPU::writeAPU(uint24 address, uint8 data) -> void {
-#if !defined(PROFILE_PERFORMANCE)
-  synchronize(smp);
-#endif
+  if (lockstep.enabled) synchronize(smp);
   return smp.portWrite(address.bit(0,1), data);
 }
 
