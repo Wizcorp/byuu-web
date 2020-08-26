@@ -37,75 +37,118 @@ auto VDP::unload() -> void {
   region = {};
 }
 
+static uint counter = 0;
+static uint dmaCounter = 0;
+
 auto VDP::main() -> void {
-  //H = 0
-  cpu.lower(CPU::Interrupt::HorizontalBlank);
-  apu.setINT(false);
-
-  if(state.vcounter == 0) {
-    latch.displayWidth = io.displayWidth;
-    latch.horizontalInterruptCounter = io.horizontalInterruptCounter;
-    io.vblankIRQ = false;
-    cpu.lower(CPU::Interrupt::VerticalBlank);
+#if defined(SCHEDULER_SYNCHRO)
+  if (dmaCounter > 0) {
+    dma.run();
+    Thread::step(1);
+    Thread::synchronize(apu);
+    dmaCounter--;
+    return;
   }
+#endif
 
-  if(state.vcounter == screenHeight()) {
-    if(io.verticalBlankInterruptEnable) {
-      io.vblankIRQ = true;
-      cpu.raise(CPU::Interrupt::VerticalBlank);
-    }
-    apu.setINT(true);
-  }
+  switch(counter++) {
+    case 1:
+      //H = 0
+      cpu.lower(CPU::Interrupt::HorizontalBlank);
+      apu.setINT(false);
 
-  step(512);
-  //H = 512
-  if(state.vcounter < screenHeight() && !runAhead()) {
-    render();
-  }
-
-  step(768);
-  //H = 1280
-  if(state.vcounter < screenHeight()) {
-    if(latch.horizontalInterruptCounter-- == 0) {
-      latch.horizontalInterruptCounter = io.horizontalInterruptCounter;
-      if(io.horizontalBlankInterruptEnable) {
-        cpu.raise(CPU::Interrupt::HorizontalBlank);
+      if(state.vcounter == 0) {
+        latch.displayWidth = io.displayWidth;
+        latch.horizontalInterruptCounter = io.horizontalInterruptCounter;
+        io.vblankIRQ = false;
+        cpu.lower(CPU::Interrupt::VerticalBlank);
       }
-    }
-  }
 
-  step(430);
-  //H = 0
-  state.hdot = 0;
-  state.hcounter = 0;
-  state.vcounter++;
+      if(state.vcounter == screenHeight()) {
+        if(io.verticalBlankInterruptEnable) {
+          io.vblankIRQ = true;
+          cpu.raise(CPU::Interrupt::VerticalBlank);
+        }
+        apu.setINT(true);
+      }
 
-  if(state.vcounter == 240) {
-    scheduler.exit(Event::Frame);
-  }
+      step(512);
+      break;
+    case 2:
+      //H = 512
+      if(state.vcounter < screenHeight() && !runAhead() && (!isSkipping || !skip)) {
+        render();
+      }
 
-  if(state.vcounter >= frameHeight()) {
-    state.vcounter = 0;
-    state.field ^= 1;
-    latch.interlace = io.interlaceMode == 3;
-    latch.overscan = io.overscan;
+      step(768);
+      break;
+    case 3:
+      //H = 1280
+      if(state.vcounter < screenHeight()) {
+        if(latch.horizontalInterruptCounter-- == 0) {
+          latch.horizontalInterruptCounter = io.horizontalInterruptCounter;
+          if(io.horizontalBlankInterruptEnable) {
+            cpu.raise(CPU::Interrupt::HorizontalBlank);
+          }
+        }
+      }
+      step(430);
+      break;
+    case 4:
+      //H = 0
+      state.hdot = 0;
+      state.hcounter = 0;
+      state.vcounter++;
+
+      if(state.vcounter == 240) {
+#if defined(SCHEDULER_SYNCHRO)
+        if (!isSkipping || !skip) {
+          refresh();
+        }
+
+        skip = !skip;
+        hasRendered = true;
+#else
+        scheduler.exit(Event::Frame);
+#endif
+      }
+
+      if(state.vcounter >= frameHeight()) {
+        state.vcounter = 0;
+        state.field ^= 1;
+        latch.interlace = io.interlaceMode == 3;
+        latch.overscan = io.overscan;
+      }
+      counter = 0;
+      break;
   }
 }
 
 auto VDP::step(uint clocks) -> void {
   state.hcounter += clocks;
 
-#if !defined(SCHEDULER_SYNCHRO)
-  if(!dma.io.enable || dma.io.wait) {
+  if(optimizeSteps && (!dma.io.enable || dma.io.wait)) {
     dma.active = 0;
     Thread::step(clocks);
+#if defined(SCHEDULER_SYNCHRO)
+    Thread::synchronize(apu);
+#else
     Thread::synchronize(cpu, apu);
-  } else while(clocks--) {
+#endif
+  } else {
+#if defined(SCHEDULER_SYNCHRO)
+    dmaCounter = clocks - 1;
     dma.run();
     Thread::step(1);
-    Thread::synchronize(cpu, apu);
-  }
+    Thread::synchronize(apu);
+#else
+    while(clocks--) {
+      dma.run();
+      Thread::step(1);
+      Thread::synchronize(cpu, apu);
+    }
 #endif
+  }
 }
 
 auto VDP::refresh() -> void {

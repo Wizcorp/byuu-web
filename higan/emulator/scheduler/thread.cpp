@@ -1,4 +1,4 @@
-#if defined(SCHEDULER_SYNCHRO)
+#if defined(SCHEDULER_SYNCHRO) && !defined(SIMULATED_SYNCHRO) 
 #include "../scheduler-synchro/thread.cpp"
 #else
 auto Thread::EntryPoints() -> vector<EntryPoint>& {

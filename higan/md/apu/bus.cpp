@@ -10,10 +10,12 @@ auto APU::read(uint16 address) -> uint8 {
   if(address >= 0x0000 && address <= 0x3fff) return ram.read(address);
   if(address >= 0x4000 && address <= 0x4003) return ym2612.readStatus();
   if(address >= 0x8000 && address <= 0xffff) {
+#if !defined(SCHEDULER_SYNCHRO)
     while(vdp.dma.active) {
       Thread::step(1);
       Thread::synchronize(vdp);
     }
+#endif
 
     //bus arbiter delay rough approximation
     cpu.idle(11);
@@ -47,10 +49,12 @@ auto APU::write(uint16 address, uint8 data) -> void {
   if(address == 0x7f15) return psg.write(data);
   if(address == 0x7f17) return psg.write(data);
   if(address >= 0x8000 && address <= 0xffff) {
+#if !defined(SCHEDULER_SYNCHRO)
     while(vdp.dma.active) {
       Thread::step(1);
       Thread::synchronize(vdp);
     }
+#endif
 
     //bus arbiter delay rough approximation
     cpu.idle(11);

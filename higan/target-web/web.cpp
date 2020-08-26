@@ -8,6 +8,15 @@ bool isStarted() { return webplatform->started; }
 bool isRunning() { return webplatform->running; }
 
 void run() {
+    static uint lastExecution = chrono::millisecond();
+    uint currentExecution = chrono::millisecond();
+
+    if (currentExecution - lastExecution < 16) {
+        return;
+    }
+
+    lastExecution = currentExecution;
+
     webplatform->run();
 
     if (!scheduledStateSave.isNull()) {
@@ -35,7 +44,7 @@ bool start() {
     }
 
     webplatform->started = true;
-    emscripten_set_main_loop(run, 60, 0);
+    emscripten_set_main_loop(run, 0, 0);
     return true;
 }
 

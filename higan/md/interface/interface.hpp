@@ -5,6 +5,7 @@ namespace higan::MegaDrive {
 extern Interface* interface;
 
 struct MegaDriveInterface : Interface {
+  auto configure(string, uint) -> void override;
   auto name() -> string override { return "Mega Drive"; }
   auto game() -> string override;
 

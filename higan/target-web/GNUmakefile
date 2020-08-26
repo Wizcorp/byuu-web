@@ -6,6 +6,7 @@ wasm := true
 debug := false
 profiler := false
 synchro := true
+simulated_synchro := false
 eventinstruction_notify := false
 simd := false
 
@@ -14,7 +15,7 @@ PYTHON=$(shell which python3 || which python)
 ifeq ($(wasm), true)
   flags += -s WASM=1 
   ifeq ($(debug), true)
-	flags += -g4 -DWEB_DEBUG
+	flags += -g4 -DWEB_DEBUG -s ASSERTIONS=1
   endif
   ifeq ($(profiler), true) 
 	flags += --profiling --cpuprofiler 
@@ -26,9 +27,17 @@ endif
 
 ifeq ($(synchro),true)
   flags += -DSCHEDULER_SYNCHRO
-  # Optimize how Asyncify processes the compiled bytecode
-  flags += -s ASYNCIFY_IGNORE_INDIRECT
-  flags += -s ASYNCIFY_ADD="@./target-web/asyncify.txt"
+  
+  ifeq ($(simulated_synchro), true)
+    # Run synchro code on the standard scheduler. Useful for debugging
+	# and porting new emulation cores
+  	flags += -DSIMULATED_SYNCHRO
+  else
+	# Synchro code on synchro scheduler
+	# Optimize how Asyncify processes the compiled bytecode
+	flags += -s ASYNCIFY_IGNORE_INDIRECT
+	flags += -s ASYNCIFY_ADD="@./target-web/asyncify.txt"
+  endif
 endif
 
 ifeq ($(eventinstruction_notify), false)
@@ -51,7 +60,7 @@ flags += \
 	-s USE_SDL=2 \
 	-s USE_SDL_MIXER=0 \
 	-s USE_SDL_IMAGE=0 \
-	-s TOTAL_MEMORY=120MB \
+	-s TOTAL_MEMORY=160MB \
 	-s ALLOW_MEMORY_GROWTH=0
 
 objects += web-resource web-emulator web-video web-audio web-platform web

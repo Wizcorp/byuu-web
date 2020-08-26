@@ -40,7 +40,7 @@ auto MCD::PCM::clock() -> void {
   //clamp to 10-bit DAC output rate
   left  = sclamp<16>(left ) >> 2 & ~15;
   right = sclamp<16>(right) >> 2 & ~15;
-  stream->sample(left / 32768.0, right / 32768.0);
+  stream->sample(left / 32768.0f, right / 32768.0f);
 }
 
 auto MCD::PCM::read(uint13 address, uint8 data) -> uint8 {

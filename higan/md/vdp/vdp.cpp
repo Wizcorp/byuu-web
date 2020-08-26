@@ -1,3 +1,4 @@
+// #if defined(PROFILE_PERFORMANCE) && !defined(EMSCRIPTEN)
 #if defined(PROFILE_PERFORMANCE)
 #include "../vdp-performance/vdp.cpp"
 #else
@@ -40,63 +41,100 @@ auto VDP::unload() -> void {
   region = {};
 }
 
+static uint counter = 1;
+static uint dmaCounter = 0;
+
 auto VDP::main() -> void {
-  scanline();
-
-  cpu.lower(CPU::Interrupt::HorizontalBlank);
-  apu.setINT(false);
-
-  if(state.vcounter == 0) {
-    latch.horizontalInterruptCounter = io.horizontalInterruptCounter;
-    io.vblankIRQ = false;
-    cpu.lower(CPU::Interrupt::VerticalBlank);
+#if defined(SCHEDULER_SYNCHRO)
+  if (dmaCounter > 0) {
+    dma.run();
+    Thread::step(1);
+    Thread::synchronize(apu);
+    dmaCounter--;
+    return;
   }
+#endif
 
-  if(state.vcounter == screenHeight()) {
-    if(io.verticalBlankInterruptEnable) {
-      io.vblankIRQ = true;
-      cpu.raise(CPU::Interrupt::VerticalBlank);
-    }
-    //todo: should only stay high for ~2573/2 clocks
-    apu.setINT(true);
-  }
+  switch(counter) {
+    case 1:
+      scanline();
 
-  if(state.vcounter < screenHeight()) {
-    while(state.hcounter < 1280) {
-      run();
-      state.hdot++;
-      step(pixelWidth());
-    }
+      cpu.lower(CPU::Interrupt::HorizontalBlank);
+      apu.setINT(false);
 
-    if(latch.horizontalInterruptCounter-- == 0) {
-      latch.horizontalInterruptCounter = io.horizontalInterruptCounter;
-      if(io.horizontalBlankInterruptEnable) {
-        cpu.raise(CPU::Interrupt::HorizontalBlank);
+      if(state.vcounter == 0) {
+        latch.horizontalInterruptCounter = io.horizontalInterruptCounter;
+        io.vblankIRQ = false;
+        cpu.lower(CPU::Interrupt::VerticalBlank);
       }
-    }
 
-    step(430);
-  } else {
-    step(1710);
-  }
+      if(state.vcounter == screenHeight()) {
+        if(io.verticalBlankInterruptEnable) {
+          io.vblankIRQ = true;
+          cpu.raise(CPU::Interrupt::VerticalBlank);
+        }
+        //todo: should only stay high for ~2573/2 clocks
+        apu.setINT(true);
+      }
 
-  state.hdot = 0;
-  state.hcounter = 0;
-  if(++state.vcounter >= frameHeight()) {
-    state.vcounter = 0;
-    state.field ^= 1;
-    latch.overscan = io.overscan;
-  }
-  latch.displayWidth = io.displayWidth;
+      if(state.vcounter < screenHeight()) {
+        counter = 2;
+      } else {
+        counter = 4;
+        return step(1710);
+      }
+      break;
+    case 2:
+      if(state.hcounter < 1280) {
+        run();
+        state.hdot++;
+        return step(pixelWidth());
+      }
+
+      counter = 3;
+      break;
+
+    case 3:
+      if(latch.horizontalInterruptCounter-- == 0) {
+        latch.horizontalInterruptCounter = io.horizontalInterruptCounter;
+        if(io.horizontalBlankInterruptEnable) {
+          cpu.raise(CPU::Interrupt::HorizontalBlank);
+        }
+      }
+
+      counter = 4;
+      return step(430);
+      break;
+      
+    case 4:
+      state.hdot = 0;
+      state.hcounter = 0;
+      if(++state.vcounter >= frameHeight()) {
+        state.vcounter = 0;
+        state.field ^= 1;
+        latch.overscan = io.overscan;
+      }
+      latch.displayWidth = io.displayWidth;
+      counter = 1;
+      break;
+  }  
 }
 
 auto VDP::step(uint clocks) -> void {
   state.hcounter += clocks;
+
+#if defined(SCHEDULER_SYNCHRO)
+  dmaCounter = clocks - 1;
+  dma.run();
+  Thread::step(1);
+  Thread::synchronize(apu);
+#else
   while(clocks--) {
     dma.run();
     Thread::step(1);
     Thread::synchronize(cpu, apu);
   }
+#endif
 }
 
 auto VDP::refresh() -> void {

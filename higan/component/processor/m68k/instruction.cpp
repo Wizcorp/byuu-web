@@ -4,6 +4,16 @@ auto M68K::instruction() -> void {
 }
 
 M68K::M68K() {
+#if defined(NO_EVENTINSTRUCTION_NOTIFY)
+  #define bind(id, name, ...) { \
+    assert(!instructionTable[id]); \
+    instructionTable[id] = [=] { return instruction##name(__VA_ARGS__); }; \
+  }
+
+  #define unbind(id) { \
+    instructionTable[id].reset(); \
+  }
+#else
   #define bind(id, name, ...) { \
     assert(!instructionTable[id]); \
     instructionTable[id] = [=] { return instruction##name(__VA_ARGS__); }; \
@@ -14,6 +24,7 @@ M68K::M68K() {
     instructionTable[id].reset(); \
     disassembleTable[id].reset(); \
   }
+#endif
 
   #define pattern(s) \
     std::integral_constant<uint16_t, bit::test(s)>::value

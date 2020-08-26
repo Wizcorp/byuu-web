@@ -3,6 +3,7 @@ wasm := true
 debug := false
 profiler := false
 synchro := true
+simulated_synchro := false
 simd := false
 
 .DEFAULT:
@@ -10,6 +11,7 @@ simd := false
 		wasm=$(wasm) \
 		simd=$(simd) \
 		synchro=$(synchro) \
+		simulated_synchro=$(simulated_synchro) \
 		debug=$(debug) \
 		profiler=$(profiler) \
 		debug_host=$(debug_host)

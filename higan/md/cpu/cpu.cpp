@@ -24,6 +24,13 @@ auto CPU::unload() -> void {
 }
 
 auto CPU::main() -> void {
+#if defined(SCHEDULER_SYNCHRO)
+  if (vdp.hasRendered) {
+    vdp.hasRendered = false;
+    scheduler.exit(Event::Frame);
+  }
+#endif
+
   if(state.interruptPending) {
     if(state.interruptPending.bit((uint)Interrupt::Reset)) {
       state.interruptPending.bit((uint)Interrupt::Reset) = 0;
@@ -71,7 +78,7 @@ auto CPU::idle(uint clocks) -> void {
   step(clocks);
 }
 
-auto CPU::wait(uint clocks) -> void {
+auto CPU::wait(uint clocks) -> void {  
   while(vdp.dma.active) {
     Thread::step(1);
     Thread::synchronize(vdp);

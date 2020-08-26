@@ -49,7 +49,7 @@ ifeq ($(target),web)
   # Todo: GBA Cartridge triggers one dlmalloc which assigns 32 megabytes, 
   # and which seems to dramatically slow down initialization
   disabled-cores := fc sfc sg ms md pce msx gb gba ws ngp
-  cores := fc sfc
+  cores := fc sfc md
 endif
 
 ifeq ($(profile),accuracy)

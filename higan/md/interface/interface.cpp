@@ -4,6 +4,14 @@ namespace higan::MegaDrive {
 
 Interface* interface = nullptr;
 
+auto MegaDriveInterface::configure(string name, uint value) -> void {
+  if(name.match("vdp/optimizeSteps")) {
+    vdp.optimizeSteps = (bool) value;
+  } else if(name.match("vdp/skipframe")) {
+    vdp.isSkipping = (bool) value;
+  }
+}
+
 auto MegaDriveInterface::game() -> string {
   if(expansion.node && (!cartridge.node || !cartridge.bootable())) {
     if(mcd.disc) return mcd.name();

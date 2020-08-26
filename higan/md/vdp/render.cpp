@@ -6,7 +6,14 @@ auto VDP::scanline() -> void {
     sprite.scanline(state.vcounter);
   }
 
-  if(state.vcounter == 240) scheduler.exit(Event::Frame);
+  if(state.vcounter == 240) {
+#if defined(SCHEDULER_SYNCHRO)
+        refresh();
+        hasRendered = true;
+#else
+        scheduler.exit(Event::Frame);
+#endif
+  } 
 
   state.output = output + (state.vcounter * 2 + 0) * 1280;
 }

@@ -1,10 +1,14 @@
 auto Z80::yield() -> void {
-  //freeze Z80, allow external access until relinquished
+  // freeze Z80, allow external access until relinquished
+  // when using synchro, move this logic to the component's main loop
+  // (generally found in the inheriting component, like the Mega Drive APU) 
+#if !defined(SCHEDULER_SYNCHRO)
   if(bus->requested()) {
     bus->grant(true);
     while(bus->requested() && !synchronizing()) step(1);
     bus->grant(false);
   }
+#endif
 }
 
 auto Z80::wait(uint clocks) -> void {

@@ -157,7 +157,7 @@ auto YM2612::sample() -> void {
     if(channel.rightEnable) right += voiceData;
   }
 
-  stream->sample(sclamp<16>(left) / 32768.0, sclamp<16>(right) / 32768.0);
+  stream->sample(sclamp<16>(left) / 32768.0f, sclamp<16>(right) / 32768.0f);
 }
 
 auto YM2612::step(uint clocks) -> void {

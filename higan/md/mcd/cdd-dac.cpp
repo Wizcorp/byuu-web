@@ -14,7 +14,7 @@ auto MCD::CDD::DAC::sample(int16 left, int16 right) -> void {
   left  = (left  * (int)attenuated) / 0x4000 >> 1;
   right = (right * (int)attenuated) / 0x4000 >> 1;
 
-  stream->sample(left / 32768.0, right / 32768.0);
+  stream->sample(left / 32768.0f, right / 32768.0f);
 
   if(attenuated == attenuator);
   else if(attenuated < attenuator) attenuated++;

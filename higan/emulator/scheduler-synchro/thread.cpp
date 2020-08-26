@@ -58,10 +58,12 @@ template<typename... P>
 auto Thread::synchronize(Thread& thread, P&&... p) -> void {
   // yield back
   if (_handle->parent != nullptr && _handle->parent == thread._handle) {
+    if constexpr(sizeof...(p) > 0) synchronize(forward<P>(p)...);
     return;
   }
 
   //switching to another thread does not guarantee it will catch up before switching back.
+  thread_handle_t *_parent = thread._handle->parent;
   thread._handle->parent = _handle;
   while(thread.clock() < clock()) {
     //disable synchronization for auxiliary threads during scheduler synchronization.
@@ -69,7 +71,7 @@ auto Thread::synchronize(Thread& thread, P&&... p) -> void {
     if(scheduler.synchronizing()) break;
     thread.main();
   }
-  thread._handle->parent = nullptr;
+  thread._handle->parent = _parent;
 
   //convenience: allow synchronizing multiple threads with one function call.
   if constexpr(sizeof...(p) > 0) synchronize(forward<P>(p)...);

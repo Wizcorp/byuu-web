@@ -24,7 +24,10 @@ auto FightingPad::main() -> void {
     counter = 0;
   }
   Thread::step(1);
+
+#if !defined(SCHEDULER_SYNCHRO) 
   Thread::synchronize(cpu);
+#endif
 }
 
 auto FightingPad::readData() -> uint8 {

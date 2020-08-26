@@ -106,7 +106,7 @@ auto Program::audio(higan::Node::Stream node) -> void {
     //mix all frames together
     double samples[2] = {0.0, 0.0};
     for(auto& stream : streams) {
-      double buffer[2];
+      float buffer[2];
       uint channels = stream->read(buffer);
       if(channels == 1) {
         //monaural -> stereo mixing

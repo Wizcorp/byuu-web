@@ -1,4 +1,5 @@
 //Yamaha YM7101
+// #if defined(PROFILE_PERFORMANCE) && !defined(EMSCRIPTEN)
 #if defined(PROFILE_PERFORMANCE)
 #include "../vdp-performance/vdp.hpp"
 #else
@@ -6,6 +7,8 @@ struct VDP : Thread {
   Node::Component node;
   Node::Screen screen;
   Node::String region;
+
+  bool hasRendered;
 
   //vdp.cpp
   auto load(Node::Object, Node::Object) -> void;
@@ -52,9 +55,9 @@ struct VDP : Thread {
   } dma;
 
   //render.cpp
-  auto scanline() -> void;
-  auto run() -> void;
-  auto outputPixel(uint32 color) -> void;
+  inline auto scanline() -> void;
+  inline auto run() -> void;
+  inline auto outputPixel(uint32 color) -> void;
 
   struct Pixel {
     inline auto above() const -> bool { return priority == 1 && color; }

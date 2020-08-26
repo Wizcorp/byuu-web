@@ -9,7 +9,13 @@ System system;
 #include "serialization.cpp"
 
 auto System::run() -> void {
-  if(scheduler.enter() == Event::Frame) vdp.refresh();
+  if(scheduler.enter() == Event::Frame) {
+#if !defined(SCHEDULER_SYNCHRO)
+    if (!vdp.isSkipping || !vdp.skip) {
+      vdp.refresh();
+    }
+#endif
+  }
 
   auto reset = controls.reset->value();
   controls.poll();

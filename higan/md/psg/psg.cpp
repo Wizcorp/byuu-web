@@ -23,12 +23,12 @@ auto PSG::unload() -> void {
 
 auto PSG::main() -> void {
   auto channels = SN76489::clock();
-  double output = 0.0;
+  float output = 0.0;
   output += volume[channels[0]];
   output += volume[channels[1]];
   output += volume[channels[2]];
   output += volume[channels[3]];
-  stream->sample(output / 4.0 * 0.625);
+  stream->sample(output / 4.0f * 0.625f);
   step(16);
 }
 

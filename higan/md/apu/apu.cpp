@@ -22,7 +22,17 @@ auto APU::unload() -> void {
   node = {};
 }
 
-auto APU::main() -> void {
+auto APU::main() -> void {  
+// See: higan/component/processor/z80/memory.cpp
+#if defined(SCHEDULER_SYNCHRO)
+  if(bus->requested() && !synchronizing()) {
+    bus->grant(true);
+    return step(1);
+  }
+
+  bus->grant(false);
+#endif
+
   if(!state.enabled) {
     return step(1);
   }
@@ -51,7 +61,7 @@ auto APU::main() -> void {
 auto APU::step(uint clocks) -> void {
   Thread::step(clocks);
 #if defined(SCHEDULER_SYNCHRO)
-  Thread::synchronize(vdp, psg, ym2612);
+  Thread::synchronize(psg, ym2612);
 #else
   Thread::synchronize(cpu, vdp, psg, ym2612);
 #endif

@@ -5,5 +5,6 @@
     "WebPlatform::run()",
     "WebPlatform::stateSave(emscripten::val)",
     "*::Scheduler::power(*)",
+    "dynCall_*",
     "*::CPU::main()"
 ]

@@ -4,6 +4,11 @@ struct VDP : Thread {
   Node::Screen screen;
   Node::String region;
 
+  bool hasRendered = false;
+  bool optimizeSteps = false;
+  bool isSkipping = false;
+  bool skip;
+
   //vdp.cpp
   auto load(Node::Object, Node::Object) -> void;
   auto unload() -> void;
@@ -81,12 +86,12 @@ private:
 
   struct DMA {
     //dma.cpp
-    auto run() -> void;
-    auto load() -> void;
-    auto fill() -> void;
-    auto copy() -> void;
+    alwaysinline auto run() -> void;
+    alwaysinline auto load() -> void;
+    alwaysinline auto fill() -> void;
+    alwaysinline auto copy() -> void;
 
-    auto power() -> void;
+    alwaysinline auto power() -> void;
 
     //serialization.cpp
     auto serialize(serializer&) -> void;
