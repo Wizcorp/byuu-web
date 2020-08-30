@@ -75,6 +75,7 @@ struct GSU {
   auto serialize(serializer&) -> void;
 
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   noinline auto disassembleInstruction() -> string;
   noinline auto disassembleContext() -> string;
 
@@ -83,6 +84,7 @@ struct GSU {
   auto disassembleALT1(char* output) -> void;
   auto disassembleALT2(char* output) -> void;
   auto disassembleALT3(char* output) -> void;
+#endif
 };
 
 }

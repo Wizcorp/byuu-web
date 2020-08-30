@@ -244,9 +244,11 @@ struct WDC65816 {
   auto serialize(serializer&) -> void;
 
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   noinline auto disassembleInstruction(uint24 address, bool e, bool m, bool x) -> string;
   noinline auto disassembleInstruction() -> string;
   noinline auto disassembleContext(maybe<bool> e = {}) -> string;
+#endif
 
   struct f8 {
     bool c = 0;  //carry

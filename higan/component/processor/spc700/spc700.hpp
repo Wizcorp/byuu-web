@@ -117,9 +117,11 @@ struct SPC700 {
   auto serialize(serializer&) -> void;
 
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   noinline auto disassembleInstruction(uint16 address, uint1 p) -> string;
   noinline auto disassembleInstruction() -> string;
   noinline auto disassembleContext() -> string;
+#endif
 
   struct Flags {
     bool c;  //carry

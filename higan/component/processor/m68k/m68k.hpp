@@ -268,8 +268,10 @@ struct M68K {
   auto serialize(serializer&) -> void;
 
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   auto disassembleInstruction(uint32 pc) -> string;
   auto disassembleContext() -> string;
+#endif
 
   struct Registers {
     uint32 d[8];  //data registers
@@ -298,6 +300,7 @@ struct M68K {
 
 private:
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
                       auto disassembleABCD(EffectiveAddress from, EffectiveAddress with) -> string;
   template<uint Size> auto disassembleADD(EffectiveAddress from, DataRegister with) -> string;
   template<uint Size> auto disassembleADD(DataRegister from, EffectiveAddress with) -> string;
@@ -413,6 +416,7 @@ private:
                       auto disassembleTRAPV() -> string;
   template<uint Size> auto disassembleTST(EffectiveAddress from) -> string;
                       auto disassembleUNLK(AddressRegister with) -> string;
+#endif
 
   template<uint Size> auto _read(uint32 addr) -> uint32;
   template<uint Size = Word> auto _readPC() -> uint32;

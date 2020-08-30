@@ -9,7 +9,10 @@ namespace higan {
 #include "instruction.cpp"
 #include "instructions.cpp"
 #include "serialization.cpp"
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
 #include "disassembler.cpp"
+#endif
 
 auto SM83::power() -> void {
   r = {};

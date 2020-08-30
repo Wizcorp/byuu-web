@@ -2,8 +2,10 @@
 #include "z80.hpp"
 
 namespace higan {
-
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
 #include "disassembler.cpp"
+#endif
+
 #include "registers.cpp"
 #include "memory.cpp"
 #include "instruction.cpp"

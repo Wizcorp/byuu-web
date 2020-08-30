@@ -286,9 +286,11 @@ struct TLCS900H {
   static inline const uint1 Undefined = 0;
 
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   virtual auto disassembleRead(uint24 address) -> uint8 { return read(Byte, address); }
   noinline auto disassembleInstruction() -> string;
   noinline auto disassembleContext() -> string;
+#endif
 };
 
 }

@@ -249,9 +249,11 @@ struct V30MZ {
   auto serialize(serializer&) -> void;
 
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   auto disassembleInstruction(uint16 cs, uint16 ip) -> string;
   auto disassembleInstruction() -> string;
   auto disassembleContext() -> string;
+#endif
 
   struct State {
     bool halt;    //set to true for hlt instruction; blocks execution until next interrupt

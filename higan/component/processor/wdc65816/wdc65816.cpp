@@ -36,6 +36,9 @@ auto WDC65816::power() -> void {
 
 #include "registers.hpp"
 #include "serialization.cpp"
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
 #include "disassembler.cpp"
+#endif
 
 }

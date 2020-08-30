@@ -13,7 +13,11 @@ enum : bool { Reverse = 1 };
 #include "conditions.cpp"
 #include "algorithms.cpp"
 #include "instructions.cpp"
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
 #include "disassembler.cpp"
+#endif
+
 #include "instruction.cpp"
 #include "serialization.cpp"
 

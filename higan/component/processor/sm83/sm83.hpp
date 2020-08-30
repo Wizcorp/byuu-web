@@ -177,8 +177,10 @@ struct SM83 {
   } r;
 
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   auto disassembleOpcode(uint16 pc) -> string;
   auto disassembleOpcodeCB(uint16 pc) -> string;
+#endif
 };
 
 }

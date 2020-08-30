@@ -10,7 +10,10 @@ namespace higan {
 #include "instructions-arm.cpp"
 #include "instructions-thumb.cpp"
 #include "serialization.cpp"
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
 #include "disassembler.cpp"
+#endif
 
 ARM7TDMI::ARM7TDMI() {
   armInitialize();

@@ -24,7 +24,11 @@ namespace higan {
 #include "algorithms.cpp"
 #include "instruction.cpp"
 #include "instructions.cpp"
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
 #include "disassembler.cpp"
+#endif
+
 #include "serialization.cpp"
 
 #undef A

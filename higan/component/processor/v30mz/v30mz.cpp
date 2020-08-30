@@ -54,6 +54,9 @@ auto V30MZ::exec() -> void {
 }
 
 #undef bits
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
 #include "disassembler.cpp"
+#endif
 
 }

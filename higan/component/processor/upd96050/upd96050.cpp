@@ -5,7 +5,11 @@ namespace higan {
 
 #include "instructions.cpp"
 #include "memory.cpp"
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
 #include "disassembler.cpp"
+#endif
+
 #include "serialization.cpp"
 
 auto uPD96050::power() -> void {

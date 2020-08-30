@@ -58,12 +58,20 @@ auto ARM7TDMI::exception(uint mode, uint32 address) -> void {
 }
 
 auto ARM7TDMI::armInitialize() -> void {
+#if defined(NO_EVENTINSTRUCTION_NOTIFY)
+  #define bind(id, name, ...) { \
+    uint index = (id & 0x0ff00000) >> 16 | (id & 0x000000f0) >> 4; \
+    assert(!armInstruction[index]); \
+    armInstruction[index] = [&](uint32 opcode) { return armInstruction##name(arguments); }; \
+  }
+#else
   #define bind(id, name, ...) { \
     uint index = (id & 0x0ff00000) >> 16 | (id & 0x000000f0) >> 4; \
     assert(!armInstruction[index]); \
     armInstruction[index] = [&](uint32 opcode) { return armInstruction##name(arguments); }; \
     armDisassemble[index] = [&](uint32 opcode) { return armDisassemble##name(arguments); }; \
   }
+#endif
 
   #define pattern(s) \
     std::integral_constant<uint32_t, bit::test(s)>::value
@@ -366,11 +374,18 @@ auto ARM7TDMI::armInitialize() -> void {
 }
 
 auto ARM7TDMI::thumbInitialize() -> void {
+#if defined(NO_EVENTINSTRUCTION_NOTIFY)
+  #define bind(id, name, ...) { \
+    assert(!thumbInstruction[id]); \
+    thumbInstruction[id] = [=] { return thumbInstruction##name(__VA_ARGS__); }; \
+  }
+#else
   #define bind(id, name, ...) { \
     assert(!thumbInstruction[id]); \
     thumbInstruction[id] = [=] { return thumbInstruction##name(__VA_ARGS__); }; \
     thumbDisassemble[id] = [=] { return thumbDisassemble##name(__VA_ARGS__); }; \
   }
+#endif
 
   #define pattern(s) \
     std::integral_constant<uint16_t, bit::test(s)>::value

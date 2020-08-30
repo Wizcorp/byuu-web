@@ -115,8 +115,10 @@ struct ARM7TDMI {
   auto serialize(serializer&) -> void;
 
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   auto disassembleInstruction(maybe<uint32> pc = {}, maybe<boolean> thumb = {}) -> string;
   auto disassembleContext() -> string;
+#endif
 
   struct GPR {
     inline operator uint32_t() const { return data; }
@@ -230,6 +232,7 @@ struct ARM7TDMI {
   function<void ()> thumbInstruction[65536];
 
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   auto armDisassembleBranch(int24, uint1) -> string;
   auto armDisassembleBranchExchangeRegister(uint4) -> string;
   auto armDisassembleDataImmediate(uint8, uint4, uint4, uint4, uint1, uint4) -> string;
@@ -277,6 +280,7 @@ struct ARM7TDMI {
 
   function<string (uint32 opcode)> armDisassemble[4096];
   function<string ()> thumbDisassemble[65536];
+#endif
 
   uint32 _pc;
   string _c;

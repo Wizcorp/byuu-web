@@ -10,7 +10,10 @@ namespace higan {
 #include "instruction.cpp"
 #include "instructions.cpp"
 #include "serialization.cpp"
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
 #include "disassembler.cpp"
+#endif
 
 auto GSU::power() -> void {
   for(auto& r : regs.r) {

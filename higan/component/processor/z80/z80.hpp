@@ -224,6 +224,7 @@ struct Z80 {
   auto serialize(serializer&) -> void;
 
   //disassembler.cpp
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   auto disassembleInstruction(maybe<uint16> pc = {}) -> string;
   auto disassembleContext() -> string;
 
@@ -231,6 +232,7 @@ struct Z80 {
   auto disassembleCB(uint16 pc, uint8 prefix, uint8 code) -> string;
   auto disassembleCBd(uint16 pc, uint8 prefix, int8 d, uint8 code) -> string;
   auto disassembleED(uint16 pc, uint8 prefix, uint8 code) -> string;
+#endif
 
   MOSFET mosfet = MOSFET::NMOS;
   enum class Prefix : uint { hl, ix, iy } prefix = Prefix::hl;

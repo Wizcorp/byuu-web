@@ -27,7 +27,10 @@ namespace higan {
 #include "instructions.cpp"
 #include "instruction.cpp"
 #include "serialization.cpp"
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
 #include "disassembler.cpp"
+#endif
 
 auto SPC700::power() -> void {
   PC = 0x0000;
