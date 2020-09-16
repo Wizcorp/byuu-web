@@ -1,12 +1,9 @@
 [
-    "dynCall_vi(*)",
-    "*emscripten*",
-    "thread_entry*",
-    "*run*",
+    "emscripten::internal::Invoker<void, unsigned int>::invoke(void (*)(unsigned int), unsigned int)",
+    "thread_entry",
+    "run()",
+    "WebPlatform::run()",
+    "WebPlatform::stateSave(emscripten::val)",
     "*::Scheduler::power(*)",
-    "*::Famicom::CPU::main()",
-    "*::Famicom::CPU::read(*)",
-    "*::Famicom::CPU::write(*)",
-    "*::SuperFamicom::CPU::main()",
-    "*::MOS6502::instruction()"
+    "*::CPU::main()"
 ]

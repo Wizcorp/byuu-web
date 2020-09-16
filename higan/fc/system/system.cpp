@@ -9,7 +9,9 @@ System system;
 #include "serialization.cpp"
 
 auto System::run() -> void {
-  if(scheduler.enter() == Event::Frame) ppu.refresh();
+  if(scheduler.enter() == Event::Frame) {
+    if (!ppu.isSkipping || !ppu.skip) ppu.refresh();
+  }
 
   auto reset = controls.reset->value();
   platform->input(controls.reset);

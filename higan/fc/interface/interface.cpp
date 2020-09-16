@@ -5,8 +5,12 @@ namespace higan::Famicom {
 Interface* interface = nullptr;
 
 auto FamicomInterface::configure(string name, uint value) -> void {
-   if(name.match("ppu/overscan")) {
+  if(name.match("cpu/synconce")) {
+    cpu.syncOnce->writeValue((bool) value);
+  } else if(name.match("ppu/overscan")) {
     ppu.overscan->writeValue((bool) value);
+  } else if(name.match("ppu/skipframe")) {
+    ppu.isSkipping = value;
   }
 }
 

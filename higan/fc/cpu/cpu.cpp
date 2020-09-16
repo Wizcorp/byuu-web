@@ -17,12 +17,17 @@ auto CPU::load(Node::Object parent, Node::Object from) -> void {
 
   eventInterrupt = Node::append<Node::Notification>(parent, from, "Interrupt", "CPU");
 //eventInterrupt->setEnabled(true);
+
+  syncOnce = Node::append<Node::Boolean>(parent, from, "Sync once", true);
+  syncOnce->setDynamic(true);
+  syncOnce->setValue(true);
 }
 
 auto CPU::unload() -> void {
   eventInstruction = {};
   eventInterrupt = {};
   node = {};
+  syncOnce = {};
 }
 
 auto CPU::main() -> void {
@@ -38,11 +43,17 @@ auto CPU::main() -> void {
   #endif
   
   instruction();
+
+  if(syncOnce->value() == 1) {
+    Thread::synchronize();
+  }
 }
 
 auto CPU::step(uint clocks) -> void {
   Thread::step(clocks);
-  Thread::synchronize();
+  if(syncOnce->value() == 0) {
+    Thread::synchronize();
+  }
 }
 
 auto CPU::power(bool reset) -> void {

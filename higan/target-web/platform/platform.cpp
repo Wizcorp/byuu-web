@@ -160,7 +160,7 @@ auto WebPlatform::unload() -> void {
 }
 
 auto WebPlatform::run() -> void {
-    if (emulator && started && !running) {
+    if (emulator && !running) {
         running = true;
         if (!this->onFrameStart.isNull()) {
             this->onFrameStart();

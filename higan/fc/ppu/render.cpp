@@ -26,8 +26,11 @@ auto PPU::renderPixel() -> void {
   if(!io.bgEnable) palette = 0;
   if(!io.bgEdgeEnable && x < 8) palette = 0;
 
+  // Skip work if frame is skipped
+  int sprite = 7;// (isSkipping && skip) ? 0 : 7;
+
   if(io.spriteEnable)
-  for(int sprite = 7; sprite >= 0; sprite--) {
+  for(; sprite >= 0; sprite--) {
     if(!io.spriteEdgeEnable && x < 8) continue;
     if(latch.oam[sprite].id == 64) continue;
 
@@ -47,6 +50,8 @@ auto PPU::renderPixel() -> void {
     objectPriority = latch.oam[sprite].attr & 0x20;
     objectPalette = 16 + spritePalette;
   }
+
+  if(isSkipping && skip) return;
 
   if(objectPalette) {
     if(palette == 0 || objectPriority == 0) palette = objectPalette;
@@ -169,6 +174,8 @@ auto PPU::renderScanline2() -> void {
 }
 
 auto PPU::renderScanline3() -> void {
+  if(isSkipping && skip) return step(20), scanline();
+  
   //321-336
   for(uint tile : range(2)) {
     uint nametable = loadCHR(0x2000 | (uint12)io.v.address);
@@ -211,13 +218,12 @@ auto PPU::renderScanline3() -> void {
   return scanline();
 }
 
-auto PPU::renderScanline() -> void {
+auto PPU::renderScanline() -> void { 
   //Vblank
   if(io.ly >= 240 && io.ly <= vlines() - 2) return step(341), scanline();
 
 #if defined(SCHEDULER_SYNCHRO)
   static uint counter = 0;
-
   switch(counter++) {
     case 1: return renderScanline1();
     case 2: return renderScanline2();

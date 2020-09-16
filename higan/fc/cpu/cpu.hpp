@@ -2,6 +2,7 @@ struct CPU : MOS6502, Thread {
   Node::Component node;
   Node::Instruction eventInstruction;
   Node::Notification eventInterrupt;
+  Node::Boolean syncOnce;
 
   inline auto rate() const -> uint { return Region::PAL() ? 16 : 12; }
 

@@ -788,6 +788,10 @@
                 <div class="values">
                   <input type="checkbox" name="fc-overscan" id="fc-overscan" />
                   <label for="fc-overscan">Overscan</label>
+                  <input type="checkbox" name="fc-skipframe" id="fc-skipframe" />
+                  <label for="fc-skipframe">Skip frame</label>
+                  <input type="checkbox" name="fc-synconce" id="fc-synconce" checked />
+                  <label for="fc-synconce">CPU - Sync once per cycle</label>
                 </div>
               </div>
               <div data-console="Super Famicom">
@@ -1203,8 +1207,14 @@
             return false;
           case 'fc':
             switch (name) {
+              case 'synconce':
+                Module.configure('cpu/synconce', value);
+                return true;
               case 'overscan':
                 Module.configure('ppu/overscan', value);
+                return true;
+              case 'skipframe':
+                Module.configure('ppu/skipframe', value);
                 return true;
             }
             return false;

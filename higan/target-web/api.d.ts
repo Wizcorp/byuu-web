@@ -70,10 +70,22 @@ export const Settings: SettingsEntries = {
   [Emulator.Famicom]: {
     PPU: {
       /**
+       * Skip frame. When enabled, skip the rendering of half the frames, which
+       * may provide slighgtly better performance.
+       */
+      Skipframe: 'ppu/skipframe',
+      /**
        * Display pixels at the top and bottom of the screen which would normally have been
        * cropped away by CRT screens of the era.
        */
       Overscan: 'ppu/overscan'
+    },
+    CPU: {
+      /**
+       * Sync components only once per CPU cycle (default: true). Setting
+       * this value to false will increase accuracy at the cost of performance.
+       */
+      SyncOnce: 'cpu/synconce'
     }
   }
 }

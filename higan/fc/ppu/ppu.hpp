@@ -4,6 +4,9 @@ struct PPU : Thread {
   Node::Boolean overscan;
   Node::Boolean colorEmulation;
 
+  bool isSkipping = false;
+  bool skip = false;
+
   inline auto rate() const -> uint { return Region::PAL() ? 5 : 4; }
   inline auto vlines() const -> uint { return Region::PAL() ? 312 : 262; }
 

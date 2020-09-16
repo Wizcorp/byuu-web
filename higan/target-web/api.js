@@ -31,7 +31,11 @@ export const Settings = {
   },
   ['Famicom']: {
     PPU: {
+      Skipframe: 'ppu/skipframe',
       Overscan: 'ppu/overscan'
+    },
+    CPU: {
+      SyncOnce: 'cpu/synconce'
     }
   }
 }

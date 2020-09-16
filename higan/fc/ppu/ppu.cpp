@@ -92,6 +92,7 @@ auto PPU::scanline() -> void {
 
 auto PPU::frame() -> void {
   io.field++;
+  skip = !skip;
   scheduler.exit(Event::Frame);
 }
 
