@@ -8,8 +8,6 @@ struct Namco34xx : Board {
   Namco34xx(Markup::Node& document) : Board(document), n108(*this, document) {
     string type = document["game/board"].text();
 
-    printf("%s\n", type.data());
-
     if(type.match("*3401")) revision = Revision::Namco3401;
     if(type.match("*3406")) revision = Revision::Namco3406;
     if(type.match("*3407")) revision = Revision::Namco3407;
@@ -110,6 +108,7 @@ struct Namco34xx : Board {
   auto serialize(serializer& s) -> void {
     Board::serialize(s);
     if(revision == Revision::Namco3453) s.integer(nametable);
+    n108.serialize(s);
   }
 
   enum class Revision : uint {

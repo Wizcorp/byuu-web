@@ -58,14 +58,16 @@ auto Scheduler::run() -> void {
 
 //power cycle and soft reset events: assigns the primary thread and resets all thread clocks.
 auto Scheduler::power(Thread& thread) -> void {
-  _primary = &thread;
-  _host = co_active();
-  _resume = co_create(Thread::Size, []() -> void {
+  static auto loop = co_create(Thread::Size, []() -> void {
     while(true) {
       scheduler.synchronize();
       scheduler.run();
     }
   });
+
+  _primary = &thread;
+  _host = co_active();
+  _resume = loop;
 
   for(auto& thread : _threads) {
     thread->_clock = thread->_uniqueID;
