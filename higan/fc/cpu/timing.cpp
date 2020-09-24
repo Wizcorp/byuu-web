@@ -1,14 +1,18 @@
 auto CPU::read(uint16 addr) -> uint8 {
   if(io.oamdmaPending) {
     io.oamdmaPending = false;
+#if !defined(PROFILE_PERFORMANCE)
     read(addr);
+#endif
     oamdma();
   }
 
+#if !defined(PROFILE_PERFORMANCE)
   while(io.rdyLine == 0) {
     r.mdr = bus.read(io.rdyAddrValid ? io.rdyAddrValue : addr);
     step(rate());
   }
+#endif
 
   r.mdr = bus.read(addr);
   step(rate());

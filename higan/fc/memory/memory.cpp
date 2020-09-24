@@ -14,9 +14,9 @@ Bus bus;
 
 auto Bus::read(uint16 addr) -> uint8 {
   uint8 data = cartridge.readPRG(addr);
-       if(addr <= 0x1fff) data = cpu.readRAM(addr);
-  else if(addr <= 0x3fff) data = ppu.readIO(addr);
-  else if(addr <= 0x4017) data = cpu.readIO(addr);
+  if(addr <= 0x1fff) return cpu.readRAM(addr);
+  if(addr <= 0x3fff) return ppu.readIO(addr);
+  if(addr <= 0x4017) return cpu.readIO(addr);
   return data;
 }
 

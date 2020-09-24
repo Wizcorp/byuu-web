@@ -31,23 +31,25 @@ auto PPU::renderPixel() -> void {
 
   if(io.spriteEnable)
   for(; sprite >= 0; sprite--) {
-    if(!io.spriteEdgeEnable && x < 8) continue;
-    if(latch.oam[sprite].id == 64) continue;
+    auto oam = latch.oam[sprite];
 
-    uint spriteX = x - latch.oam[sprite].x;
+    if(!io.spriteEdgeEnable && x < 8) continue;
+    if(oam.id == 64) continue;
+
+    uint spriteX = x - oam.x;
     if(spriteX >= 8) continue;
 
-    if(latch.oam[sprite].attr & 0x40) spriteX ^= 7;
+    if(oam.attr & 0x40) spriteX ^= 7;
     uint mask = 0x80 >> spriteX;
     uint spritePalette = 0;
-    spritePalette |= latch.oam[sprite].tiledataLo & mask ? 1 : 0;
-    spritePalette |= latch.oam[sprite].tiledataHi & mask ? 2 : 0;
+    spritePalette |= oam.tiledataLo & mask ? 1 : 0;
+    spritePalette |= oam.tiledataHi & mask ? 2 : 0;
     if(spritePalette == 0) continue;
 
-    if(latch.oam[sprite].id == 0 && palette && x != 255) io.spriteZeroHit = 1;
-    spritePalette |= (latch.oam[sprite].attr & 3) << 2;
+    if(oam.id == 0 && palette && x != 255) io.spriteZeroHit = 1;
+    spritePalette |= (oam.attr & 3) << 2;
 
-    objectPriority = latch.oam[sprite].attr & 0x20;
+    objectPriority = oam.attr & 0x20;
     objectPalette = 16 + spritePalette;
   }
 
@@ -140,6 +142,7 @@ auto PPU::renderScanline2() -> void {
 
   //257-320
   for(uint sprite : range(8)) {
+    auto& oam = latch.oam[sprite];
     uint nametable = loadCHR(0x2000 | (uint12)io.v.address);
     step(1);
 
@@ -152,18 +155,18 @@ auto PPU::renderScanline2() -> void {
 
     uint attribute = loadCHR(0x23c0 | io.v.nametable << 10 | (io.v.tileY >> 2) << 3 | io.v.tileX >> 2);
     uint tileaddr = io.spriteHeight == 8
-    ? io.spriteAddress + latch.oam[sprite].tile * 16
-    : (latch.oam[sprite].tile & ~1) * 16 + (latch.oam[sprite].tile & 1) * 0x1000;
+    ? io.spriteAddress + oam.tile * 16
+    : (oam.tile & ~1) * 16 + (oam.tile & 1) * 0x1000;
     step(2);
 
-    uint spriteY = (io.ly - latch.oam[sprite].y) & (io.spriteHeight - 1);
-    if(latch.oam[sprite].attr & 0x80) spriteY ^= io.spriteHeight - 1;
+    uint spriteY = (io.ly - oam.y) & (io.spriteHeight - 1);
+    if(oam.attr & 0x80) spriteY ^= io.spriteHeight - 1;
     tileaddr += spriteY + (spriteY & 8);
 
-    latch.oam[sprite].tiledataLo = loadCHR(tileaddr + 0);
+    oam.tiledataLo = loadCHR(tileaddr + 0);
     step(2);
 
-    latch.oam[sprite].tiledataHi = loadCHR(tileaddr + 8);
+    oam.tiledataHi = loadCHR(tileaddr + 8);
     step(2);
 
     if(enable() && sprite == 6 && io.ly == vlines() - 1) {
