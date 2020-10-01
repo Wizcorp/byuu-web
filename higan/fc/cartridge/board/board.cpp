@@ -10,6 +10,7 @@
 #include "konami-vrc5.cpp"
 #include "konami-vrc6.cpp"
 #include "konami-vrc7.cpp"
+#include "namco-163.cpp"
 #include "namco-34xx.cpp"
 #include "nes-axrom.cpp"
 #include "nes-bnrom.cpp"
@@ -164,6 +165,10 @@ auto Board::load(string manifest) -> Board* {
   if(type == "KONAMI-VRC-6") return new KonamiVRC6(document);
   if(type == "KONAMI-VRC-7") return new KonamiVRC7(document);
 
+  if(type == "NAMCOT-129" ) return new Namco163(document);
+  if(type == "NAMCOT-163" ) return new Namco163(document);
+  if(type == "NAMCOT-175" ) return new Namco163(document);
+  if(type == "NAMCOT-340" ) return new Namco163(document);
   if(type == "NAMCOT-3401") return new Namco34xx(document);
   if(type == "NAMCOT-3406") return new Namco34xx(document);
   if(type == "NAMCOT-3407") return new Namco34xx(document);

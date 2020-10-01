@@ -143,6 +143,13 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     s += "  board:  JALECO-JF\n";
     s += "    chip type=SS88006\n";
     break;
+  
+  case  19:
+    // s += "  board:  NAMCOT-129\n";
+    s += "  board:  NAMCOT-163\n";
+    // Todo: add submapper
+    s += "    chip type=163\n";
+    break;
 
   case  21:
   case  23:
@@ -264,6 +271,12 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     s += "  board:  NAMCOT-3401\n";
     s += "    chip type=Namcot108\n";
     s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
+    break;
+
+  case  210:
+    s += "  board:  NAMCOT-175\n";
+    // s += "  board:  NAMCOT-340\n";
+    s += "    chip type=163\n";
     break;
   }
 
