@@ -20,12 +20,12 @@ struct Emulator {
 
   virtual auto load() -> bool = 0;
   virtual auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> = 0;
+  virtual auto input(higan::Node::Input) -> void;
 
   auto connect(const string& portName, const string& peripheralName) -> bool;
   auto disconnect(const string& portName) -> bool;
   auto setButton(const string& buttonName, int16_t value) -> bool;
   auto setButton(const string& portName, const string& buttonName, int16_t value) -> bool;
-  auto input(higan::Node::Input) -> void;
 
   virtual auto notify(const string& message) -> void {}
 
@@ -52,7 +52,7 @@ struct Emulator {
   vector<Firmware> firmware;
   Game game;
 
-  private:
+  protected:
     map<string, std::map<string, int16_t>> buttonMaps;
 };
 

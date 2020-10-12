@@ -512,11 +512,18 @@
       #virtualGamepad .button_L,
       #virtualGamepad .button_R,
       #virtualGamepad .button_Select,
-      #virtualGamepad .button_Start {
+      #virtualGamepad .button_Start,
+      #virtualGamepad .button_Microphone {
         background-image: url('./assets/images/gamepad/buttonRectangle.png');
         width: 20vw;
         height: 10vw;
+        line-height: 10vw;
         transform: translate(-10vw, -5vw);
+      }
+
+      #virtualGamepad .button_Microphone {
+        text-align: center;
+        filter: grayscale(100%) brightness(120%) sepia(100%) hue-rotate(-100deg) saturate(600%) contrast(2);
       }
 
       #virtualGamepad .console {
@@ -534,6 +541,7 @@
       #virtualGamepad .console[data-console="Famicom"] .button_B { left: 65%; top: 50%; }
       #virtualGamepad .console[data-console="Famicom"] .button_Select { left: 11%; top: 92%; }
       #virtualGamepad .console[data-console="Famicom"] .button_Start { left: 89%; top: 92%; }
+      #virtualGamepad .console[data-console="Famicom"] .button_Microphone { left: 50%; top: 15%; }
 
       #virtualGamepad .console[data-console="Super Famicom"] .button_Left { left: 12.5%; top: 50%; }
       #virtualGamepad .console[data-console="Super Famicom"] .button_Right { left: 37.5%; top: 50%; }
@@ -592,9 +600,11 @@
         #virtualGamepad .button_L,
         #virtualGamepad .button_R,
         #virtualGamepad .button_Select,
-        #virtualGamepad .button_Start {
+        #virtualGamepad .button_Start,
+        #virtualGamepad .button_Microphone {
           width: 10vw;
           height: 5vw;
+          line-height: 5vw;
           transform: translate(-5vw, -2.5vw);
         }
 
@@ -606,6 +616,7 @@
         #virtualGamepad .console[data-console="Famicom"] .button_B { left: 82.5%; top: 50%; }
         #virtualGamepad .console[data-console="Famicom"] .button_Select { left: 5.5%; top: 92%; }
         #virtualGamepad .console[data-console="Famicom"] .button_Start { left: 94.5%; top: 92%; }
+        #virtualGamepad .console[data-console="Famicom"] .button_Microphone { left: 87.75%; top: 25%; }
 
         #virtualGamepad .console[data-console="Super Famicom"] .button_Left { left: 6.25%; top: 50%; }
         #virtualGamepad .console[data-console="Super Famicom"] .button_Right { left: 18.75%; top: 50%; }
@@ -841,6 +852,7 @@
           <div class="keymap"><span class="button">B</span><span class="key">L</span></div>
           <div class="keymap"><span class="button">Select</span><span class="key">Backspace</span></div>
           <div class="keymap"><span class="button">Start</span><span class="key">Enter</span></div>
+          <div class="keymap"><span class="button">Microphone</span><span class="key">P</span></div>
         </div>
         <div data-console="Super Famicom" data-port="Controller Port 1" data-type="Gamepad">
           <div class="keymap"><span class="button">Up</span><span class="key">W</span></div>
@@ -868,7 +880,8 @@
         <div class="button button_A" data-label="A" data-x="85" data-y="50"></div>
         <div class="button button_B" data-label="B" data-x="65" data-y="50"></div>
         <div class="button button_Select" data-label="Select" data-x="11" data-y="92"></div>
-        <div class="button button_Start" data-label="Start" data-x="89" data-y="92"></div>
+        <div class="button button_Start" data-label="Start" data-x="94.5" data-y="92"></div>
+        <div class="button button_Microphone" data-label="Microphone" data-x="50" data-y="15">🎤</div>
       </div>
       <div class="console" data-console="Famicom" data-orientation="landscape" data-port="Controller Port 1" data-type="Gamepad">
         <div class="button button_Left" data-label="Left" data-x="6.25" data-y="50"></div>
@@ -879,6 +892,7 @@
         <div class="button button_B" data-label="B" data-x="82.5" data-y="50"></div>
         <div class="button button_Select" data-label="Select" data-x="5.5" data-y="92"></div>
         <div class="button button_Start" data-label="Start" data-x="94.5" data-y="92"></div>
+        <div class="button button_Microphone" data-label="Microphone" data-x="87.75" data-y="25">🎤</div>
       </div>
       <div class="console" data-console="Super Famicom" data-orientation="portrait" data-port="Controller Port 1" data-type="Gamepad">
         <div class="button button_Left" data-label="Left" data-x="12.5" data-y="50"></div>

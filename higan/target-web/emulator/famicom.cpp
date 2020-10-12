@@ -2,12 +2,14 @@
 
 struct Famicom : Emulator {
   Famicom();
+  auto input(higan::Node::Input node) -> void;
   auto load() -> bool override;
   auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> override;
 };
 
 struct FamicomDiskSystem : Emulator {
   FamicomDiskSystem();
+  auto input(higan::Node::Input node) -> void;
   auto load() -> bool override;
   auto open(higan::Node::Object, string name, vfs::file::mode mode, bool required) -> shared_pointer<vfs::file> override;
   auto notify(const string& message) -> void override;
@@ -28,6 +30,17 @@ Famicom::Famicom() {
     "B", "A", "Select", "Start", 
     "Microphone"
   };
+}
+
+auto Famicom::input(higan::Node::Input node) -> void {
+  if(node->name() == "Microphone") {
+    if(auto buttonMap = buttonMaps.find("Controller Port 1")) {
+      auto button = node->cast<higan::Node::Button>();
+      button->setValue(buttonMap.get()["Microphone"]);
+    }
+  } else {
+    return Emulator::input(node);
+  }
 }
 
 auto Famicom::load() -> bool {
@@ -84,6 +97,17 @@ FamicomDiskSystem::FamicomDiskSystem() {
   };
 
   firmware.append({"BIOS", "Japan"});
+}
+
+auto FamicomDiskSystem::input(higan::Node::Input node) -> void {
+  if(node->name() == "Microphone") {
+    if(auto buttonMap = buttonMaps.find("Controller Port 1")) {
+      auto button = node->cast<higan::Node::Button>();
+      button->setValue(buttonMap.get()["Microphone"]);
+    }
+  } else {
+    return Emulator::input(node);
+  }
 }
 
 auto FamicomDiskSystem::load() -> bool {
