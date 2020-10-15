@@ -35,7 +35,7 @@ bool start() {
     }
 
     webplatform->started = true;
-    emscripten_set_main_loop(run, 0, 0);
+    emscripten_set_main_loop(run, 60, 0);
     return true;
 }
 
