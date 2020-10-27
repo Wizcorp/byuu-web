@@ -707,8 +707,8 @@
       </div>
     </div>
 
-    <div id="fpsWrapper">
-    </div>
+    <div id="fpsWrapper"></div>
+
     <div id="pauseMenuButton" style="display: none;">
     </div>
 
@@ -775,11 +775,16 @@
             </div>
             
             <div class="settingEntry">
-              <div class="label">Audio volume</div>
+              <div class="label">Volume</div>
               <div class="values">
                 <input type="range" name="volume" id="volume" min="0" max="100" step="1" value="100">
                 <input type="checkbox" name="mute" id="mute" />
                 <label for="mute">Mute</label>
+              </div>
+              <div class="label">GUI</div>
+              <div class="values">
+                <input type="checkbox" name="fps" id="fps" checked />
+                <label for="fps">Show FPS counter</label>
               </div>
             </div>
             <div class="settingEntry" id="core-specific-settings">
@@ -1250,6 +1255,9 @@
             break;
           case 'dsp':
             Module.setMute(checked);
+            break;
+          case 'fps':
+            document.getElementById('fpsWrapper').style.display = checked ? 'block' : 'none';
             break;
           default:
             if (!configureEmulatorCore(name, checked)) {
