@@ -1,6 +1,7 @@
 #include "bandai-fcg.cpp"
 #include "discrete-74x139x74.cpp"
 #include "hvc-fmr.cpp"
+#include "irem-g101.cpp"
 #include "jaleco-jf.cpp"
 #include "jaleco-jf16.cpp"
 #include "konami-vrc1.cpp"
@@ -151,6 +152,8 @@ auto Board::load(string manifest) -> Board* {
 
   if(type == "BANDAI-FCG"  ) return new BandaiFCG(document);
   if(type == "DISCRETE-74x139x74") return new DISCRETE74x139x74(document);
+
+  if(type == "IREM-G101"     ) return new IremG101(document);
 
   if(type == "HVC-FMR"     ) return new HVC_FMR(document);
 

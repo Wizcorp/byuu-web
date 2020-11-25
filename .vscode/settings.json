@@ -78,6 +78,7 @@
         "filesystem": "cpp",
         "memory_resource": "cpp",
         "cinttypes": "cpp",
-        "__memory": "cpp"
+        "__memory": "cpp",
+        "random": "cpp"
     }
 }

@@ -73,6 +73,20 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
   uint chrram = chrrom == 0u ? 8192u : 0u;
   uint eeprom = 0u;
 
+  bool nes2      = (data[7] & 0x0c) == 0x08;
+  uint submapper = 0u;
+
+  if (nes2) {
+    submapper = data[8] >> 4;
+    prgrom += (data[9] & 0x0f) * 0x400000;
+    chrrom += (data[9] >>   4) * 0x200000;
+    prgram  = ((data[10] & 0x0f) == 0 ? 0 : 64) << (data[10] & 0x0f);  //no battery
+    prgram += ((data[10] >>   4) == 0 ? 0 : 64) << (data[10] >>   4);  //battery
+    chrram  = ((data[11] & 0x0f) == 0 ? 0 : 64) << (data[11] & 0x0f);  //no battery
+    chrram += ((data[11] >>   4) == 0 ? 0 : 64) << (data[11] >>   4);  //battery
+
+  }
+
   string s;
   s += "game\n";
   s +={"  name:  ", Media::name(location), "\n"};
@@ -178,6 +192,13 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     s += "    chip type=VRC6\n";
     prgram = 8192;
     break;
+  
+  case  32:
+    s += "  board:  IREM-G101\n";
+    s += "    chip type=G-101\n";
+    if(submapper == 1) s +={"    mirror mode=screen-1\n"};
+    break;
+
 
   case  34:
     s += "  board:  NES-BNROM\n";
@@ -220,10 +241,8 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     break;
 
   case  78:
-    // Todo: adde NES 2.0 support to correctly detect the submapper; this will be needed 
-    // for Holy Diver to work correctly
     s += "  board:  JALECO-JF16\n";
-    s += "    submapper id=1\n";
+    s += {"    submapper id=", submapper, "\n"};
     break;
 
   case  85:
@@ -321,6 +340,7 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     s += "      content: Save\n";
   }
 
+  printf("%s\n", s.data());
   return s;
 }
 
