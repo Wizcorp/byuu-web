@@ -522,6 +522,7 @@
       }
 
       #virtualGamepad .button_Microphone {
+        display: none;
         text-align: center;
         filter: grayscale(100%) brightness(120%) sepia(100%) hue-rotate(-100deg) saturate(600%) contrast(2);
       }
@@ -802,6 +803,8 @@
               <div data-console="Famicom">
                 <div class="label">FC Core</div>
                 <div class="values">
+                  <input type="checkbox" name="fc-mic" id="fc-mic" />
+                  <label for="fc-mic">Show mic button</label>
                   <input type="checkbox" name="fc-overscan" id="fc-overscan" />
                   <label for="fc-overscan">Overscan</label>
                   <input type="checkbox" name="fc-skipframe" id="fc-skipframe" />
@@ -1226,6 +1229,11 @@
             return false;
           case 'fc':
             switch (name) {
+              case 'mic':
+                virtualGamepad.querySelectorAll('[data-console="Famicom"]').forEach((pad) => {
+                  pad.querySelector('.button_Microphone').style.display = value ? 'block' : 'none';
+                });
+                return true;
               case 'synconce':
                 Module.configure('cpu/synconce', value);
                 return true;
