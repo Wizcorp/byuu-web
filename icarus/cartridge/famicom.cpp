@@ -274,6 +274,11 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     s +={"    mirror mode=", !mirror ? "horizontal" : "vertical", "\n"};
     break;
 
+  case  97:
+    s += "  board:  IREM-TAM-S1\n";
+    s += "    chip type=TAM-S1\n";
+    break;
+
   case  154:
     s += "  board:  NAMCOT-3453\n";
     s += "    chip type=Namcot108\n";
@@ -340,7 +345,6 @@ auto Famicom::heuristicsINES(vector<uint8_t>& data, string location) -> string {
     s += "      content: Save\n";
   }
 
-  printf("%s\n", s.data());
   return s;
 }
 
