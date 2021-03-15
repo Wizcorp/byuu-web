@@ -53,6 +53,8 @@ auto APU::unload() -> void {
 }
 
 auto APU::main() -> void {
+  name = "apu";
+
   uint pulse_output, triangle_output, noise_output, dmc_output;
 
   pulse_output  = pulse[0].clock();
@@ -73,7 +75,9 @@ auto APU::main() -> void {
 
 auto APU::tick() -> void {
   Thread::step(rate());
+#if !defined(SCHEDULER_SYNCHRO)
   Thread::synchronize(cpu);
+#endif
 }
 
 auto APU::setIRQ() -> void {

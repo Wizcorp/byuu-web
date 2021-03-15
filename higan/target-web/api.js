@@ -183,15 +183,9 @@ byuu.setEmulatorForFilename = (filename) => getModule().setEmulatorForFilename(f
 
 byuu.load = (romData, saveFiles) => getModule().load(romData, saveFiles || {})
 
-byuu.loadURL = async (url, saveFiles) => new Promise((resolve, reject) => {
-  getModule().loadURL(url, saveFiles || {}, (errorString, info) => {
-    if (errorString) {
-      return reject(new Error(errorString))
-    }
-
-    resolve(info)
-  })
-})
+byuu.loadURL = async (url, saveFiles) => fetch(url)
+    .then((response) => response.arrayBuffer())
+    .then((buffer) => byuu.load(new Uint8Array(buffer), saveFiles))
 
 byuu.unload = () => getModule().unload()
 

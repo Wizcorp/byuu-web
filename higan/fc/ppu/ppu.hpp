@@ -4,6 +4,7 @@ struct PPU : Thread {
   Node::Boolean overscan;
   Node::Boolean colorEmulation;
 
+  bool hasRendered = false;
   bool isSkipping = false;
   bool skip = false;
 

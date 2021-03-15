@@ -27,7 +27,8 @@ auto CPU::main() -> void {
 #if defined(SCHEDULER_SYNCHRO)
   if (vdp.hasRendered) {
     vdp.hasRendered = false;
-    scheduler.exit(Event::Frame);
+    event = Event::Frame;
+    return;
   }
 #endif
 

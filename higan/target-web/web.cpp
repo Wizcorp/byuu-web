@@ -78,7 +78,6 @@ bool setEmulator(std::string emulatorName) { return webplatform->setEmulator(emu
 bool setEmulatorForFilename(std::string path) { return webplatform->setEmulatorForFilename(path.c_str()); }
 
 emscripten::val load(std::string rom, emscripten::val files) { return webplatform->load((uint8_t *) rom.c_str(), rom.size(), files); }
-void loadURL(std::string url, emscripten::val files, emscripten::val callback) { return webplatform->loadURL(url.c_str(), files, callback); }
 
 /* configuration */
 void configure(std::string name, uint8_t value) { return webplatform->configure(name.c_str(), value); }
@@ -114,7 +113,6 @@ EMSCRIPTEN_BINDINGS(my_module) {
     emscripten::function("setEmulatorForFilename", &setEmulatorForFilename);
 
     emscripten::function("load", &load);
-    emscripten::function("loadURL", &loadURL);
     emscripten::function("unload", &unload);
     emscripten::function("configure", &configure);
     emscripten::function("run", &run);

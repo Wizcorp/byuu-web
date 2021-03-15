@@ -60,7 +60,6 @@ struct WebPlatform : higan::Platform {
         auto setEmulatorForFilename(const char *path) -> bool;
         
         auto load(uint8_t *rom, int size, emscripten::val files) -> emscripten::val;
-        auto loadURL(const char *url, emscripten::val files, emscripten::val callback) -> void;
         auto unload() -> void;
 
         auto run() -> void;

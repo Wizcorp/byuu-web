@@ -36,7 +36,8 @@ auto CPU::main() -> void {
 #if defined(SCHEDULER_SYNCHRO)
   if (ppu.hasRendered) {
     ppu.hasRendered = false;
-    scheduler.exit(Event::Frame);
+    event = Event::Frame;
+    return;
   }
 #endif
 

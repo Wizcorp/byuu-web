@@ -24,7 +24,7 @@ struct Scheduler {
 
   inline auto power(Thread& thread) -> void;
   inline auto enter(Mode mode = Mode::Run) -> Event;
-  inline auto exit(Event event) -> void;
+  inline auto exit(Event event) -> Event;
 
   inline auto synchronizing() const -> bool;
   inline auto synchronize() -> void;
@@ -34,8 +34,6 @@ struct Scheduler {
   inline auto run() -> void;
 
 private:
-  cothread_t _host;     //program coroutine (used to exit scheduler)
-  cothread_t _resume;   //resume coroutine (used to enter scheduler)
   Thread *_primary;      //primary thread (used to synchronize components)
   Mode _mode = Mode::Run;
   Event _event = Event::Step;

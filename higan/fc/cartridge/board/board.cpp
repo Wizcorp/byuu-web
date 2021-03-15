@@ -125,7 +125,9 @@ auto Board::main() -> void {
 
 auto Board::tick(uint clocks) -> void {
   cartridge.step(cartridge.rate() * clocks);
+#if !defined(SCHEDULER_SYNCHRO)
   cartridge.synchronize(cpu);
+#endif
 }
 
 auto Board::readCHR(uint addr) -> uint8 {

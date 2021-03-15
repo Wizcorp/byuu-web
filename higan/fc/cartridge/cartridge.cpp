@@ -67,6 +67,7 @@ auto Cartridge::power() -> void {
 }
 
 auto Cartridge::main() -> void {
+  Thread::name = "cartridge";
   board->main();
 }
 

@@ -1,6 +1,8 @@
 #pragma once
 
+#if !defined(SCHEDULER_SYNCHRO)
 #include <libco/libco.h>
+#endif
 
 #include <nall/platform.hpp>
 #include <nall/adaptive-array.hpp>

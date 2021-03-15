@@ -58,16 +58,7 @@ auto Scheduler::run() -> void {
 
 //power cycle and soft reset events: assigns the primary thread and resets all thread clocks.
 auto Scheduler::power(Thread& thread) -> void {
-  static auto loop = co_create(Thread::Size, []() -> void {
-    while(true) {
-      scheduler.synchronize();
-      scheduler.run();
-    }
-  });
-
   _primary = &thread;
-  _host = co_active();
-  _resume = loop;
 
   for(auto& thread : _threads) {
     thread->_clock = thread->_uniqueID;
@@ -77,9 +68,12 @@ auto Scheduler::power(Thread& thread) -> void {
 auto Scheduler::enter(Mode mode) -> Event {
   if(mode == Mode::Run) {
     _mode = mode;
-    co_switch(_resume);
-    platform->event(_event);
-    return _event;
+    
+    while(_primary->event ==  Event::None) {
+        _primary->main();
+    }
+    
+    return exit(_primary->event);
   }
 
   // todo: this is probably incorrect since it relies on calling
@@ -87,9 +81,9 @@ auto Scheduler::enter(Mode mode) -> Event {
   if(mode == Mode::Synchronize) {
     // run all threads to safe points, starting with the primary thread.
     _mode = Mode::SynchronizePrimary;
-    do {
-      co_switch(_resume);
-    } while(_event != Event::Synchronize);
+    
+    _primary->main();
+    _primary->event = Event::None;
 
     for(auto& thread : _threads) {
       if(thread != _primary) {
@@ -103,7 +97,7 @@ auto Scheduler::enter(Mode mode) -> Event {
   return Event::None;
 }
 
-auto Scheduler::exit(Event event) -> void {
+auto Scheduler::exit(Event event) -> Event {
   //subtract the minimum time from all threads to prevent clock overflow.
   auto reduce = minimum();
   for(auto& thread : _threads) {
@@ -112,7 +106,10 @@ auto Scheduler::exit(Event event) -> void {
 
   //return to the thread that entered the scheduler originally.
   _event = event;
-  co_switch(_host);
+  _primary->event = Event::None;
+  platform->event(event);
+
+  return event;
 }
 
 //used to prevent auxiliary threads from blocking during synchronization.
@@ -125,7 +122,7 @@ auto Scheduler::synchronizing() const -> bool {
 //marks a safe point (typically the beginning of the entry point) of a thread.
 //the scheduler may exit at these points for the purpose of synchronization.
 auto Scheduler::synchronize() -> void {
-  if(_mode == Mode::SynchronizePrimary) return exit(Event::Synchronize);
+  if(_mode == Mode::SynchronizePrimary) _primary->event = Event::Synchronize;
 }
 
 auto Scheduler::getSynchronize() -> bool {

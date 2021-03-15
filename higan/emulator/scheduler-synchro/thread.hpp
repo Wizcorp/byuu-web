@@ -12,6 +12,9 @@ struct Thread {
   enum : uintmax { Second = (uintmax)-1 >> 1 };
   enum : uintmax { Size = 8_KiB * sizeof(void*) };
 
+  higan::Event event = higan::Event::None;
+  std::string name;
+
   Thread() = default;
   Thread(const Thread&) = delete;
   auto operator=(const Thread&) = delete;

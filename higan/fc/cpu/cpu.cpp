@@ -31,6 +31,16 @@ auto CPU::unload() -> void {
 }
 
 auto CPU::main() -> void {
+  name = "cpu";
+
+#if defined(SCHEDULER_SYNCHRO)
+  if (ppu.hasRendered) {
+    ppu.hasRendered = false;
+    event = Event::Frame;
+    return;
+  }
+#endif
+
   if(io.interruptPending) {
     if(eventInterrupt->enabled()) eventInterrupt->notify("IRQ");
     return interrupt();

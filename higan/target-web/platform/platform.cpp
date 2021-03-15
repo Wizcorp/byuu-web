@@ -111,47 +111,6 @@ auto WebPlatform::load(uint8_t *rom, int size, emscripten::val files) -> emscrip
     return getEmulatorAndGameInfo(this->emulator, this->emulator->game.manifest);
 }
 
-auto WebPlatform::loadURL(const char *url, emscripten::val files, emscripten::val callback) -> void {
-    if (!setEmulatorForFilename(url)) {
-        DEBUG_LOG("No emulator found for: %s\n", url);
-        callback(WebPlatform::Error::MATCHING_EMULATOR_NOT_FOUND, 0);
-        return;
-    }
-    
-    DEBUG_LOG("Using emulator: %s\n", this->emulator->name.data());
-
-    LoadingCallbackContainer *container = new LoadingCallbackContainer(this, url, files, callback);
-
-    DEBUG_LOG("Fetching ROM: %s\n", url);
-
-    emscripten_async_wget_data(
-        url, 
-        (void *) container, 
-        [](void *c, void *buffer, int size) -> void {
-            LoadingCallbackContainer *container = (LoadingCallbackContainer *) c;
-            auto instance = container->instance;
-            auto url = container->url.data();
-            auto files = container->files;
-            auto callback = container->callback;
-
-            try {
-                callback(0, instance->load((uint8_t*) buffer, size, files));
-            } catch (...) {
-                DEBUG_LOG("Failed to load data into emulator: %s\n", url);
-                callback(WebPlatform::Error::EMULATOR_ROM_LOAD_FAILED, 0);
-            }
-        }, 
-        [](void *c) -> void {
-            LoadingCallbackContainer *container = (LoadingCallbackContainer *) c;
-            auto callback = container->callback;
-            auto url = container->url.data();
-            
-            DEBUG_LOG("Failed to fetch data: %s", url);
-            callback(WebPlatform::Error::ROM_FETCH_FAILED, 0);
-        }
-    );
-}
-
 auto WebPlatform::unload() -> void {
     if (emulator) {
         emulator->interface->unload();

@@ -1,4 +1,9 @@
+ifeq (, $(shell which ccache))
 compiler = emcc
+else
+$(info Using ccache)
+compiler = ccache emcc
+endif
 
 name := byuu-web
 debug_host := 127.0.0.1
@@ -27,16 +32,15 @@ endif
 
 ifeq ($(synchro),true)
   flags += -DSCHEDULER_SYNCHRO
-  
+
+  # Filter out libco
+  new_objects := $(filter-out libco, $(objects))
+  objects := $(new_objects)
+
   ifeq ($(simulated_synchro), true)
     # Run synchro code on the standard scheduler. Useful for debugging
 	# and porting new emulation cores
   	flags += -DSIMULATED_SYNCHRO
-  else
-	# Synchro code on synchro scheduler
-	# Optimize how Asyncify processes the compiled bytecode
-	flags += -s ASYNCIFY_IGNORE_INDIRECT
-	flags += -s ASYNCIFY_ADD="@./target-web/asyncify.txt"
   endif
 endif
 
@@ -55,7 +59,6 @@ flags += \
 	-ffp-model=fast \
 	--bind \
 	-s ENVIRONMENT=web \
-	-s ASYNCIFY \
 	-s DISABLE_EXCEPTION_CATCHING=1 \
 	-s USE_SDL=2 \
 	-s USE_SDL_MIXER=0 \

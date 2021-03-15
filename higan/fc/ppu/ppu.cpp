@@ -39,11 +39,12 @@ auto PPU::unload() -> void {
 }
 
 auto PPU::main() -> void {
+  name = "ppu";
+
   renderScanline();
 
   #if defined(SCHEDULER_SYNCHRO)
   Thread::step(rate() * cumulatedClocks);
-  Thread::synchronize(cpu);
   cumulatedClocks = 0;
   #endif
 }
@@ -93,7 +94,12 @@ auto PPU::scanline() -> void {
 auto PPU::frame() -> void {
   io.field++;
   skip = !skip;
+#if defined(SCHEDULER_SYNCHRO)
+  hasRendered = true;
+  if (!ppu.isSkipping || !ppu.skip) ppu.refresh();
+#else
   scheduler.exit(Event::Frame);
+#endif
 }
 
 auto PPU::refresh() -> void {
