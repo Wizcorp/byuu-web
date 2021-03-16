@@ -571,6 +571,15 @@
       #virtualGamepad .console[data-console="Mega Drive"] .button_Mode { left: 11%; top: 92%; }
       #virtualGamepad .console[data-console="Mega Drive"] .button_Start { left: 89%; top: 92%; }
 
+      #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_Left { left: 12.5%; top: 50%; }
+      #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_Right { left: 37.5%; top: 50%; }
+      #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_Up { left: 25%; top: 33.333%; }
+      #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_Down { left: 25%; top: 66.666%; }
+      #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_A { left: 62.5%; top: 60%; }
+      #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_B { left: 75%; top: 50%; }
+      #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_C { left: 87.55%; top: 40%; }
+      #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_Start { left: 89%; top: 92%; }
+
       #virtualGamepad.colored .console[data-console="Famicom"] .button_A {
         /* red */
         filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(-50deg) saturate(600%) contrast(0.8);
@@ -659,6 +668,15 @@
         #virtualGamepad .console[data-console="Mega Drive"] .button_Z { left: 91.25%; top: 30%; }
         #virtualGamepad .console[data-console="Mega Drive"] .button_Mode { left: 5.5%; top: 92%; }
         #virtualGamepad .console[data-console="Mega Drive"] .button_Start { left: 94.5%; top: 92%; }
+
+        #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_Left { left: 6.25%; top: 50%; }
+        #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_Right { left: 18.75%; top: 50%; }
+        #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_Up { left: 12.5%; top: 33.333%; }
+        #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_Down { left: 12.5%; top: 66.666%; }
+        #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_A { left: 81.25%; top: 60%; }
+        #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_B { left: 87.5%; top: 50%; }
+        #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_C { left: 93.75%; top: 40%; }
+        #virtualGamepad.md3Buttons .console[data-console="Mega Drive"] .button_Start { left: 94.5%; top: 92%; }
       }
 
       /* Loading screen */
@@ -800,6 +818,15 @@
                 <label for="gamepadPosition_low">Low</label>
                 <input type="radio" id="gamepadPosition_high" name="gamepadPosition" value="high">
                 <label for="gamepadPosition_high">High</label>
+              </div>
+            </div>
+            <div class="settingEntry mobileSetting">
+              <div class="label">Mega Drive layout</div>
+              <div class="values">
+                <input type="radio" id="md6Buttons" name="specialLayout" value="md6Buttons" checked>
+                <label for="md6Buttons">6 buttons</label>
+                <input type="radio" id="md3Buttons" name="specialLayout" value="md3Buttons">
+                <label for="md3Buttons">3 buttons</label>
               </div>
             </div>
             <div class="settingEntry mobileSetting">
@@ -976,7 +1003,7 @@
         <div class="button button_Select" data-label="Select" data-x="5.5" data-y="92"></div>
         <div class="button button_Start" data-label="Start" data-x="94.5" data-y="92"></div>
       </div>
-      <div class="console" data-console="Mega Drive" data-orientation="portrait" data-port="Controller Port 1" data-type="Fighting Pad">
+      <div class="console" data-console="Mega Drive" data-orientation="portrait" data-port="Controller Port 1" data-type="Fighting Pad" data-layout="md6Buttons">
         <div class="button button_Left" data-label="Left" data-x="12.5" data-y="50"></div>
         <div class="button button_Right" data-label="Right" data-x="37.5" data-y="50"></div>
         <div class="button button_Up" data-label="Up" data-x="25" data-y="33.333"></div>
@@ -990,7 +1017,7 @@
         <div class="button button_Mode" data-label="Mode" data-x="11" data-y="92"></div>
         <div class="button button_Start" data-label="Start" data-x="89" data-y="92"></div>
       </div>
-      <div class="console" data-console="Mega Drive" data-orientation="landscape" data-port="Controller Port 1" data-type="Fighting Pad">
+      <div class="console" data-console="Mega Drive" data-orientation="landscape" data-port="Controller Port 1" data-type="Fighting Pad" data-layout="md6Buttons">
         <div class="button button_Left" data-label="Left" data-x="6.25" data-y="50"></div>
         <div class="button button_Right" data-label="Right" data-x="18.75" data-y="50"></div>
         <div class="button button_Up" data-label="Up" data-x="12.5" data-y="33.333"></div>
@@ -1002,6 +1029,26 @@
         <div class="button button_Y" data-label="Y" data-x="85" data-y="40"></div>
         <div class="button button_Z" data-label="Z" data-x="91.25" data-y="30"></div>
         <div class="button button_Mode" data-label="Mode" data-x="5.5" data-y="92"></div>
+        <div class="button button_Start" data-label="Start" data-x="94.5" data-y="92"></div>
+      </div>
+      <div class="console" data-console="Mega Drive" data-orientation="portrait" data-port="Controller Port 1" data-type="Fighting Pad" data-layout="md3Buttons">
+        <div class="button button_Left" data-label="Left" data-x="12.5" data-y="50"></div>
+        <div class="button button_Right" data-label="Right" data-x="37.5" data-y="50"></div>
+        <div class="button button_Up" data-label="Up" data-x="25" data-y="33.333"></div>
+        <div class="button button_Down" data-label="Down" data-x="25" data-y="66.666"></div>
+        <div class="button button_A" data-label="A" data-x="62.5" data-y="60"></div>
+        <div class="button button_B" data-label="B" data-x="75" data-y="50"></div>
+        <div class="button button_C" data-label="C" data-x="87.5" data-y="40"></div>
+        <div class="button button_Start" data-label="Start" data-x="89" data-y="92"></div>
+      </div>
+      <div class="console" data-console="Mega Drive" data-orientation="landscape" data-port="Controller Port 1" data-type="Fighting Pad" data-layout="md3Buttons">
+        <div class="button button_Left" data-label="Left" data-x="6.25" data-y="50"></div>
+        <div class="button button_Right" data-label="Right" data-x="18.75" data-y="50"></div>
+        <div class="button button_Up" data-label="Up" data-x="12.5" data-y="33.333"></div>
+        <div class="button button_Down" data-label="Down" data-x="12.5" data-y="66.666"></div>
+        <div class="button button_A" data-label="A" data-x="81.25" data-y="60"></div>
+        <div class="button button_B" data-label="B" data-x="87.5" data-y="50"></div>
+        <div class="button button_C" data-label="C" data-x="93.75" data-y="40"></div>
         <div class="button button_Start" data-label="Start" data-x="94.5" data-y="92"></div>
       </div>
     </div>
@@ -1071,6 +1118,7 @@
 
       const settings = {
         touchArea: 'full',
+        specialLayout: 'md6Buttons',
       };
 
       const vGamepad = {
@@ -1353,6 +1401,15 @@
             } else {
               virtualGamepadElement.classList.remove('position_high');
             }
+            break;
+          case 'specialLayout':
+            settings.specialLayout = value;
+            if (value === 'md3Buttons') {
+              virtualGamepadElement.classList.add('md3Buttons');
+            } else {
+              virtualGamepadElement.classList.remove('md3Buttons');
+            }
+            displayControllerForEmulator();
             break;
           case 'touchArea':
             settings.touchArea = value;
@@ -1784,14 +1841,20 @@
 
         const controllers = document.querySelectorAll('#virtualGamepad .console');
         for (const controller of controllers) {
-          const { console: gameConsole, orientation, port, type } = controller.dataset;
+          const { console: gameConsole, orientation, port, type, layout } = controller.dataset;
           const currentOrientation = device.isLandscape ? 'landscape' : 'portrait';
-          const isActive = gameConsole == Module.info.currentEmulator && orientation === currentOrientation;
+          let isActive = gameConsole == Module.info.currentEmulator && orientation === currentOrientation;
+          if (Module.info.currentEmulator === "Mega Drive" && layout !== settings.specialLayout) {
+            isActive = false;
+          }
 
           if (isActive) {
             controller.classList.add('show');
             Module.connectPeripheral(port, type);
             vGamepad.port = port;
+
+            vGamepad.displayButtons = {};
+            vGamepad.buttonElements = {};
 
             const arr = Array.from(controller.children);
             arr.forEach((element) => {
