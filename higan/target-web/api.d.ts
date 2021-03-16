@@ -12,8 +12,7 @@ type ByuuIsDirty = $dirty
 export const enum Emulator {
   Famicom = 'Famicom',
   SuperFamicom = 'Super Famicom',
-  GameBoy = 'GameBoy',
-  GameBoyAdvance = 'GameBoy Advance',
+  MegaDrive = 'Mega Drive'
 }
 
 /**

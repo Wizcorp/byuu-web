@@ -2,8 +2,7 @@
 export const Emulator = {
   Famicom: 'Famicom',
   SuperFamicom: 'Super Famicom',
-  GameBoy: 'GameBoy',
-  GameBoyAdvance: 'GameBoy Advance'
+  MegaDrive: 'Mega Drive'
 }
 
 export const EmulatorEvent = {
