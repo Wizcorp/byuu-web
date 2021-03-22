@@ -5,6 +5,7 @@
 
 struct DSP : Thread {
   int callcount = 0;
+  bool enabled;
   
   Node::Component node;
   Node::Stream stream;

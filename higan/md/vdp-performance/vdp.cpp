@@ -18,8 +18,8 @@ auto VDP::load(Node::Object parent, Node::Object from) -> void {
 
   screen = Node::append<Node::Screen>(parent, from, "Screen");
   screen->colors(3 * (1 << 9), {&VDP::color, this});
-  screen->setSize(1280, 480);
-  screen->setScale(0.25, 0.50);
+  screen->setSize(640, 480);
+  screen->setScale(0.50, 0.50);
   screen->setAspect(1.0, 1.0);
   from = Node::scan(parent = screen, from);
 
@@ -240,6 +240,7 @@ auto VDP::power(bool reset) -> void {
   for(auto& data : cram.palette) data = 0;
 
   dma.power();
+  psg.power(reset);
 
   planeA.io = {};
   window.io = {};

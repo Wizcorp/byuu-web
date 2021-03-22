@@ -33,7 +33,9 @@ auto APU::main() -> void {
   bus->grant(false);
 #endif
 
-  if(!state.enabled) {
+  updateBus();
+
+  if(!running()) {
     return step(1);
   }
 
@@ -67,35 +69,44 @@ auto APU::step(uint clocks) -> void {
 #endif
 }
 
-auto APU::setNMI(bool value) -> void {
+auto APU::setNMI(uint1 value) -> void {
   state.nmiLine = value;
 }
 
-auto APU::setINT(bool value) -> void {
+auto APU::setINT(uint1 value) -> void {
   state.intLine = value;
 }
 
-auto APU::enable(bool value) -> void {
-  //68K cannot disable the Z80 without bus access
-  if(!bus->granted() && !value) return;
-  if(state.enabled && !value) reset();
-  state.enabled = value;
+auto APU::setRES(uint1 value) -> void {
+  if(!value && arbstate.resetLine) {
+    power(true);
+  }
+  arbstate.resetLine = value;
+}
+
+auto APU::setBREQ(uint1 value) -> void {
+  arbstate.busreqLine = value;
+}
+
+auto APU::updateBus() -> void {
+  if(!arbstate.resetLine) return; // Z80 bus switch may be blocked by reset
+  if(arbstate.busreqLine && !arbstate.busreqLatch) {
+    step(9); // estimated minimum wait time to allow 68K to read back unavailable bus status (Fatal Rewind)
+  }
+  arbstate.busreqLatch = arbstate.busreqLine;
 }
 
 auto APU::power(bool reset) -> void {
   Z80::bus = this;
   Z80::power();
-  bus->grant(false);
+  ym2612.power(reset);
   Thread::create(system.frequency() / 15.0, {&APU::main, this});
-  if(!reset) ram.allocate(8_KiB);
+  if(!reset) {
+    ram.allocate(8_KiB);
+    arbstate = {};
+  }
   state = {};
-}
-
-auto APU::reset() -> void {
-  Z80::power();
-  bus->grant(false);
-  Thread::create(system.frequency() / 15.0, {&APU::main, this});
-  state = {};
+  io = {};
 }
 
 }

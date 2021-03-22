@@ -9,6 +9,8 @@ struct VDP : Thread {
   Node::String region;
 
   bool hasRendered;
+  bool isSkipping;
+  bool skip;
 
   //vdp.cpp
   auto load(Node::Object, Node::Object) -> void;

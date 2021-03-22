@@ -6,7 +6,9 @@ Interface* interface = nullptr;
 
 auto MegaDriveInterface::configure(string name, uint value) -> void {
   if(name.match("vdp/optimizeSteps")) {
+#if defined(PROFILE_PERFORMANCE)
     vdp.optimizeSteps = (bool) value;
+#endif
   } else if(name.match("vdp/skipframe")) {
     vdp.isSkipping = (bool) value;
   }

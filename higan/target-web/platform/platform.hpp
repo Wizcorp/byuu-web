@@ -30,6 +30,8 @@ struct WebPlatform : higan::Platform {
     } Error;
 
     public:
+        higan::Node::Screen screen;
+
         // Is the emulator started?
         bool started = false;
 

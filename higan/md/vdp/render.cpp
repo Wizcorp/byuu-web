@@ -8,8 +8,13 @@ auto VDP::scanline() -> void {
 
   if(state.vcounter == 240) {
 #if defined(SCHEDULER_SYNCHRO)
-        refresh();
-        hasRendered = true;
+    // Render early, exit at the top of CPU::main
+    if (!isSkipping || !skip) {
+      refresh();
+    }
+
+    skip = !skip;
+    hasRendered = true;
 #else
         scheduler.exit(Event::Frame);
 #endif

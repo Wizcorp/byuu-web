@@ -19,7 +19,17 @@ auto PPU::main() -> void {
   dac.scanline();
 
   if(vcounter() == 240) {
+#if defined(SCHEDULER_SYNCHRO)
+    // Render early, exit at the top of CPU::main
+    if (!isSkipping || !skip) {
+      ppu.refresh();
+    }
+
+    skip = !skip;
+    hasRendered = true;
+#else
     scheduler.exit(Event::Frame);
+#endif
   }
 
   if(vcounter() > 240) {

@@ -29,25 +29,47 @@ void WebVideo::terminate() {
     SDL_RenderClear(renderer);
 }
 
-void WebVideo::render(const void *data, uint pitch, uint frameWidth, uint frameHeight) {
-    if (texture && (width != frameWidth || height != frameHeight)) {
+void WebVideo::render(const void *data, uint pitch, uint frameWidth, uint frameHeight, double screenScaleX, double screenScaleY) {
+    if (
+        texture 
+        && (
+            width != frameWidth 
+            || height != frameHeight 
+            || fabs(screenScaleX - scaleX) > 0.1
+            || fabs(screenScaleY - scaleY) > 0.1
+        )
+    ) {
         SDL_DestroyTexture(texture);
         texture = nullptr;
     }
 
     if (texture == nullptr) {
-        // We multiply by two to increase rendering quality
         width = frameWidth; 
         height = frameHeight;
-
+        scaleX = screenScaleX;
+        scaleY = screenScaleY;
+        
         texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, frameWidth, frameHeight);
 
         // make screen size double the texture size to increase the render quality;
-        // additional stretching should be done in CSS by the end-user        
-        SDL_SetWindowSize(window, width * 2, height * 2);
+        // additional stretching should be done in CSS by the end-user
+        scaledWidth = frameWidth * 2; 
+        scaledHeight = frameHeight * 2;
+
+        if (scaleX != 0 && scaleY != 0) {
+            double ratio = scaleX / scaleY;
+        
+            if (ratio > 1) {
+                scaledWidth *= ratio;
+            } else {
+                scaledHeight *= (1/ratio);
+            }
+        }
+
+        SDL_SetWindowSize(window, scaledWidth, scaledHeight);
 
         if (!onResizeCallback.isNull()) {
-            onResizeCallback(emscripten::val(width * 2), emscripten::val(height * 2));
+            onResizeCallback(emscripten::val(scaledWidth), emscripten::val(scaledHeight));
         }
     }
     

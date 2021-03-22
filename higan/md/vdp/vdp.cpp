@@ -68,19 +68,20 @@ auto VDP::main() -> void {
         cpu.lower(CPU::Interrupt::VerticalBlank);
       }
 
-      if(state.vcounter == screenHeight()) {
+      if(state.vcounter < screenHeight()) {
+        counter = 2;
+      } else if(state.vcounter == screenHeight()) {
         if(io.verticalBlankInterruptEnable) {
           io.vblankIRQ = true;
           cpu.raise(CPU::Interrupt::VerticalBlank);
         }
-        //todo: should only stay high for ~2573/2 clocks
-        apu.setINT(true);
-      }
 
-      if(state.vcounter < screenHeight()) {
-        counter = 2;
-      } else {
+        // only stay high for ~2573/2 clocks
+        apu.setINT(true);
         counter = 4;
+        return step(2573/2);
+      } else {
+        counter = 5;
         return step(1710);
       }
       break;
@@ -102,11 +103,17 @@ auto VDP::main() -> void {
         }
       }
 
-      counter = 4;
+      counter = 5;
       return step(430);
       break;
       
     case 4:
+      apu.setINT(false);
+      counter = 5;
+      return step(1710-(2573/2));
+      break;
+
+    case 5:
       state.hdot = 0;
       state.hcounter = 0;
       if(++state.vcounter >= frameHeight()) {
@@ -172,6 +179,8 @@ auto VDP::power(bool reset) -> void {
   planeB.power();
   sprite.power();
   dma.power();
+
+  psg.power(reset);
 }
 
 }

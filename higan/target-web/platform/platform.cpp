@@ -198,6 +198,8 @@ auto WebPlatform::attach(Node::Object node) -> void {
     if(auto stream = node->cast<Node::Stream>()) {
         streams = emulator->root->find<Node::Stream>();
         stream->setResamplerFrequency(webaudio.frequency);
+    } else if (auto screen = node->cast<Node::Screen>()) {
+        this->screen = screen;
     }
 }
 
@@ -217,7 +219,7 @@ auto WebPlatform::log(string_view message) -> void {
 }
 
 auto WebPlatform::video(Node::Screen, const uint32_t* data, uint pitch, uint width, uint height) -> void {
-    webvideo.render(data, pitch, width, height);
+    webvideo.render(data, pitch, width, height, screen->scaleX(), screen->scaleY());
 }
 
 auto WebPlatform::audio(Node::Stream stream) -> void {

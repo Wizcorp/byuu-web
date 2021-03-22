@@ -109,13 +109,17 @@ auto System::power(bool reset) -> void {
 
   random.entropy(Random::Entropy::Low);
 
+  if(!reset) {
+    controllerPort1.power();
+    controllerPort2.power();
+    extensionPort.power();
+  }
+
   cartridge.power();
   expansion.power();
   cpu.power(reset);
   apu.power(reset);
   vdp.power(reset);
-  psg.power(reset);
-  ym2612.power(reset);
   if(MegaCD()) mcd.power(reset);
   scheduler.power(cpu);
 
