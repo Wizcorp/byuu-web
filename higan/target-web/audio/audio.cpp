@@ -66,8 +66,9 @@ void WebAudio::terminate() {
     bufferLength = 0;
     bufferSize = 0;
 
-    alSourceStop(source);
-    alSourcei(source, AL_BUFFER, NULL);
+    // This is not necessary, unless the context is also destroyed.
+    // alSourceStop(source);
+    // alSourcei(source, AL_BUFFER, NULL);
 }
 
 bool WebAudio::resume() {

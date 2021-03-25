@@ -140,15 +140,6 @@ byuu.initialize = async function (parent, ctxOptions) {
 
   function finalize() {
     lib.initialize(document.title || 'byuu')
-  
-    // Set callbacks, patch into event emission
-    lib.onFrameStart(() => byuu.emit('frame.start'))
-    lib.onFrameEnd(() => byuu.emit('frame.end'))
-    lib.onResize((width, height) => {
-      byuu.displayRatio = width / height;
-      byuu.emit('resize', { width, height });
-    })
-    
     initialized = true
   }
 
@@ -172,6 +163,14 @@ byuu.initialize = async function (parent, ctxOptions) {
       canvas
     }).then((result) => {
       lib = result
+      // Set callbacks, patch into event emission
+      lib.onFrameStart(() => byuu.emit('frame.start'))
+      lib.onFrameEnd(() => byuu.emit('frame.end'))
+      lib.onResize((width, height) => {
+        byuu.displayRatio = width / height;
+        byuu.emit('resize', { width, height });
+      })
+
       finalize()
       resolve()
     })
