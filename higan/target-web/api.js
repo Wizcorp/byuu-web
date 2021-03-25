@@ -12,7 +12,7 @@ export const EmulatorEvent = {
 }
 
 export const Settings = {
-  ['Super Famicom']: {
+  [Emulator.SuperFamicom]: {
     CPU: {
       Lockstep: 'cpu/lockstep',
       Fastmath: 'cpu/fastmath',
@@ -28,13 +28,19 @@ export const Settings = {
       Skipframe: 'ppu/skipframe'
     }
   },
-  ['Famicom']: {
+  [Emulator.Famicom]: {
     PPU: {
       Skipframe: 'ppu/skipframe',
       Overscan: 'ppu/overscan'
     },
     CPU: {
       SyncOnce: 'cpu/synconce'
+    }
+  },
+  [Emulator.MegaDrive]: {
+    PPU: {
+      Skipframe: 'ppu/skipframe',
+      OptimizeSteps: 'vdp/optimizeSteps'
     }
   }
 }
@@ -132,6 +138,26 @@ byuu.initialize = async function (parent, ctxOptions) {
     throw new Error('The DOM ID attribute "canvas" is reserved by byuu for it\'s own canvas')
   }
 
+  function finalize() {
+    lib.initialize(document.title || 'byuu')
+  
+    // Set callbacks, patch into event emission
+    lib.onFrameStart(() => byuu.emit('frame.start'))
+    lib.onFrameEnd(() => byuu.emit('frame.end'))
+    lib.onResize((width, height) => {
+      byuu.displayRatio = width / height;
+      byuu.emit('resize', { width, height });
+    })
+    
+    initialized = true
+  }
+
+  // If the module was initialized at least once, do not reload;
+  // immediately complete the initialization steps, and return;
+  if (initialized) {
+    return finalize();
+  }
+
   return new Promise((resolve) => {
     // Module isn't a real promise, and unless we set
     // things as follow the code seem to tight-loop
@@ -146,17 +172,7 @@ byuu.initialize = async function (parent, ctxOptions) {
       canvas
     }).then((result) => {
       lib = result
-      lib.initialize(document.title || 'byuu')
-  
-      // Set callbacks, patch into event emission
-      lib.onFrameStart(() => byuu.emit('frame.start'))
-      lib.onFrameEnd(() => byuu.emit('frame.end'))
-      lib.onResize((width, height) => {
-        byuu.displayRatio = width / height;
-        byuu.emit('resize', { width, height });
-      })
-      
-      initialized = true
+      finalize()
       resolve()
     })
   })

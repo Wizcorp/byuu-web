@@ -86,6 +86,20 @@ export const Settings: SettingsEntries = {
        */
       SyncOnce: 'cpu/synconce'
     }
+  },
+  [Emulator.MegaDrive]: {
+    PPU: {
+      /**
+       * Skip frame. When enabled, skip the rendering of half the frames, which
+       * may provide slighgtly better performance.
+       */
+      Skipframe: 'ppu/skipframe',
+      /**
+       * Skip DMA execution when the DMA is inactive or disabled. Off by default, as
+       * it can break a number of games.
+       */
+      OptimizeSteps: 'vdp/optimizeSteps'
+    }
   }
 }
 
