@@ -1,9 +1,9 @@
 #include "../web.hpp"
 
 void WebVideo::initialize(const char* windowTitle) {
-    SDL_SetHint(SDL_HINT_EMSCRIPTEN_ASYNCIFY, "0");
-
     if (!renderer) {
+        SDL_SetHint(SDL_HINT_EMSCRIPTEN_ASYNCIFY, "0");
+
         DEBUG_LOG("Initializing video\n");
 
         // Disable event handler setup

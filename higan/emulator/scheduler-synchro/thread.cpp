@@ -65,20 +65,11 @@ auto Thread::synchronize(Thread& thread, P&&... p) -> void {
   //switching to another thread does not guarantee it will catch up before switching back.
   thread_handle_t *_parent = thread._handle->parent;
   thread._handle->parent = _handle;
-  uint count = 0;
   while(thread.clock() < clock()) {
     //disable synchronization for auxiliary threads during scheduler synchronization.
     //synchronization can begin inside of this while loop.
     if(scheduler.synchronizing()) break;
     thread.main();
-
-    count++;
-
-    if(count % 1000000 == 0) printf("track, %s:%d, %s:%d\n", thread.name.c_str(), thread.clock(), name.c_str(), clock());
-    if (count > 100000000) {
-      printf("doomed, %s:%d, %s:%d\n", thread.name.c_str(), thread.clock(), name.c_str(), clock());
-      throw "bam";
-    }
   }
   thread._handle->parent = _parent;
 

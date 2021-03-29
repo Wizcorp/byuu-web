@@ -138,15 +138,8 @@ byuu.initialize = async function (parent, ctxOptions) {
     throw new Error('The DOM ID attribute "canvas" is reserved by byuu for it\'s own canvas')
   }
 
-  function finalize() {
-    lib.initialize(document.title || 'byuu')
-    initialized = true
-  }
-
-  // If the module was initialized at least once, do not reload;
-  // immediately complete the initialization steps, and return;
   if (initialized) {
-    return finalize();
+    return;
   }
 
   return new Promise((resolve) => {
@@ -163,6 +156,8 @@ byuu.initialize = async function (parent, ctxOptions) {
       canvas
     }).then((result) => {
       lib = result
+      lib.initialize(document.title || 'byuu')
+
       // Set callbacks, patch into event emission
       lib.onFrameStart(() => byuu.emit('frame.start'))
       lib.onFrameEnd(() => byuu.emit('frame.end'))
@@ -171,15 +166,13 @@ byuu.initialize = async function (parent, ctxOptions) {
         byuu.emit('resize', { width, height });
       })
 
-      finalize()
+      initialized = true;
       resolve()
     })
   })
 }
 
 byuu.terminate = () => {
-  byuu.stop()
-  byuu.unload()
   getModule().terminate()
   container.parentElement.removeChild(container)
 }

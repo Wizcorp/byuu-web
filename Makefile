@@ -1,4 +1,4 @@
-debug_host := 127.0.0.1
+debug_host := 127.0.0.1:8000
 wasm := true
 debug := false
 profiler := false

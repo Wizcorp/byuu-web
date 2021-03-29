@@ -50,7 +50,7 @@ void WebAudio::initialize() {
     uint size = frequency * latency / 1000.0 + 0.5;
 
     if (size != bufferSize) {
-        free(buffer);
+        delete [] buffer;
         bufferSize = size;
         buffer = new uint32_t[bufferSize]();
     }
@@ -61,14 +61,9 @@ void WebAudio::setVolume(uint volume) {
     this->volume = volume;
 }
 
-void WebAudio::terminate() {
-    free(buffer);
+void WebAudio::terminate() {    
+    alSourceStop(source);
     bufferLength = 0;
-    bufferSize = 0;
-
-    // This is not necessary, unless the context is also destroyed.
-    // alSourceStop(source);
-    // alSourcei(source, AL_BUFFER, NULL);
 }
 
 bool WebAudio::resume() {
@@ -87,7 +82,7 @@ bool WebAudio::resume() {
 }
 
 void WebAudio::output(float samples[2]) {
-    if (muted) {
+    if (muted || device == nullptr || context == nullptr) {
         return;
     }
 

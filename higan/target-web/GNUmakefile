@@ -6,7 +6,7 @@ compiler = ccache emcc
 endif
 
 name := byuu-web
-debug_host := 127.0.0.1
+debug_host := 127.0.0.1:8000
 wasm := true
 debug := false
 profiler := false
@@ -20,7 +20,7 @@ PYTHON=$(shell which python3 || which python)
 ifeq ($(wasm), true)
   flags += -s WASM=1 
   ifeq ($(debug), true)
-	flags += -g4 -DWEB_DEBUG -s ASSERTIONS=1
+	flags += -g4 -DWEB_DEBUG -s ASSERTIONS=2 -s SAFE_HEAP=1 --source-map-base http://$(debug_host)/ 
   endif
   ifeq ($(profiler), true) 
 	flags += --profiling --cpuprofiler 
@@ -104,7 +104,6 @@ app: $(objects)
 	$(compiler) \
 		$(flags) \
 		--shell-file ./target-web/shell.html \
-		--source-map-base http://$(debug_host):8000/ \
 		-o ./out/app/$(name).html \
 		$(objects)
 		

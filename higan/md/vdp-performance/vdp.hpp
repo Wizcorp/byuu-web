@@ -86,7 +86,7 @@ private:
 
   struct DMA {
     //dma.cpp
-    alwaysinline auto run() -> void;
+    alwaysinline auto run() -> bool;
     alwaysinline auto load() -> void;
     alwaysinline auto fill() -> void;
     alwaysinline auto copy() -> void;

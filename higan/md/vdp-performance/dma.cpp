@@ -1,11 +1,13 @@
-auto VDP::DMA::run() -> void {
-  if(!io.enable || io.wait) return;
+auto VDP::DMA::run() -> bool {
+  if(!io.enable || io.wait) return false;
 
-  if(!vdp.io.command.bit(5)) return;
-  if(io.mode <= 1) return load();
-  if(io.mode == 2) return fill();
-  if(!vdp.io.command.bit(4)) return;
-  if(io.mode == 3) return copy();
+  if(!vdp.io.command.bit(5)) return false;
+  if(io.mode <= 1) return load(), true;
+  if(io.mode == 2) return fill(), true;
+  if(!vdp.io.command.bit(4)) return false;
+  if(io.mode == 3) return copy(), true;
+
+  unreachable;
 }
 
 auto VDP::DMA::load() -> void {

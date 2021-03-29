@@ -7,8 +7,9 @@ emscripten::val scheduledStateSave = emscripten::val::null();
 bool isStarted() { return webplatform->started; }
 bool isRunning() { return webplatform->running; }
 
+static uint lastExecution = chrono::millisecond();
+
 void run() {
-    static uint lastExecution = chrono::millisecond();
     uint currentExecution = chrono::millisecond();
 
     if (currentExecution - lastExecution < 16) {
@@ -43,6 +44,7 @@ bool start() {
         return false;
     }
 
+    lastExecution = 0;
     webplatform->started = true;
     emscripten_set_main_loop(run, 0, 0);
     return true;
@@ -69,7 +71,11 @@ void unload() {
 
 /*  bootstrap */
 bool initialize(std::string windowTitle) { return webplatform->initialize(windowTitle.c_str()); }
-void terminate() { return webplatform->terminate(); }
+void terminate() { 
+    stop();
+    unload();
+    webplatform->terminate();
+}
 
 std::string getEmulatorForFilename(std::string path) { return webplatform->getEmulatorForFilename(path.c_str()).data(); };
 emscripten::val getROMInfo(std::string path, std::string rom) { return webplatform->getROMInfo(path.c_str(), (uint8_t *) rom.c_str(), rom.size()); }
