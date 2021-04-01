@@ -46,6 +46,7 @@ export const Settings = {
 }
 
 let lib;
+let compiled = false
 let initialized = false
 
 import Module from './byuu-web-lib.js'
@@ -121,6 +122,31 @@ container.appendChild(canvas)
 
 byuu.displayRatio = 1;
 
+byuu.compile = async function () {
+  if (compiled) {
+    return lib;
+  }
+
+  return new Promise((resolve) => {
+    // Module isn't a real promise, and unless we set
+    // things as follow the code seem to tight-loop
+    Module({
+      locateFile: (filename, prefix) =>  {
+        if (filename === 'byuu-web-lib.wasm') {
+          return getBinaryPath()
+        } 
+
+        return prefix + filename
+      },
+      canvas
+    }).then((result) => {
+      compiled = true;
+      lib = result;
+      resolve();
+    })
+  })
+}
+
 byuu.initialize = async function (parent, ctxOptions) {
   if (!parent) {
     throw new Error('container parameter is not defined')
@@ -142,33 +168,18 @@ byuu.initialize = async function (parent, ctxOptions) {
     return;
   }
 
-  return new Promise((resolve) => {
-    // Module isn't a real promise, and unless we set
-    // things as follow the code seem to tight-loop
-    Module({
-      locateFile: (filename, prefix) =>  {
-        if (filename === 'byuu-web-lib.wasm') {
-          return getBinaryPath()
-        } 
+  return byuu.compile().then((lib) => {
+    lib.initialize(document.title || 'byuu')
 
-        return prefix + filename
-      },
-      canvas
-    }).then((result) => {
-      lib = result
-      lib.initialize(document.title || 'byuu')
-
-      // Set callbacks, patch into event emission
-      lib.onFrameStart(() => byuu.emit('frame.start'))
-      lib.onFrameEnd(() => byuu.emit('frame.end'))
-      lib.onResize((width, height) => {
-        byuu.displayRatio = width / height;
-        byuu.emit('resize', { width, height });
-      })
-
-      initialized = true;
-      resolve()
+    // Set callbacks, patch into event emission
+    lib.onFrameStart(() => byuu.emit('frame.start'))
+    lib.onFrameEnd(() => byuu.emit('frame.end'))
+    lib.onResize((width, height) => {
+      byuu.displayRatio = width / height;
+      byuu.emit('resize', { width, height });
     })
+
+    initialized = true;
   })
 }
 

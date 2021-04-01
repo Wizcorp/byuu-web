@@ -187,6 +187,17 @@ declare class Byuu extends EventEmitter<EmulatorEvent> {
   readonly dirty: ByuuIsDirty
   
   /**
+   * Precompile WASM code prior to initialization. 
+   * 
+   * This method is genereally not required, and is automatically
+   * called by `initialize` when needed. However, depending on the
+   * structure of your application, you might benefit of compiling
+   * the WASM code in parallel to other operations, in which case
+   * you may use this method to optimize overall loading time.
+   */
+  public compile() : Promise<void>
+
+  /**
    * Initialize the module
    * 
    * This method needs to be called before any other methods can be used
