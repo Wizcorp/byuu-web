@@ -1,5 +1,5 @@
 auto MCD::serialize(serializer& s) -> void {
-  M68K::serialize(s);
+  CPU::serialize(s);
   Thread::serialize(s);
 
   pram.serialize(s);

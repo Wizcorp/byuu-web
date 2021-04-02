@@ -7,6 +7,23 @@ CPU cpu;
 #include "io.cpp"
 #include "serialization.cpp"
 
+enum : uint { Byte, Word, Long };
+enum : bool { Reverse = 1 };
+
+#include "registers.cpp"
+#include "memory.cpp"
+#include "effective-address.cpp"
+#include "traits.cpp"
+#include "conditions.cpp"
+#include "algorithms.cpp"
+#include "instructions.cpp"
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
+#include "disassembler.cpp"
+#endif
+
+#include "instruction.cpp"
+
 auto CPU::load(Node::Object parent, Node::Object from) -> void {
   node = Node::append<Node::Component>(parent, from, "CPU");
   from = Node::scan(parent = node, from);
@@ -22,6 +39,41 @@ auto CPU::unload() -> void {
   eventInterrupt = {};
   node = {};
 }
+
+
+auto CPU::supervisor() -> bool {
+  if(r.s) return true;
+
+  r.pc -= 4;
+  exception(Exception::Unprivileged, Vector::Unprivileged);
+  return false;
+}
+
+auto CPU::exception(uint exception, uint vector, uint priority) -> void {
+  idle(10);  //todo: not accurate
+
+  auto pc = r.pc;
+  auto sr = readSR();
+
+  if(exception != Exception::Illegal) {
+    if(!r.s) swap(r.a[7], r.sp);
+    r.i = priority;
+    r.s = 1;
+    r.t = 0;
+  }
+
+  push<Long>(pc - 4);
+  push<Word>(sr);
+
+  r.pc = read<Long>(vector << 2);
+  prefetch();
+  prefetch();
+}
+
+auto CPU::interrupt(uint vector, uint priority) -> void {
+  return exception(Exception::Interrupt, vector, priority);
+}
+
 
 auto CPU::main() -> void {
 #if defined(SCHEDULER_SYNCHRO)
@@ -102,7 +154,27 @@ auto CPU::lower(Interrupt interrupt) -> void {
 }
 
 auto CPU::power(bool reset) -> void {
-  M68K::power();
+  for(auto& dr : r.d) dr = 0;
+  for(auto& ar : r.a) ar = 0;
+  r.sp = 0;
+  r.pc = 0;
+
+  r.c = 0;
+  r.v = 0;
+  r.z = 0;
+  r.n = 0;
+  r.x = 0;
+  r.i = 7;
+  r.s = 1;
+  r.t = 0;
+
+  r.irc = 0x4e71;  //nop
+  r.ir  = 0x4e71;  //nop
+  r.ird = 0x4e71;  //nop
+
+  r.stop  = false;
+  r.reset = false;
+
   Thread::create(system.frequency() / 7.0, {&CPU::main, this});
 
   ram.allocate(64_KiB >> 1);

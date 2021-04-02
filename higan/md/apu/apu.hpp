@@ -20,7 +20,7 @@ struct APU : Z80, Z80::Bus, Thread {
 
   auto setNMI(uint1 value) -> void;
   auto setINT(uint1 value) -> void;
-   auto setRES(uint1 value) -> void;
+  auto setRES(uint1 value) -> void;
   auto setBREQ(uint1 value) -> void;
 
   auto updateBus() -> void;

@@ -189,7 +189,7 @@ auto MCD::power(bool reset) -> void {
     for(uint address : range(bios.size())) bios.program(address, fp->readm(2));
   }
 
-  M68K::power();
+  CPU::power();
   Thread::create(12'500'000, {&MCD::main, this});
   counter = {};
   if(!reset) {

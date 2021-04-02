@@ -1,18 +1,14 @@
-//Motorola 68000
+#pragma once
 
-struct CPU : Thread {
-  CPU();
+//Motorola MC68000
 
-  Node::Component node;
-  Node::Instruction eventInstruction;
-  Node::Notification eventInterrupt;
+namespace higan {
 
-  enum class Interrupt : uint {
-    Reset,
-    HorizontalBlank,
-    VerticalBlank,
-  };
-
+struct M68K {
+  auto idle(uint clocks) -> void;
+  auto wait(uint clocks) -> void;
+  auto read(uint1 upper, uint1 lower, uint24 address, uint16 data = 0) -> uint16;
+  auto write(uint1 upper, uint1 lower, uint24 address, uint16 data) -> void;
 
   inline auto ird() const -> uint16 { return r.ird; }
 
@@ -65,33 +61,10 @@ struct CPU : Thread {
     Level5             = 29,
     Level6             = 30,
     Level7             = 31,
-  };};  
+  };};
 
-  //cpu.cpp
-  auto load(Node::Object, Node::Object) -> void;
-  auto unload() -> void;
-
-  auto main() -> void;
-  inline auto step(uint clocks) -> void;
-  auto idle(uint clocks) -> void;
-  inline auto wait(uint clocks) -> void;
-
-  auto raise(Interrupt) -> void;
-  auto lower(Interrupt) -> void;
-
-  auto power(bool reset) -> void;
-
-  //bus.cpp
-  inline auto read(uint1 upper, uint1 lower, uint24 address, uint16 data = 0) -> uint16;
-  inline auto write(uint1 upper, uint1 lower, uint24 address, uint16 data) -> void;
-
-  //io.cpp
-  inline auto readIO(uint1 upper, uint1 lower, uint24 address, uint16 data) -> uint16;
-  inline auto writeIO(uint1 upper, uint1 lower, uint24 address, uint16 data) -> void;
-
-  //serialization.cpp
-  auto serialize(serializer&) -> void;
-
+  M68K();
+  auto power() -> void;
   auto supervisor() -> bool;
   auto exception(uint exception, uint vector, uint priority = 7) -> void;
   auto interrupt(uint vector, uint priority = 7) -> void;
@@ -291,7 +264,10 @@ struct CPU : Thread {
   template<uint Size> auto instructionTST(EffectiveAddress from) -> void;
                       auto instructionUNLK(AddressRegister with) -> void;
 
-//disassembler.cpp
+  //serialization.cpp
+  auto serialize(serializer&) -> void;
+
+  //disassembler.cpp
 #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   auto disassembleInstruction(uint32 pc) -> string;
   auto disassembleContext() -> string;
@@ -457,27 +433,6 @@ private:
 
   uint32 _pc;
   function<string ()> disassembleTable[65536];
-
-private:
-  Memory::Writable<uint16> ram;
-  Memory::Readable<uint16> tmss;
-  uint1 tmssEnable;
-
-  struct IO {
-    boolean version;  //0 = Model 1; 1 = Model 2+
-    boolean romEnable;
-    boolean vdpEnable[2];
-  } io;
-
-  struct Refresh {
-    uint32 ram;
-     uint7 external;
-  } refresh;
-
-  struct State {
-    uint32 interruptLine;
-    uint32 interruptPending;
-  } state;
 };
 
-extern CPU cpu;
+}
