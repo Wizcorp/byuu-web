@@ -14,6 +14,7 @@ synchro := true
 simulated_synchro := false
 eventinstruction_notify := false
 simd := false
+lto := true
 
 PYTHON=$(shell which python3 || which python)
 
