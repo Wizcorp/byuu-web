@@ -64,6 +64,7 @@ auto Cartridge::connect(Node::Peripheral with) -> void {
 
   //easter egg: power draw increases with each successively stacked cartridge
   //simulate increasing address/data line errors as stacking increases
+  /* 
   if(depth >= 3) {
     auto reader = read;
     auto writer = write;
@@ -78,7 +79,7 @@ auto Cartridge::connect(Node::Peripheral with) -> void {
     write = [=](uint1 upper, uint1 lower, uint22 address, uint16 data) -> void {
       writer(upper, lower, scramble(address), scramble(data));
     };
-  }
+  } */
 
   power();
 }

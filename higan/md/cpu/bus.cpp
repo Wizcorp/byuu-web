@@ -3,7 +3,7 @@
  * byte writes to word memory areas that are addressable as bytes cannot enjoy this optimization.
  */
 
-auto CPU::read(uint1 upper, uint1 lower, uint24 address, uint16 data) -> uint16 { 
+auto CPU::read(const uint1 upper, const uint1 lower, const uint24 address, uint16 data) -> uint16 { 
 
   switch(address & 0xf00000) {
     case 0x000000: case 0x100000:
@@ -11,10 +11,11 @@ auto CPU::read(uint1 upper, uint1 lower, uint24 address, uint16 data) -> uint16 
       return cartridge.read(upper, lower, address, data);
     case 0xa00000: case 0xb00000:
       if(address <= 0xa0ffff) {
+        auto addrCopy = address;
         if(apu.busStatus()) return data;
-        address.bit(15) = 0;  //a080000-a0ffff mirrors a00000-a07fff
+        addrCopy.bit(15) = 0;  //a080000-a0ffff mirrors a00000-a07fff
         //word reads load the even input byte into both output bytes
-        auto byte = apu.read(address | !upper);  //upper==0 only on odd byte reads
+        auto byte = apu.read(addrCopy | !upper);  //upper==0 only on odd byte reads
         return byte << 8 | byte << 0;
       }
 
@@ -25,13 +26,16 @@ auto CPU::read(uint1 upper, uint1 lower, uint24 address, uint16 data) -> uint16 
         return data;
       }
       break;
-    case 0xc00000: case 0xd00000:
+    case 0xc00000: case 0xd00000: {
       if(address.bit(5,7)) return cpu.ird();  //should deadlock the machine
       if(address.bit(16,18)) return cpu.ird();  //should deadlock the machine
-      address.bit(8,15) = 0;  //mirrors
       if(address.bit(2,3) == 3) return cpu.ird();  //should return VDP open bus
       if(address.bit(4)) return cpu.ird();  //reading the PSG should deadlock the machine
-      return vdp.read(address, data);
+
+      auto addrCopy = address;
+      addrCopy.bit(8,15) = 0;  //mirrors
+      return vdp.read(addrCopy, data);
+    }
     case 0xe00000: case 0xf00000:
       return ram[address >> 1];
   }
@@ -39,7 +43,7 @@ auto CPU::read(uint1 upper, uint1 lower, uint24 address, uint16 data) -> uint16 
   return data;
 }
 
-auto CPU::write(uint1 upper, uint1 lower, uint24 address, uint16 data) -> void {
+auto CPU::write(const uint1 upper, const uint1 lower, const uint24 address, const uint16 data) -> void {
 
   switch(address & 0xf00000) {
     case 0x000000: case 0x100000:
@@ -47,10 +51,11 @@ auto CPU::write(uint1 upper, uint1 lower, uint24 address, uint16 data) -> void {
       return cartridge.write(upper, lower, address, data);
     case 0xa00000: case 0xb00000:
       if(address <= 0xa0ffff) {
+        auto addrCopy = address;
         if(apu.busStatus()) return;
-        address.bit(15) = 0;  //a08000-a0ffff mirrors a00000-a07fff
+        addrCopy.bit(15) = 0;  //a08000-a0ffff mirrors a00000-a07fff
         //word writes store the upper input byte into the lower output byte
-        return apu.write(address | !upper, data.byte(upper));  //upper==0 only on odd byte reads
+        return apu.write(addrCopy | !upper, data.byte(upper));  //upper==0 only on odd byte reads
       }
 
       if(address <= 0xbfffff) {
@@ -60,15 +65,18 @@ auto CPU::write(uint1 upper, uint1 lower, uint24 address, uint16 data) -> void {
         return;
       }
       break;
-    case 0xc00000: case 0xd00000:
+    case 0xc00000: case 0xd00000: {
       if(address.bit(5,7)) return;  //should deadlock the machine
       if(address.bit(16,18)) return;  //should deadlock the machine
-      address.bit(8,15) = 0;  //mirrors
       if(address.bit(4)) {
         if(!lower) return;  //byte writes to even PSG registers has no effect
         return psg.write(data.byte(0));
       }
-      return vdp.write(address, data);
+      
+      auto addrCopy = address;
+      addrCopy.bit(8,15) = 0;  //mirrors
+      return vdp.write(addrCopy, data);
+    }
     case 0xe00000: case 0xf00000:
       if(upper) ram[address >> 1].byte(1) = data.byte(1);
       if(lower) ram[address >> 1].byte(0) = data.byte(0);

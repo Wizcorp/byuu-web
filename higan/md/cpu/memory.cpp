@@ -7,7 +7,7 @@
 //* /UDS is where A0=0 and maps to D8-D15
 //* /LDS is where A0=1 and maps to D0-D7
 
-template<> auto CPU::read<Byte>(uint32 address) -> uint32 {
+template<> auto CPU::read<Byte>(const uint32 address) -> uint32 {
   wait(4);
   if(address & 1) {
     return read(0, 1, address & ~1).byte(0);  /* /LDS */
@@ -16,12 +16,12 @@ template<> auto CPU::read<Byte>(uint32 address) -> uint32 {
   }
 }
 
-template<> auto CPU::read<Word>(uint32 address) -> uint32 {
+template<> auto CPU::read<Word>(const uint32 address) -> uint32 {
   wait(4);
   return read(1, 1, address & ~1);
 }
 
-template<> auto CPU::read<Long>(uint32 address) -> uint32 {
+template<> auto CPU::read<Long>(const uint32 address) -> uint32 {
   wait(4);
   uint32 data = read(1, 1, address + 0 & ~1) << 16;
   wait(4);
@@ -30,7 +30,7 @@ template<> auto CPU::read<Long>(uint32 address) -> uint32 {
 
 //
 
-template<> auto CPU::write<Byte>(uint32 address, uint32 data) -> void {
+template<> auto CPU::write<Byte>(const uint32 address, const uint32 data) -> void {
   wait(4);
   if(address & 1) {
     return write(0, 1, address & ~1, data << 8 | (uint8)data << 0);  /* /LDS */
@@ -39,12 +39,12 @@ template<> auto CPU::write<Byte>(uint32 address, uint32 data) -> void {
   }
 }
 
-template<> auto CPU::write<Word>(uint32 address, uint32 data) -> void {
+template<> auto CPU::write<Word>(const uint32 address, const uint32 data) -> void {
   wait(4);
   return write(1, 1, address & ~1, data);
 }
 
-template<> auto CPU::write<Long>(uint32 address, uint32 data) -> void {
+template<> auto CPU::write<Long>(const uint32 address, const uint32 data) -> void {
   wait(4);
   write(1, 1, address + 0 & ~1, data >> 16);
   wait(4);
@@ -53,7 +53,7 @@ template<> auto CPU::write<Long>(uint32 address, uint32 data) -> void {
 
 //
 
-template<> auto CPU::write<Byte, Reverse>(uint32 address, uint32 data) -> void {
+template<> auto CPU::write<Byte, Reverse>(const uint32 address, const uint32 data) -> void {
   wait(4);
   if(address & 1) {
     return write(0, 1, address & ~1, data << 8 | (uint8)data << 0);  /* /LDS */
@@ -62,12 +62,12 @@ template<> auto CPU::write<Byte, Reverse>(uint32 address, uint32 data) -> void {
   }
 }
 
-template<> auto CPU::write<Word, Reverse>(uint32 address, uint32 data) -> void {
+template<> auto CPU::write<Word, Reverse>(const uint32 address, const uint32 data) -> void {
   wait(4);
   return write(1, 1, address & ~1, data);
 }
 
-template<> auto CPU::write<Long, Reverse>(uint32 address, uint32 data) -> void {
+template<> auto CPU::write<Long, Reverse>(const uint32 address, const uint32 data) -> void {
   wait(4);
   write(1, 1, address + 2 & ~1, data >>  0);
   wait(4);

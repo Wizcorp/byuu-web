@@ -35,11 +35,11 @@ struct APU : Thread {
   } 
 
   //bus.cpp
-  inline auto read(uint16 address) -> uint8;
-  inline auto write(uint16 address, uint8 data) -> void;
+  inline auto read(const uint16 address) -> uint8;
+  inline auto write(const uint16 address, const uint8 data) -> void;
 
-  inline auto in(uint16 address) -> uint8;
-  inline auto out(uint16 address, uint8 data) -> void;
+  inline auto in(const uint16 address) -> uint8;
+  inline auto out(const uint16 address, const uint8 data) -> void;
 
   //serialization.cpp
   auto serialize(serializer&) -> void;

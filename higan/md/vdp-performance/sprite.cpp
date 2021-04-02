@@ -1,5 +1,5 @@
 auto VDP::Sprite::render() -> void {
-  bool interlace = vdp.io.interlaceMode == 3;
+  const bool interlace = vdp.io.interlaceMode == 3;
   uint y = vdp.state.vcounter + 128;
   if(interlace) y = y << 1 | vdp.state.field;
 
@@ -20,22 +20,22 @@ auto VDP::Sprite::render() -> void {
   } while(link && link < 80 && objectSize < 20 && tiles < 40 && ++count < 80);
 
   memory::fill<uint8>(pixels, vdp.screenWidth());
-  uint shiftY = interlace ? 4 : 3;
-  uint maskY = interlace ? 15 : 7;
-  uint tileShift = interlace ? 7 : 6;
+  const uint shiftY = interlace ? 4 : 3;
+  const uint maskY = interlace ? 15 : 7;
+  const uint tileShift = interlace ? 7 : 6;
 
   for(int index = objectSize - 1; index >= 0; index--) {
-    auto& object = objects[index];
+    const auto& object = objects[index];
     uint objectY = y - object.y;
     if(object.verticalFlip) objectY = (object.height() - 1) - objectY;
-    uint tileIncrement = (object.height() >> interlace) >> 3 << tileShift;
+    const uint tileIncrement = (object.height() >> interlace) >> 3 << tileShift;
     uint tileAddress = object.address + (objectY >> shiftY) << tileShift;
     tileAddress += (objectY & maskY) << 3;
     auto tileData = &vdp.vram.pixels[tileAddress & 0x1fff8];
     uint w = !object.horizontalFlip ? object.x - 128 : (object.x + object.width() - 1) - 128;
     int incrementX = object.horizontalFlip ? -1 : +1;
     for(uint objectX = 0; objectX < object.width();) {
-      if(uint color = tileData[objectX & 7]) {
+      if(const uint color = tileData[objectX & 7]) {
         pixels[w & 511] = object.palette << 0 | object.priority << 2 | color;
       }
       w += incrementX;

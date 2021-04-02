@@ -4,7 +4,7 @@ namespace higan::MegaDrive {
 
 VDP vdp;
 #include "memory.cpp"
-#include "io.cpp"
+
 #include "dma.cpp"
 #include "background.cpp"
 #include "object.cpp"
@@ -167,7 +167,7 @@ auto VDP::refresh() -> void {
 
 auto VDP::render() -> void {
   auto output = this->output;
-  uint y = state.vcounter;
+  const uint y = state.vcounter;
   if(!latch.interlace) {
     output += y * 320;
   } else {
@@ -175,7 +175,7 @@ auto VDP::render() -> void {
   }
   if(!io.displayEnable) return (void)memory::fill<uint32>(output, screenWidth());
 
-  if(y < window.io.verticalOffset ^ window.io.verticalDirection) {
+  if(y < window.verticalOffsetXorDirection) {
     window.renderWindow(0, screenWidth());
   } else if(!window.io.horizontalDirection) {
     window.renderWindow(0, window.io.horizontalOffset);

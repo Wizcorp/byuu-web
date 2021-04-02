@@ -5,7 +5,7 @@
  * for now, assume that only the cartridge and expansion buses are also accessible.
  */
 
-auto APU::read(uint16 address) -> uint8 {
+auto APU::read(const uint16 address) -> uint8 {
   yield();
   step(3);
 
@@ -39,7 +39,7 @@ auto APU::read(uint16 address) -> uint8 {
   return 0x00;
 }
 
-auto APU::write(uint16 address, uint8 data) -> void {
+auto APU::write(const uint16 address, const uint8 data) -> void {
   yield();
   step(3);
 
@@ -81,14 +81,14 @@ auto APU::write(uint16 address, uint8 data) -> void {
 }
 
 //unused on Mega Drive
-auto APU::in(uint16 address) -> uint8 {
+auto APU::in(const uint16 address) -> uint8 {
   yield();
   step(4);  
   return 0x00;
 }
 
 //unused on Mega Drive
-auto APU::out(uint16 address, uint8 data) -> void {
+auto APU::out(const uint16 address, const uint8 data) -> void {
   yield();
   step(4);  
 }

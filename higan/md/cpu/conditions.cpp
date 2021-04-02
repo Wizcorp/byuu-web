@@ -1,4 +1,4 @@
-auto CPU::condition(uint4 condition) -> bool {
+auto CPU::condition(const uint4 condition) -> const bool {
   switch(condition) {
   case  0: return true;   //T
   case  1: return false;  //F

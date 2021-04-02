@@ -18,10 +18,10 @@ template<> auto CPU::mask<Byte>() -> uint32 { return       0xff; }
 template<> auto CPU::mask<Word>() -> uint32 { return     0xffff; }
 template<> auto CPU::mask<Long>() -> uint32 { return 0xffffffff; }
 
-template<> auto CPU::clip<Byte>(uint32 data) -> uint32 { return  (uint8)data; }
-template<> auto CPU::clip<Word>(uint32 data) -> uint32 { return (uint16)data; }
-template<> auto CPU::clip<Long>(uint32 data) -> uint32 { return (uint32)data; }
+template<> auto CPU::clip<Byte>(const uint32 data) -> uint32 { return  (uint8)data; }
+template<> auto CPU::clip<Word>(const uint32 data) -> uint32 { return (uint16)data; }
+template<> auto CPU::clip<Long>(const uint32 data) -> uint32 { return (uint32)data; }
 
-template<> auto CPU::sign<Byte>(uint32 data) -> int32 { return  (int8)data; }
-template<> auto CPU::sign<Word>(uint32 data) -> int32 { return (int16)data; }
-template<> auto CPU::sign<Long>(uint32 data) -> int32 { return (int32)data; }
+template<> auto CPU::sign<Byte>(const uint32 data) -> int32 { return  (int8)data; }
+template<> auto CPU::sign<Word>(const uint32 data) -> int32 { return (int16)data; }
+template<> auto CPU::sign<Long>(const uint32 data) -> int32 { return (int32)data; }

@@ -19,8 +19,7 @@ struct VDP : Thread {
   auto render() -> void;
   auto power(bool reset) -> void;
 
-
-  auto readDataPort() -> uint16 {
+  inline auto readDataPort() -> uint16 {
     io.commandPending = false;
 
     //VRAM read
@@ -50,7 +49,7 @@ struct VDP : Thread {
     return 0x0000;
   }
 
-  auto writeDataPort(uint16 data) -> void {
+  inline auto writeDataPort(uint16 data) -> void {
     io.commandPending = false;
 
     //DMA VRAM fill
@@ -91,7 +90,7 @@ struct VDP : Thread {
 
   //
 
-  auto readControlPort() -> uint16 {
+  inline auto readControlPort() -> uint16 {
     io.commandPending = false;
 
     uint16 result;
@@ -114,7 +113,7 @@ struct VDP : Thread {
     return result;
   }
 
-  auto writeControlPort(uint16 data) -> void {
+  inline auto writeControlPort(uint16 data) -> void {
     //command write (lo)
     if(io.commandPending) {
       io.commandPending = false;
@@ -170,6 +169,9 @@ struct VDP : Thread {
     //window name table location
     case 0x03: {
       window.io.nametableAddress.bit(10,15) = data.bit(1,6);
+      window.nametableAddress = window.io.nametableAddress & (io.displayWidth ? ~0x0400 : ~0);
+      window.widthSize = 32 << (bool)io.displayWidth;
+      window.widthMask = window.widthSize - 1;
       return;
     }
 
@@ -221,6 +223,10 @@ struct VDP : Thread {
       io.externalColorEnable = data.bit(4);
       io.horizontalSync = data.bit(5);
       io.verticalSync = data.bit(6);
+
+      window.nametableAddress = window.io.nametableAddress & (io.displayWidth ? ~0x0400 : ~0);
+      window.widthSize = 32 << (bool)io.displayWidth;
+      window.widthMask = window.widthSize - 1;
       return;
     }
 
@@ -252,6 +258,15 @@ struct VDP : Thread {
       planeB.io.nametableWidth = data.bit(0,1);
       planeA.io.nametableHeight = data.bit(4,5);
       planeB.io.nametableHeight = data.bit(4,5);
+
+      planeA.nametableWidth = 32 * (1 + planeA.io.nametableWidth);
+      planeA.nametableWidthMask = planeA.nametableWidth - 1;
+      planeA.nametableHeightMask = 32 * (1 + planeA.io.nametableHeight) - 1;
+
+      planeB.nametableWidth = 32 * (1 + planeB.io.nametableWidth);
+      planeB.nametableWidthMask = planeB.nametableWidth - 1;
+      planeB.nametableHeightMask = 32 * (1 + planeB.io.nametableHeight) - 1;
+
       return;
     }
 
@@ -266,6 +281,7 @@ struct VDP : Thread {
     case 0x12: {
       window.io.verticalOffset = data.bit(0,4) << 3;
       window.io.verticalDirection = data.bit(7);
+      window.verticalOffsetXorDirection = window.io.verticalOffset ^ window.io.verticalDirection;
       return;
     }
 
@@ -362,21 +378,21 @@ struct VDP : Thread {
   auto serialize(serializer&) -> void;
 
 private:
-  auto pixelWidth() const -> uint { return latch.displayWidth ? 4 : 5; }
-  auto screenWidth() const -> uint { return latch.displayWidth ? 320 : 256; }
-  auto screenHeight() const -> uint { return latch.overscan ? 240 : 224; }
-  auto frameHeight() const -> uint { return Region::PAL() ? 312 : 262; }
+  constexpr inline auto pixelWidth() const -> uint { return latch.displayWidth ? 4 : 5; }
+  constexpr inline auto screenWidth() const -> uint { return latch.displayWidth ? 320 : 256; }
+  constexpr inline auto screenHeight() const -> uint { return latch.overscan ? 240 : 224; }
+  constexpr inline auto frameHeight() const -> uint { return Region::PAL() ? 312 : 262; }
 
   uint32 buffer[320 * 512];
   uint32* output = nullptr;
 
   struct VRAM {
     //memory.cpp
-    auto read(uint16 address) const -> uint16;
-    auto write(uint16 address, uint16 data) -> void;
+    auto read(const uint16 address) const -> uint16;
+    auto write(const uint16 address, const uint16 data) -> void;
 
-    auto readByte(uint17 address) const -> uint8;
-    auto writeByte(uint17 address, uint8 data) -> void;
+    auto readByte(const uint17 address) const -> uint8;
+    auto writeByte(const uint17 address, const uint8 data) -> void;
 
     //serialization.cpp
     auto serialize(serializer&) -> void;
@@ -389,8 +405,8 @@ private:
 
   struct VSRAM {
     //memory.cpp
-    auto read(uint6 address) const -> uint10;
-    auto write(uint6 address, uint10 data) -> void;
+    auto read(const uint6 address) const -> uint10;
+    auto write(const uint6 address, const uint10 data) -> void;
 
     //serialization.cpp
     auto serialize(serializer&) -> void;
@@ -400,8 +416,8 @@ private:
 
   struct CRAM {
     //memory.cpp
-    auto read(uint6 address) const -> uint9;
-    auto write(uint6 address, uint9 data) -> void;
+    auto read(const uint6 address) const -> uint9;
+    auto write(const uint6 address, const uint9 data) -> void;
 
     //serialization.cpp
     auto serialize(serializer&) -> void;
@@ -438,8 +454,8 @@ private:
     enum class ID : uint { PlaneA, Window, PlaneB } id;
 
     //background.cpp
-    auto renderScreen(uint from, uint to) -> void;
-    auto renderWindow(uint from, uint to) -> void;
+    auto renderScreen(const uint from, const uint to) -> void;
+    auto renderWindow(const uint from, const uint to) -> void;
 
     //serialization.cpp
     auto serialize(serializer&) -> void;
@@ -461,6 +477,16 @@ private:
       uint10 verticalOffset;
        uint1 verticalDirection;
     } io;
+
+    uint16 verticalOffsetXorDirection = 0;
+
+    uint nametableWidth;
+    uint nametableWidthMask;
+    uint nametableHeightMask;
+
+    uint nametableAddress;
+    uint widthSize;
+    uint widthMask;
 
   //unserialized:
     uint7 pixels[320];

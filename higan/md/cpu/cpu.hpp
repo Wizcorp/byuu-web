@@ -72,9 +72,19 @@ struct CPU : Thread {
   auto unload() -> void;
 
   auto main() -> void;
-  inline auto step(uint clocks) -> void;
-  auto idle(uint clocks) -> void;
-  inline auto wait(uint clocks) -> void;
+
+  inline auto step(const uint clocks) -> void {
+    refresh.ram += clocks;
+    while(refresh.ram >= 133) refresh.ram -= 133;
+    refresh.external += clocks;
+    Thread::step(clocks);
+  }
+
+  inline auto idle(const uint clocks) -> void {
+    step(clocks);
+  }
+
+  inline auto wait(const uint clocks) -> void;
 
   auto raise(Interrupt) -> void;
   auto lower(Interrupt) -> void;
@@ -82,8 +92,8 @@ struct CPU : Thread {
   auto power(bool reset) -> void;
 
   //bus.cpp
-  inline auto read(uint1 upper, uint1 lower, uint24 address, uint16 data = 0) -> uint16;
-  inline auto write(uint1 upper, uint1 lower, uint24 address, uint16 data) -> void;
+  inline auto read(const uint1 upper, const uint1 lower, const uint24 address, uint16 data = 0) -> uint16;
+  inline auto write(const uint1 upper, const uint1 lower, const uint24 address, const uint16 data) -> void;
 
   //io.cpp
   inline auto readIO(uint1 upper, uint1 lower, uint24 address, uint16 data) -> uint16;
@@ -156,7 +166,7 @@ struct CPU : Thread {
   template<uint Size> auto sign(uint32 data) -> int32;
 
   //conditions.cpp
-  auto condition(uint4 condition) -> bool;
+  auto condition(const uint4 condition) -> const bool;
 
   //algorithms.cpp
   template<uint Size, bool Extend = false> auto ADD(uint32 source, uint32 target) -> uint32;
