@@ -6,6 +6,68 @@ APU apu;
 #include "bus.cpp"
 #include "serialization.cpp"
 
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
+#include "disassembler.cpp"
+#endif
+
+#include "registers.cpp"
+#include "instruction.cpp"
+#include "algorithms.cpp"
+#include "instructions.cpp"
+
+auto APU::irq(bool maskable, uint16 pc, uint8 extbus) -> bool {
+  if((maskable && !IFF1) || EI) return false;
+  uint cycles;
+  R.bit(0,6)++;
+
+  push(PC);
+
+  switch(maskable ? IM : (uint2)1) {
+
+  case 0: {
+    //external data bus ($ff = RST $38)
+    WZ = extbus;
+    cycles = extbus|0x38 == 0xFF ? 6 : 7;
+    break;
+  }
+
+  case 1: {
+    //constant address
+    WZ = pc;
+    cycles = maskable ? 7 : 5;
+    break;
+  }
+
+  case 2: {
+    //vector table with external data bus
+    uint16 addr = I << 8 | extbus;
+    WZL = read(addr + 0);
+    WZH = read(addr + 1);
+    cycles = 7;
+    break;
+  }
+
+  }
+
+  PC = WZ;
+  IFF1 = 0;
+  if(maskable) IFF2 = 0;
+  HALT = 0;
+  if(P) PF = 0;
+  P = 0;
+  Q = 0;
+
+  wait(cycles);
+  return true;
+}
+
+auto APU::parity(uint8 value) const -> bool {
+  value ^= value >> 4;
+  value ^= value >> 2;
+  value ^= value >> 1;
+  return !(value & 1);
+}
+
 auto APU::load(Node::Object parent, Node::Object from) -> void {
   node = Node::append<Node::Component>(parent, from, "APU");
   from = Node::scan(parent = node, from);
@@ -25,12 +87,12 @@ auto APU::unload() -> void {
 auto APU::main() -> void {  
 // See: higan/component/processor/z80/memory.cpp
 #if defined(SCHEDULER_SYNCHRO)
-  if(bus->requested() && !synchronizing()) {
-    bus->grant(true);
+  if(requested() && !synchronizing()) {
+    grant(true);
     return step(1);
   }
 
-  bus->grant(false);
+  grant(false);
 #endif
 
   updateBus();
@@ -97,8 +159,16 @@ auto APU::updateBus() -> void {
 }
 
 auto APU::power(bool reset) -> void {
-  Z80::bus = this;
-  Z80::power();
+  mosfet = MOSFET::NMOS;
+
+  prefix = Prefix::hl;
+  r = {};
+  AF = 0xffff;
+  SP = 0xffff;
+  IFF1 = 0;
+  IFF2 = 0;
+  IM = 1;
+
   ym2612.power(reset);
   Thread::create(system.frequency() / 15.0, {&APU::main, this});
   if(!reset) {

@@ -6,9 +6,12 @@
  */
 
 auto APU::read(uint16 address) -> uint8 {
+  yield();
+  step(3);
+
   //$2000-3fff mirrors $0000-1fff
-  if(address >= 0x0000 && address <= 0x3fff) return ram.read(address);
-  if(address >= 0x4000 && address <= 0x4003) return ym2612.readStatus();
+  if(address <= 0x3fff) return ram.read(address);
+  if(address <= 0x4003) return ym2612.readStatus();
   if(address >= 0x8000 && address <= 0xffff) {
 #if !defined(SCHEDULER_SYNCHRO)
     while(vdp.dma.active) {
@@ -22,7 +25,7 @@ auto APU::read(uint16 address) -> uint8 {
     step(3);
 
     uint24 location = io.bank << 15 | (uint15)address & ~1;
-    if(location >= 0xa00000 && location <= 0xffffff) {
+    if(location >= 0xa00000) {
       //todo: apparently *some* I/O addresses can be read or written from the Z80.
       //it is not currently known which addresses are accepted.
       if(location != 0xa10000) return 0xff;  //version register can be read
@@ -37,17 +40,24 @@ auto APU::read(uint16 address) -> uint8 {
 }
 
 auto APU::write(uint16 address, uint8 data) -> void {
+  yield();
+  step(3);
+
   //$2000-3fff mirrors $0000-1fff
-  if(address >= 0x0000 && address <= 0x3fff) return ram.write(address, data);
-  if(address == 0x4000) return ym2612.writeAddress(0 << 8 | data);
-  if(address == 0x4001) return ym2612.writeData(data);
-  if(address == 0x4002) return ym2612.writeAddress(1 << 8 | data);
-  if(address == 0x4003) return ym2612.writeData(data);
-  if(address == 0x6000) return (void)(io.bank = data.bit(0) << 8 | io.bank >> 1);
-  if(address == 0x7f11) return psg.write(data);
-  if(address == 0x7f13) return psg.write(data);
-  if(address == 0x7f15) return psg.write(data);
-  if(address == 0x7f17) return psg.write(data);
+  if(address <= 0x3fff) return ram.write(address, data);
+
+  switch(address) {
+    case 0x4000: return ym2612.writeAddress(0 << 8 | data);
+    case 0x4001: return ym2612.writeData(data);
+    case 0x4002: return ym2612.writeAddress(1 << 8 | data);
+    case 0x4003: return ym2612.writeData(data);
+    case 0x6000: return (void)(io.bank = data.bit(0) << 8 | io.bank >> 1);
+    case 0x7f11: return psg.write(data);
+    case 0x7f13: return psg.write(data);
+    case 0x7f15: return psg.write(data);
+    case 0x7f17: return psg.write(data);
+  }
+
   if(address >= 0x8000 && address <= 0xffff) {
 #if !defined(SCHEDULER_SYNCHRO)
     while(vdp.dma.active) {
@@ -72,9 +82,13 @@ auto APU::write(uint16 address, uint8 data) -> void {
 
 //unused on Mega Drive
 auto APU::in(uint16 address) -> uint8 {
+  yield();
+  step(4);  
   return 0x00;
 }
 
 //unused on Mega Drive
 auto APU::out(uint16 address, uint8 data) -> void {
+  yield();
+  step(4);  
 }

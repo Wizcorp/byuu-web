@@ -1,4 +1,4 @@
-components += z80 sn76489
+components += sn76489
 
 objects += md-interface
 objects += md-cpu md-apu md-vdp md-psg md-ym2612

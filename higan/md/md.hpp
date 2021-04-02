@@ -4,8 +4,6 @@
 //started: 2016-07-08
 
 #include <emulator/emulator.hpp>
-
-#include <component/processor/z80/z80.hpp>
 #include <component/audio/sn76489/sn76489.hpp>
 
 namespace higan::MegaDrive {
