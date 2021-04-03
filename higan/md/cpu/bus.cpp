@@ -4,11 +4,15 @@
  */
 
 auto CPU::read(const uint1 upper, const uint1 lower, const uint24 address, uint16 data) -> uint16 { 
+  if ((address & 0xc00000) == 0) {
+    return cartridge.read(upper, lower, address, data);
+  }
+
+  if ((address & 0xe00000) == 0xe00000) {
+    return ram[address >> 1];
+  }
 
   switch(address & 0xf00000) {
-    case 0x000000: case 0x100000:
-    case 0x200000: case 0x300000:
-      return cartridge.read(upper, lower, address, data);
     case 0xa00000: case 0xb00000:
       if(address <= 0xa0ffff) {
         auto addrCopy = address;
@@ -36,19 +40,23 @@ auto CPU::read(const uint1 upper, const uint1 lower, const uint24 address, uint1
       addrCopy.bit(8,15) = 0;  //mirrors
       return vdp.read(addrCopy, data);
     }
-    case 0xe00000: case 0xf00000:
-      return ram[address >> 1];
   }
 
   return data;
 }
 
 auto CPU::write(const uint1 upper, const uint1 lower, const uint24 address, const uint16 data) -> void {
+  if ((address & 0xe00000) == 0xe00000) {
+      if(upper) ram[address >> 1].byte(1) = data.byte(1);
+      if(lower) ram[address >> 1].byte(0) = data.byte(0);
+      return;
+  }
+
+  if ((address & 0xc00000) == 0) {
+    return cartridge.write(upper, lower, address, data);
+  }
 
   switch(address & 0xf00000) {
-    case 0x000000: case 0x100000:
-    case 0x200000: case 0x300000:
-      return cartridge.write(upper, lower, address, data);
     case 0xa00000: case 0xb00000:
       if(address <= 0xa0ffff) {
         auto addrCopy = address;
@@ -77,10 +85,6 @@ auto CPU::write(const uint1 upper, const uint1 lower, const uint24 address, cons
       addrCopy.bit(8,15) = 0;  //mirrors
       return vdp.write(addrCopy, data);
     }
-    case 0xe00000: case 0xf00000:
-      if(upper) ram[address >> 1].byte(1) = data.byte(1);
-      if(lower) ram[address >> 1].byte(0) = data.byte(0);
-      return;
   }
   
 }

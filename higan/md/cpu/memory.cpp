@@ -100,26 +100,6 @@ template<> auto CPU::extension<Long>() -> uint32 {
 
 //
 
-auto CPU::prefetch() -> uint16 {
-  wait(4);
-  r.ir  = r.irc;
-  r.irc = read(1, 1, r.pc & ~1);
-  r.pc += 2;
-  return r.ir;
-}
-
-//take the prefetched value without reloading the prefetch.
-//this is used by instructions such as JMP and JSR.
-
-auto CPU::prefetched() -> uint16 {
-  r.ir  = r.irc;
-  r.irc = 0x0000;
-  r.pc += 2;
-  return r.ir;
-}
-
-//
-
 template<uint Size> auto CPU::pop() -> uint32 {
   auto data = read<Size>((uint32)r.a[7]);
   r.a[7] += bytes<Size>();

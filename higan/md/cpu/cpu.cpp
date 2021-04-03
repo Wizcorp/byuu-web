@@ -24,7 +24,6 @@ enum : bool { Reverse = 1 };
 #include "memory.cpp"
 #include "effective-address.cpp"
 #include "traits.cpp"
-#include "conditions.cpp"
 #include "algorithms.cpp"
 #include "instructions.cpp"
 
@@ -83,7 +82,6 @@ auto CPU::exception(uint exception, uint vector, uint priority) -> void {
 auto CPU::interrupt(uint vector, uint priority) -> void {
   return exception(Exception::Interrupt, vector, priority);
 }
-
 
 auto CPU::main() -> void {
 #if defined(SCHEDULER_SYNCHRO)

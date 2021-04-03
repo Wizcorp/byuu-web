@@ -23,12 +23,30 @@ struct APU : Thread {
 
   constexpr inline auto running() -> bool { return arbstate.resetLine && busStatus(); }
 
-  auto setNMI(uint1 value) -> void;
-  auto setINT(uint1 value) -> void;
-  auto setRES(uint1 value) -> void;
-  auto setBREQ(uint1 value) -> void;
+  alwaysinline auto setNMI(uint1 value) -> void {
+    state.nmiLine = value;
+  }
+
+  alwaysinline auto setINT(uint1 value) -> void {
+    state.intLine = value;
+    if (state.intLine) {
+      state.interruptPending = true;
+    }
+  }
+
+  alwaysinline auto setRES(uint1 value) -> void {
+    if(!value && arbstate.resetLine) {
+      power(true);
+    }
+    arbstate.resetLine = value;
+  }
+
+  alwaysinline auto setBREQ(uint1 value) -> void {
+    arbstate.busreqLine = value;
+  }
 
   auto updateBus() -> void;
+
   inline auto busStatus() -> uint1 {
     // 0->68K, 1->Z80
     return (arbstate.resetLine & arbstate.busreqLatch) ^ 1;
@@ -51,7 +69,13 @@ struct APU : Thread {
   enum class MOSFET : uint { CMOS, NMOS };
 
   alwaysinline auto irq() -> bool;
-  alwaysinline auto parity(uint8) const -> bool;
+
+  constexpr auto parity(uint8_t value) const -> bool {
+    value ^= value >> 4;
+    value ^= value >> 2;
+    value ^= value >> 1;
+    return !(value & 1);
+  }
 
   //memory.cpp
   alwaysinline auto yield() -> void {
@@ -135,141 +159,141 @@ struct APU : Thread {
   alwaysinline auto XOR(uint8, uint8) -> uint8;
 
   //instructions.cpp
-  auto instructionADC_a_irr(uint16&) -> void;
-  auto instructionADC_a_n() -> void;
-  auto instructionADC_a_r(uint8&) -> void;
-  auto instructionADC_hl_rr(uint16&) -> void;
-  auto instructionADD_a_irr(uint16&) -> void;
-  auto instructionADD_a_n() -> void;
-  auto instructionADD_a_r(uint8&) -> void;
-  auto instructionADD_hl_rr(uint16&) -> void;
-  auto instructionAND_a_irr(uint16&) -> void;
-  auto instructionAND_a_n() -> void;
-  auto instructionAND_a_r(uint8&) -> void;
-  auto instructionBIT_o_irr(uint3, uint16&) -> void;
-  auto instructionBIT_o_irr_r(uint3, uint16&, uint8&) -> void;
-  auto instructionBIT_o_r(uint3, uint8&) -> void;
-  auto instructionCALL_c_nn(bool c) -> void;
-  auto instructionCALL_nn() -> void;
-  auto instructionCCF() -> void;
-  auto instructionCP_a_irr(uint16& x) -> void;
-  auto instructionCP_a_n() -> void;
-  auto instructionCP_a_r(uint8& x) -> void;
-  auto instructionCPD() -> void;
-  auto instructionCPDR() -> void;
-  auto instructionCPI() -> void;
-  auto instructionCPIR() -> void;
-  auto instructionCPL() -> void;
-  auto instructionDAA() -> void;
-  auto instructionDEC_irr(uint16&) -> void;
-  auto instructionDEC_r(uint8&) -> void;
-  auto instructionDEC_rr(uint16&) -> void;
-  auto instructionDI() -> void;
-  auto instructionDJNZ_e() -> void;
-  auto instructionEI() -> void;
-  auto instructionEX_irr_rr(uint16&, uint16&) -> void;
-  auto instructionEX_rr_rr(uint16&, uint16&) -> void;
-  auto instructionEXX() -> void;
-  auto instructionHALT() -> void;
-  auto instructionIM_o(uint2) -> void;
-  auto instructionIN_a_in() -> void;
-  auto instructionIN_r_ic(uint8&) -> void;
-  auto instructionIN_ic() -> void;
-  auto instructionINC_irr(uint16&) -> void;
-  auto instructionINC_r(uint8&) -> void;
-  auto instructionINC_rr(uint16&) -> void;
-  auto instructionIND() -> void;
-  auto instructionINDR() -> void;
-  auto instructionINI() -> void;
-  auto instructionINIR() -> void;
-  auto instructionJP_c_nn(bool) -> void;
-  auto instructionJP_rr(uint16&) -> void;
-  auto instructionJR_c_e(bool) -> void;
-  auto instructionLD_a_inn() -> void;
-  auto instructionLD_a_irr(uint16& x) -> void;
-  auto instructionLD_inn_a() -> void;
-  auto instructionLD_inn_rr(uint16&) -> void;
-  auto instructionLD_irr_a(uint16&) -> void;
-  auto instructionLD_irr_n(uint16&) -> void;
-  auto instructionLD_irr_r(uint16&, uint8&) -> void;
-  auto instructionLD_r_n(uint8&) -> void;
-  auto instructionLD_r_irr(uint8&, uint16&) -> void;
-  auto instructionLD_r_r(uint8&, uint8&) -> void;
-  auto instructionLD_r_r1(uint8&, uint8&) -> void;
-  auto instructionLD_r_r2(uint8&, uint8&) -> void;
-  auto instructionLD_rr_inn(uint16&) -> void;
-  auto instructionLD_rr_nn(uint16&) -> void;
-  auto instructionLD_sp_rr(uint16&) -> void;
-  auto instructionLDD() -> void;
-  auto instructionLDDR() -> void;
-  auto instructionLDI() -> void;
-  auto instructionLDIR() -> void;
-  auto instructionNEG() -> void;
-  auto instructionNOP() -> void;
-  auto instructionOR_a_irr(uint16&) -> void;
-  auto instructionOR_a_n() -> void;
-  auto instructionOR_a_r(uint8&) -> void;
-  auto instructionOTDR() -> void;
-  auto instructionOTIR() -> void;
-  auto instructionOUT_ic_r(uint8&) -> void;
-  auto instructionOUT_ic() -> void;
-  auto instructionOUT_in_a() -> void;
-  auto instructionOUTD() -> void;
-  auto instructionOUTI() -> void;
-  auto instructionPOP_rr(uint16&) -> void;
-  auto instructionPUSH_rr(uint16&) -> void;
-  auto instructionRES_o_irr(uint3, uint16&) -> void;
-  auto instructionRES_o_irr_r(uint3, uint16&, uint8&) -> void;
-  auto instructionRES_o_r(uint3, uint8&) -> void;
-  auto instructionRET() -> void;
-  auto instructionRET_c(bool c) -> void;
-  auto instructionRETI() -> void;
-  auto instructionRETN() -> void;
-  auto instructionRL_irr(uint16&) -> void;
-  auto instructionRL_irr_r(uint16&, uint8&) -> void;
-  auto instructionRL_r(uint8&) -> void;
-  auto instructionRLA() -> void;
-  auto instructionRLC_irr(uint16&) -> void;
-  auto instructionRLC_irr_r(uint16&, uint8&) -> void;
-  auto instructionRLC_r(uint8&) -> void;
-  auto instructionRLCA() -> void;
-  auto instructionRLD() -> void;
-  auto instructionRR_irr(uint16&) -> void;
-  auto instructionRR_irr_r(uint16&, uint8&) -> void;
-  auto instructionRR_r(uint8&) -> void;
-  auto instructionRRA() -> void;
-  auto instructionRRC_irr(uint16&) -> void;
-  auto instructionRRC_irr_r(uint16&, uint8&) -> void;
-  auto instructionRRC_r(uint8&) -> void;
-  auto instructionRRCA() -> void;
-  auto instructionRRD() -> void;
-  auto instructionRST_o(uint3) -> void;
-  auto instructionSBC_a_irr(uint16&) -> void;
-  auto instructionSBC_a_n() -> void;
-  auto instructionSBC_a_r(uint8&) -> void;
-  auto instructionSBC_hl_rr(uint16&) -> void;
-  auto instructionSCF() -> void;
-  auto instructionSET_o_irr(uint3, uint16&) -> void;
-  auto instructionSET_o_irr_r(uint3, uint16&, uint8&) -> void;
-  auto instructionSET_o_r(uint3, uint8&) -> void;
-  auto instructionSLA_irr(uint16&) -> void;
-  auto instructionSLA_irr_r(uint16&, uint8&) -> void;
-  auto instructionSLA_r(uint8&) -> void;
-  auto instructionSLL_irr(uint16&) -> void;
-  auto instructionSLL_irr_r(uint16&, uint8&) -> void;
-  auto instructionSLL_r(uint8&) -> void;
-  auto instructionSRA_irr(uint16&) -> void;
-  auto instructionSRA_irr_r(uint16&, uint8&) -> void;
-  auto instructionSRA_r(uint8&) -> void;
-  auto instructionSRL_irr(uint16&) -> void;
-  auto instructionSRL_irr_r(uint16&, uint8&) -> void;
-  auto instructionSRL_r(uint8&) -> void;
-  auto instructionSUB_a_irr(uint16&) -> void;
-  auto instructionSUB_a_n() -> void;
-  auto instructionSUB_a_r(uint8&) -> void;
-  auto instructionXOR_a_irr(uint16&) -> void;
-  auto instructionXOR_a_n() -> void;
-  auto instructionXOR_a_r(uint8&) -> void;
+  alwaysinline auto instructionADC_a_irr(uint16&) -> void;
+  alwaysinline auto instructionADC_a_n() -> void;
+  alwaysinline auto instructionADC_a_r(uint8&) -> void;
+  alwaysinline auto instructionADC_hl_rr(uint16&) -> void;
+  alwaysinline auto instructionADD_a_irr(uint16&) -> void;
+  alwaysinline auto instructionADD_a_n() -> void;
+  alwaysinline auto instructionADD_a_r(uint8&) -> void;
+  alwaysinline auto instructionADD_hl_rr(uint16&) -> void;
+  alwaysinline auto instructionAND_a_irr(uint16&) -> void;
+  alwaysinline auto instructionAND_a_n() -> void;
+  alwaysinline auto instructionAND_a_r(uint8&) -> void;
+  alwaysinline auto instructionBIT_o_irr(uint3, uint16&) -> void;
+  alwaysinline auto instructionBIT_o_irr_r(uint3, uint16&, uint8&) -> void;
+  alwaysinline auto instructionBIT_o_r(uint3, uint8&) -> void;
+  alwaysinline auto instructionCALL_c_nn(bool c) -> void;
+  alwaysinline auto instructionCALL_nn() -> void;
+  alwaysinline auto instructionCCF() -> void;
+  alwaysinline auto instructionCP_a_irr(uint16& x) -> void;
+  alwaysinline auto instructionCP_a_n() -> void;
+  alwaysinline auto instructionCP_a_r(uint8& x) -> void;
+  alwaysinline auto instructionCPD() -> void;
+  alwaysinline auto instructionCPDR() -> void;
+  alwaysinline auto instructionCPI() -> void;
+  alwaysinline auto instructionCPIR() -> void;
+  alwaysinline auto instructionCPL() -> void;
+  alwaysinline auto instructionDAA() -> void;
+  alwaysinline auto instructionDEC_irr(uint16&) -> void;
+  alwaysinline auto instructionDEC_r(uint8&) -> void;
+  alwaysinline auto instructionDEC_rr(uint16&) -> void;
+  alwaysinline auto instructionDI() -> void;
+  alwaysinline auto instructionDJNZ_e() -> void;
+  alwaysinline auto instructionEI() -> void;
+  alwaysinline auto instructionEX_irr_rr(uint16&, uint16&) -> void;
+  alwaysinline auto instructionEX_rr_rr(uint16&, uint16&) -> void;
+  alwaysinline auto instructionEXX() -> void;
+  alwaysinline auto instructionHALT() -> void;
+  alwaysinline auto instructionIM_o(uint2) -> void;
+  alwaysinline auto instructionIN_a_in() -> void;
+  alwaysinline auto instructionIN_r_ic(uint8&) -> void;
+  alwaysinline auto instructionIN_ic() -> void;
+  alwaysinline auto instructionINC_irr(uint16&) -> void;
+  alwaysinline auto instructionINC_r(uint8&) -> void;
+  alwaysinline auto instructionINC_rr(uint16&) -> void;
+  alwaysinline auto instructionIND() -> void;
+  alwaysinline auto instructionINDR() -> void;
+  alwaysinline auto instructionINI() -> void;
+  alwaysinline auto instructionINIR() -> void;
+  alwaysinline auto instructionJP_c_nn(bool) -> void;
+  alwaysinline auto instructionJP_rr(uint16&) -> void;
+  alwaysinline auto instructionJR_c_e(bool) -> void;
+  alwaysinline auto instructionLD_a_inn() -> void;
+  alwaysinline auto instructionLD_a_irr(uint16& x) -> void;
+  alwaysinline auto instructionLD_inn_a() -> void;
+  alwaysinline auto instructionLD_inn_rr(uint16&) -> void;
+  alwaysinline auto instructionLD_irr_a(uint16&) -> void;
+  alwaysinline auto instructionLD_irr_n(uint16&) -> void;
+  alwaysinline auto instructionLD_irr_r(uint16&, uint8&) -> void;
+  alwaysinline auto instructionLD_r_n(uint8&) -> void;
+  alwaysinline auto instructionLD_r_irr(uint8&, uint16&) -> void;
+  alwaysinline auto instructionLD_r_r(uint8&, uint8&) -> void;
+  alwaysinline auto instructionLD_r_r1(uint8&, uint8&) -> void;
+  alwaysinline auto instructionLD_r_r2(uint8&, uint8&) -> void;
+  alwaysinline auto instructionLD_rr_inn(uint16&) -> void;
+  alwaysinline auto instructionLD_rr_nn(uint16&) -> void;
+  alwaysinline auto instructionLD_sp_rr(uint16&) -> void;
+  alwaysinline auto instructionLDD() -> void;
+  alwaysinline auto instructionLDDR() -> void;
+  alwaysinline auto instructionLDI() -> void;
+  alwaysinline auto instructionLDIR() -> void;
+  alwaysinline auto instructionNEG() -> void;
+  alwaysinline auto instructionNOP() -> void;
+  alwaysinline auto instructionOR_a_irr(uint16&) -> void;
+  alwaysinline auto instructionOR_a_n() -> void;
+  alwaysinline auto instructionOR_a_r(uint8&) -> void;
+  alwaysinline auto instructionOTDR() -> void;
+  alwaysinline auto instructionOTIR() -> void;
+  alwaysinline auto instructionOUT_ic_r(uint8&) -> void;
+  alwaysinline auto instructionOUT_ic() -> void;
+  alwaysinline auto instructionOUT_in_a() -> void;
+  alwaysinline auto instructionOUTD() -> void;
+  alwaysinline auto instructionOUTI() -> void;
+  alwaysinline auto instructionPOP_rr(uint16&) -> void;
+  alwaysinline auto instructionPUSH_rr(uint16&) -> void;
+  alwaysinline auto instructionRES_o_irr(uint3, uint16&) -> void;
+  alwaysinline auto instructionRES_o_irr_r(uint3, uint16&, uint8&) -> void;
+  alwaysinline auto instructionRES_o_r(uint3, uint8&) -> void;
+  alwaysinline auto instructionRET() -> void;
+  alwaysinline auto instructionRET_c(bool c) -> void;
+  alwaysinline auto instructionRETI() -> void;
+  alwaysinline auto instructionRETN() -> void;
+  alwaysinline auto instructionRL_irr(uint16&) -> void;
+  alwaysinline auto instructionRL_irr_r(uint16&, uint8&) -> void;
+  alwaysinline auto instructionRL_r(uint8&) -> void;
+  alwaysinline auto instructionRLA() -> void;
+  alwaysinline auto instructionRLC_irr(uint16&) -> void;
+  alwaysinline auto instructionRLC_irr_r(uint16&, uint8&) -> void;
+  alwaysinline auto instructionRLC_r(uint8&) -> void;
+  alwaysinline auto instructionRLCA() -> void;
+  alwaysinline auto instructionRLD() -> void;
+  alwaysinline auto instructionRR_irr(uint16&) -> void;
+  alwaysinline auto instructionRR_irr_r(uint16&, uint8&) -> void;
+  alwaysinline auto instructionRR_r(uint8&) -> void;
+  alwaysinline auto instructionRRA() -> void;
+  alwaysinline auto instructionRRC_irr(uint16&) -> void;
+  alwaysinline auto instructionRRC_irr_r(uint16&, uint8&) -> void;
+  alwaysinline auto instructionRRC_r(uint8&) -> void;
+  alwaysinline auto instructionRRCA() -> void;
+  alwaysinline auto instructionRRD() -> void;
+  alwaysinline auto instructionRST_o(uint3) -> void;
+  alwaysinline auto instructionSBC_a_irr(uint16&) -> void;
+  alwaysinline auto instructionSBC_a_n() -> void;
+  alwaysinline auto instructionSBC_a_r(uint8&) -> void;
+  alwaysinline auto instructionSBC_hl_rr(uint16&) -> void;
+  alwaysinline auto instructionSCF() -> void;
+  alwaysinline auto instructionSET_o_irr(uint3, uint16&) -> void;
+  alwaysinline auto instructionSET_o_irr_r(uint3, uint16&, uint8&) -> void;
+  alwaysinline auto instructionSET_o_r(uint3, uint8&) -> void;
+  alwaysinline auto instructionSLA_irr(uint16&) -> void;
+  alwaysinline auto instructionSLA_irr_r(uint16&, uint8&) -> void;
+  alwaysinline auto instructionSLA_r(uint8&) -> void;
+  alwaysinline auto instructionSLL_irr(uint16&) -> void;
+  alwaysinline auto instructionSLL_irr_r(uint16&, uint8&) -> void;
+  alwaysinline auto instructionSLL_r(uint8&) -> void;
+  alwaysinline auto instructionSRA_irr(uint16&) -> void;
+  alwaysinline auto instructionSRA_irr_r(uint16&, uint8&) -> void;
+  alwaysinline auto instructionSRA_r(uint8&) -> void;
+  alwaysinline auto instructionSRL_irr(uint16&) -> void;
+  alwaysinline auto instructionSRL_irr_r(uint16&, uint8&) -> void;
+  alwaysinline auto instructionSRL_r(uint8&) -> void;
+  alwaysinline auto instructionSUB_a_irr(uint16&) -> void;
+  alwaysinline auto instructionSUB_a_n() -> void;
+  alwaysinline auto instructionSUB_a_r(uint8&) -> void;
+  alwaysinline auto instructionXOR_a_irr(uint16&) -> void;
+  alwaysinline auto instructionXOR_a_n() -> void;
+  alwaysinline auto instructionXOR_a_r(uint8&) -> void;
 
   //disassembler.cpp
 #if !defined(NO_EVENTINSTRUCTION_NOTIFY)

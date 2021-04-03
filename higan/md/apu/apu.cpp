@@ -25,31 +25,15 @@ auto APU::irq() -> bool {
 
   push(PC);
 
-  switch(IM) {
-
-  case 0: {
-    //external data bus ($ff = RST $38)
-    WZ = 0xff;
-    cycles = 6;
-    break;
-  }
-
-  case 1: {
+  // Assumes IM 2 will never be used
+  if (IM) {
     //constant address
     WZ = 0x38;
     cycles = 7;
-    break;
-  }
-
-  case 2: {
-    //vector table with external data bus
-    uint16 addr = I << 8 | 0xff;
-    WZL = read(addr + 0);
-    WZH = read(addr + 1);
-    cycles = 7;
-    break;
-  }
-
+  } else {
+    //external data bus ($ff = RST $38)
+    WZ = 0xff;
+    cycles = 6;
   }
 
   PC = WZ;
@@ -62,13 +46,6 @@ auto APU::irq() -> bool {
 
   wait(cycles);
   return true;
-}
-
-auto APU::parity(uint8 value) const -> bool {
-  value ^= value >> 4;
-  value ^= value >> 2;
-  value ^= value >> 1;
-  return !(value & 1);
 }
 
 auto APU::load(Node::Object parent, Node::Object from) -> void {
@@ -127,28 +104,6 @@ auto APU::step(uint clocks) -> void {
 #else
   Thread::synchronize(cpu, vdp, psg, ym2612);
 #endif
-}
-
-auto APU::setNMI(uint1 value) -> void {
-  state.nmiLine = value;
-}
-
-auto APU::setINT(uint1 value) -> void {
-  state.intLine = value;
-  if (state.intLine) {
-    state.interruptPending = true;
-  }
-}
-
-auto APU::setRES(uint1 value) -> void {
-  if(!value && arbstate.resetLine) {
-    power(true);
-  }
-  arbstate.resetLine = value;
-}
-
-auto APU::setBREQ(uint1 value) -> void {
-  arbstate.busreqLine = value;
 }
 
 auto APU::updateBus() -> void {

@@ -93,18 +93,18 @@ struct CPU : Thread {
     }    
   }
 
-  inline auto step(const uint clocks) -> void {
+  alwaysinline auto step(const uint clocks) -> void {
     refresh.ram += clocks;
     while(refresh.ram >= 133) refresh.ram -= 133;
     refresh.external += clocks;
     Thread::step(clocks);
   }
 
-  inline auto idle(const uint clocks) -> void {
+  alwaysinline auto idle(const uint clocks) -> void {
     step(clocks);
   }
 
-  inline auto wait(const uint clocks) -> void;
+  alwaysinline auto wait(const uint clocks) -> void;
 
   auto raise(Interrupt) -> void;
   auto lower(Interrupt) -> void;
@@ -150,8 +150,24 @@ struct CPU : Thread {
   template<uint Size> auto read(uint32 addr) -> uint32;
   template<uint Size, bool Order = 0> auto write(uint32 addr, uint32 data) -> void;
   template<uint Size> auto extension() -> uint32;
-  auto prefetch() -> uint16;
-  auto prefetched() -> uint16;
+//
+  alwaysinline auto prefetch() -> uint16 {
+    wait(4);
+    r.ir  = r.irc;
+    r.irc = read(1, 1, r.pc & ~1);
+    r.pc += 2;
+    return r.ir;
+  }
+
+  //take the prefetched value without reloading the prefetch.
+  //this is used by instructions such as JMP and JSR.
+  alwaysinline auto prefetched() -> uint16 {
+    r.ir  = r.irc;
+    r.irc = 0x0000;
+    r.pc += 2;
+    return r.ir;
+  }
+
   template<uint Size> auto pop() -> uint32;
   template<uint Size> auto push(uint32 data) -> void;
 
@@ -189,23 +205,43 @@ struct CPU : Thread {
   template<uint Size> auto sign(uint32 data) -> int32;
 
   //conditions.cpp
-  auto condition(const uint4 condition) -> const bool;
+  alwaysinline auto condition(const uint4 condition) -> const bool {
+    switch(condition) {
+    case  0: return true;   //T
+    case  1: return false;  //F
+    case  2: return !r.c && !r.z;  //HI
+    case  3: return  r.c ||  r.z;  //LS
+    case  4: return !r.c;  //CC,HS
+    case  5: return  r.c;  //CS,LO
+    case  6: return !r.z;  //NE
+    case  7: return  r.z;  //EQ
+    case  8: return !r.v;  //VC
+    case  9: return  r.v;  //VS
+    case 10: return !r.n;  //PL
+    case 11: return  r.n;  //MI
+    case 12: return  r.n ==  r.v;  //GE
+    case 13: return  r.n !=  r.v;  //LT
+    case 14: return  r.n ==  r.v && !r.z;  //GT
+    case 15: return  r.n !=  r.v ||  r.z;  //LE
+    }
+    unreachable;
+  }
 
   //algorithms.cpp
-  template<uint Size, bool Extend = false> auto ADD(uint32 source, uint32 target) -> uint32;
-  template<uint Size> auto AND(uint32 source, uint32 target) -> uint32;
-  template<uint Size> auto ASL(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto ASR(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto CMP(uint32 source, uint32 target) -> uint32;
-  template<uint Size> auto EOR(uint32 source, uint32 target) -> uint32;
-  template<uint Size> auto LSL(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto LSR(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto OR(uint32 source, uint32 target) -> uint32;
-  template<uint Size> auto ROL(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto ROR(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto ROXL(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto ROXR(uint32 result, uint shift) -> uint32;
-  template<uint Size, bool Extend = false> auto SUB(uint32 source, uint32 target) -> uint32;
+  template<uint Size, bool Extend = false> alwaysinline auto ADD(uint32 source, uint32 target) -> uint32;
+  template<uint Size> alwaysinline auto AND(uint32 source, uint32 target) -> uint32;
+  template<uint Size> alwaysinline auto ASL(uint32 result, uint shift) -> uint32;
+  template<uint Size> alwaysinline auto ASR(uint32 result, uint shift) -> uint32;
+  template<uint Size> alwaysinline auto CMP(uint32 source, uint32 target) -> uint32;
+  template<uint Size> alwaysinline auto EOR(uint32 source, uint32 target) -> uint32;
+  template<uint Size> alwaysinline auto LSL(uint32 result, uint shift) -> uint32;
+  template<uint Size> alwaysinline auto LSR(uint32 result, uint shift) -> uint32;
+  template<uint Size> alwaysinline auto OR(uint32 source, uint32 target) -> uint32;
+  template<uint Size> alwaysinline auto ROL(uint32 result, uint shift) -> uint32;
+  template<uint Size> alwaysinline auto ROR(uint32 result, uint shift) -> uint32;
+  template<uint Size> alwaysinline auto ROXL(uint32 result, uint shift) -> uint32;
+  template<uint Size> alwaysinline auto ROXR(uint32 result, uint shift) -> uint32;
+  template<uint Size, bool Extend = false> alwaysinline auto SUB(uint32 source, uint32 target) -> uint32;
 
   //instructions.cpp
                       auto instructionABCD(EffectiveAddress from, EffectiveAddress with) -> void;
