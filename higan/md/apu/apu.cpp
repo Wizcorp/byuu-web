@@ -100,18 +100,13 @@ auto APU::main() -> void {
   if(!running()) {
     return step(1);
   }
-
+ 
+ /* MD doesn't use NMI, so we can skip the check!
   if(state.nmiLine) {
     state.nmiLine = 0;  //edge-sensitive
     if(eventInterrupt->enabled()) eventInterrupt->notify("NMI");
     irq(0, 0x0066, 0xff);
-  }
-
-  if(state.intLine) {
-    //level-sensitive
-    if(eventInterrupt->enabled()) eventInterrupt->notify("IRQ");
-    irq(1, 0x0038, 0xff);
-  }
+  }*/
 
   #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(r.pc)) {
@@ -137,6 +132,9 @@ auto APU::setNMI(uint1 value) -> void {
 
 auto APU::setINT(uint1 value) -> void {
   state.intLine = value;
+  if (state.intLine) {
+    state.interruptPending = true;
+  }
 }
 
 auto APU::setRES(uint1 value) -> void {

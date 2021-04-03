@@ -85,10 +85,23 @@ auto APU::instructionBIT_o_r(uint3 bit, uint8& x) -> void { Q = 1;
 
 auto APU::instructionCALL_c_nn(bool c) -> void { Q = 0;
   WZ = operands();
-  if(!c) return;
+  if(!c) {
+    if(state.interruptPending) {
+      irq(1, 0x0038, 0xff);
+      state.interruptPending = false;
+    }
+
+    return;
+  }
+
   wait(1);
   push(PC);
   PC = WZ;
+
+  if(state.interruptPending) {
+    irq(1, 0x0038, 0xff);
+    state.interruptPending = false;
+  }
 }
 
 auto APU::instructionCALL_nn() -> void { Q = 0;
@@ -96,6 +109,11 @@ auto APU::instructionCALL_nn() -> void { Q = 0;
   wait(1);
   push(PC);
   PC = WZ;
+
+  if(state.interruptPending) {
+    irq(1, 0x0038, 0xff);
+    state.interruptPending = false;
+  }
 }
 
 auto APU::instructionCCF() -> void {
@@ -328,18 +346,39 @@ auto APU::instructionINIR() -> void { Q = 1;
 auto APU::instructionJP_c_nn(bool c) -> void { Q = 0;
   WZ = operands();
   if(c) PC = WZ;
+
+  if(state.interruptPending) {
+    irq(1, 0x0038, 0xff);
+    state.interruptPending = false;
+  }
 }
 
 auto APU::instructionJP_rr(uint16& x) -> void { Q = 0;
   PC = x;
+
+  if(state.interruptPending) {
+    irq(1, 0x0038, 0xff);
+    state.interruptPending = false;
+  }  
 }
 
 auto APU::instructionJR_c_e(bool c) -> void { Q = 0;
   auto displacement = (int8)operand();
-  if(!c) return;
+  if(!c) {
+    if(state.interruptPending) {
+      irq(1, 0x0038, 0xff);
+      state.interruptPending = false;
+    }
+    return;
+  }
   wait(5);
   WZ = PC + displacement;
   PC = WZ;
+
+  if(state.interruptPending) {
+    irq(1, 0x0038, 0xff);
+    state.interruptPending = false;
+  }
 }
 
 auto APU::instructionLD_a_inn() -> void { Q = 0;
@@ -575,25 +614,52 @@ auto APU::instructionRET() -> void { Q = 0;
   wait(1);
   WZ = pop();
   PC = WZ;
+
+  if(state.interruptPending) {
+    irq(1, 0x0038, 0xff);
+    state.interruptPending = false;
+  }
 }
 
 auto APU::instructionRET_c(bool c) -> void { Q = 0;
   wait(1);
-  if(!c) return;
+  if(!c) {
+    if(state.interruptPending) {
+      irq(1, 0x0038, 0xff);
+      state.interruptPending = false;
+    }
+    return;
+  }
+
   WZ = pop();
   PC = WZ;
+
+  if(state.interruptPending) {
+    irq(1, 0x0038, 0xff);
+    state.interruptPending = false;
+  }
 }
 
 auto APU::instructionRETI() -> void { Q = 0;
   WZ = pop();
   PC = WZ;
   IFF1 = IFF2;
+
+  if(state.interruptPending) {
+    irq(1, 0x0038, 0xff);
+    state.interruptPending = false;
+  }
 }
 
 auto APU::instructionRETN() -> void { Q = 0;
   WZ = pop();
   PC = WZ;
   IFF1 = IFF2;
+
+  if(state.interruptPending) {
+    irq(1, 0x0038, 0xff);
+    state.interruptPending = false;
+  }
 }
 
 auto APU::instructionRL_irr(uint16& addr) -> void { Q = 1;

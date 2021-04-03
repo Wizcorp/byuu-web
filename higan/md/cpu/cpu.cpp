@@ -1,5 +1,15 @@
 #include <md/md.hpp>
 
+// Underclock the CPU by increasing this divisor
+// Default (original clock speed) is 7.0
+// Higher values = slower emulated cpu (worse game performance)
+// but higher emulator frame-rate (less audio stutter, etc)
+// FIXME: Tweak to the best value for target device/game
+// This can be overidden with -DMD_M68K_DIVISOR compiler flag, or changed here
+#ifndef MD_M68K_DIVISOR
+  #define MD_M68K_DIVISOR 14.0
+#endif
+
 namespace higan::MegaDrive {
 
 CPU cpu;
@@ -84,33 +94,6 @@ auto CPU::main() -> void {
   }
 #endif
 
-  if(state.interruptPending) {
-    if(state.interruptPending.bit((uint)Interrupt::Reset)) {
-      state.interruptPending.bit((uint)Interrupt::Reset) = 0;
-      r.a[7] = read(1, 1, 0) << 16 | read(1, 1, 2) << 0;
-      r.pc   = read(1, 1, 4) << 16 | read(1, 1, 6) << 0;
-      prefetch();
-      prefetch();
-      if(eventInterrupt->enabled()) eventInterrupt->notify("Reset");
-    }
-
-    if(state.interruptPending.bit((uint)Interrupt::HorizontalBlank)) {
-      if(4 > r.i) {
-        state.interruptPending.bit((uint)Interrupt::HorizontalBlank) = 0;
-        if(eventInterrupt->enabled()) eventInterrupt->notify("Hblank");
-        return interrupt(Vector::Level4, 4);
-      }
-    }
-
-    if(state.interruptPending.bit((uint)Interrupt::VerticalBlank)) {
-      if(6 > r.i) {
-        state.interruptPending.bit((uint)Interrupt::VerticalBlank) = 0;
-        if(eventInterrupt->enabled()) eventInterrupt->notify("Vblank");
-        return interrupt(Vector::Level6, 6);
-      }
-    }
-  }
-
   #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(r.pc - 4)) {
     eventInstruction->notify(disassembleInstruction(r.pc - 4), disassembleContext());
@@ -164,7 +147,11 @@ auto CPU::power(bool reset) -> void {
   r.stop  = false;
   r.reset = false;
 
+#ifdef MD_M68K_DIVISOR
+  Thread::create(system.frequency() / MD_M68K_DIVISOR, {&CPU::main, this});
+#else 
   Thread::create(system.frequency() / 7.0, {&CPU::main, this});
+#endif
 
   ram.allocate(64_KiB >> 1);
 
@@ -188,7 +175,12 @@ auto CPU::power(bool reset) -> void {
   refresh = {};
 
   state = {};
-  state.interruptPending.bit((uint)Interrupt::Reset) = 1;
+  
+  // Start execution by calling the reset vector
+  r.a[7] = read(1, 1, 0) << 16 | read(1, 1, 2) << 0;
+  r.pc   = read(1, 1, 4) << 16 | read(1, 1, 6) << 0;
+  prefetch();
+  prefetch();
 }
 
 }

@@ -41,6 +41,9 @@ auto Cartridge::connect(Node::Peripheral with) -> void {
   information.regions = document["game/region"].text().split(",").strip();
   information.bootable = (bool)document["game/bootable"];
 
+/* Reduce cartridge read/write overhead by hard-coding handlers
+   NOTE: This will break Super Street Fighter II, but *all* other games will work fine.
+
   read = {&Cartridge::readLinear, this};
   write = {&Cartridge::writeLinear, this};
 
@@ -60,7 +63,7 @@ auto Cartridge::connect(Node::Peripheral with) -> void {
       read = {&Cartridge::readGameGenie, this};
       write = {&Cartridge::writeGameGenie, this};
     }
-  }
+  }*/
 
   //easter egg: power draw increases with each successively stacked cartridge
   //simulate increasing address/data line errors as stacking increases
@@ -90,8 +93,8 @@ auto Cartridge::disconnect() -> void {
   patch.reset();
   wram.reset();
   bram.reset();
-  read.reset();
-  write.reset();
+  //read.reset();
+  //write.reset();
   if(slot) slot->disconnect();
   slot.reset();
   node = {};
@@ -208,11 +211,18 @@ auto Cartridge::writeIO(uint1 upper, uint1 lower, uint24 address, uint16 data) -
 //
 
 auto Cartridge::readLinear(uint1 upper, uint1 lower, uint22 address, uint16 data) -> uint16 {
+  address >>= 1;
+
   if(address >= 0x200000 && ramEnable) {
-    if(wram) return data = wram[address >> 1];
-    if(bram) return data = bram[address >> 1] * 0x0101;  //todo: unconfirmed
+    if(wram) return data = wram[address];
+    if(bram) return data = bram[address] * 0x0101;  //todo: unconfirmed
   }
-  return data = rom[address >> 1];
+
+  if (address >= rom.size()) {
+    return data;
+  }
+
+  return data = rom[address];
 }
 
 auto Cartridge::writeLinear(uint1 upper, uint1 lower, uint22 address, uint16 data) -> void {

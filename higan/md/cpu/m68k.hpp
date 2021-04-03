@@ -1,18 +1,14 @@
-//Motorola 68000
+#pragma once
 
-struct CPU : Thread {
-  CPU();
+//Motorola MC68000
 
-  Node::Component node;
-  Node::Instruction eventInstruction;
-  Node::Notification eventInterrupt;
+namespace higan {
 
-  enum class Interrupt : uint {
-    Reset,
-    HorizontalBlank,
-    VerticalBlank,
-  };
-
+struct M68K {
+  auto idle(uint clocks) -> void;
+  auto wait(uint clocks) -> void;
+  auto read(uint1 upper, uint1 lower, uint24 address, uint16 data = 0) -> uint16;
+  auto write(uint1 upper, uint1 lower, uint24 address, uint16 data) -> void;
 
   inline auto ird() const -> uint16 { return r.ird; }
 
@@ -65,63 +61,10 @@ struct CPU : Thread {
     Level5             = 29,
     Level6             = 30,
     Level7             = 31,
-  };};  
+  };};
 
-  //cpu.cpp
-  auto load(Node::Object, Node::Object) -> void;
-  auto unload() -> void;
-
-  auto main() -> void;
-
-  inline auto checkForInterrupts() -> void {
-    if(state.interruptPending) {
-      if(state.interruptPending.bit((uint)Interrupt::HorizontalBlank)) {
-        if(4 > r.i) {
-          state.interruptPending.bit((uint)Interrupt::HorizontalBlank) = 0;
-          //if(eventInterrupt->enabled()) eventInterrupt->notify("Hblank");
-          return interrupt(Vector::Level4, 4);
-        }
-      }
-
-      if(state.interruptPending.bit((uint)Interrupt::VerticalBlank)) {
-        if(6 > r.i) {
-          state.interruptPending.bit((uint)Interrupt::VerticalBlank) = 0;
-          //if(eventInterrupt->enabled()) eventInterrupt->notify("Vblank");
-          return interrupt(Vector::Level6, 6);
-        }
-      }
-    }    
-  }
-
-  inline auto step(const uint clocks) -> void {
-    refresh.ram += clocks;
-    while(refresh.ram >= 133) refresh.ram -= 133;
-    refresh.external += clocks;
-    Thread::step(clocks);
-  }
-
-  inline auto idle(const uint clocks) -> void {
-    step(clocks);
-  }
-
-  inline auto wait(const uint clocks) -> void;
-
-  auto raise(Interrupt) -> void;
-  auto lower(Interrupt) -> void;
-
-  auto power(bool reset) -> void;
-
-  //bus.cpp
-  inline auto read(const uint1 upper, const uint1 lower, const uint24 address, uint16 data = 0) -> uint16;
-  inline auto write(const uint1 upper, const uint1 lower, const uint24 address, const uint16 data) -> void;
-
-  //io.cpp
-  inline auto readIO(uint1 upper, uint1 lower, uint24 address, uint16 data) -> uint16;
-  inline auto writeIO(uint1 upper, uint1 lower, uint24 address, uint16 data) -> void;
-
-  //serialization.cpp
-  auto serialize(serializer&) -> void;
-
+  M68K();
+  auto power() -> void;
   auto supervisor() -> bool;
   auto exception(uint exception, uint vector, uint priority = 7) -> void;
   auto interrupt(uint vector, uint priority = 7) -> void;
@@ -174,10 +117,7 @@ struct CPU : Thread {
   template<uint Size, bool Hold = 0> auto write(EffectiveAddress& ea, uint32 data) -> void;
 
   //instruction.cpp
-  alwaysinline auto instruction() -> void {
-    r.ird = r.ir;
-    return instructionTable[r.ird]();
-  }
+  auto instruction() -> void;
 
   //traits.cpp
   template<uint Size> auto bytes() -> uint;
@@ -189,23 +129,23 @@ struct CPU : Thread {
   template<uint Size> auto sign(uint32 data) -> int32;
 
   //conditions.cpp
-  auto condition(const uint4 condition) -> const bool;
+  auto condition(uint4 condition) -> bool;
 
   //algorithms.cpp
-  template<uint Size, bool Extend = false> auto ADD(uint32 source, uint32 target) -> uint32;
-  template<uint Size> auto AND(uint32 source, uint32 target) -> uint32;
-  template<uint Size> auto ASL(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto ASR(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto CMP(uint32 source, uint32 target) -> uint32;
-  template<uint Size> auto EOR(uint32 source, uint32 target) -> uint32;
-  template<uint Size> auto LSL(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto LSR(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto OR(uint32 source, uint32 target) -> uint32;
-  template<uint Size> auto ROL(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto ROR(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto ROXL(uint32 result, uint shift) -> uint32;
-  template<uint Size> auto ROXR(uint32 result, uint shift) -> uint32;
-  template<uint Size, bool Extend = false> auto SUB(uint32 source, uint32 target) -> uint32;
+  template<uint Size, bool Extend = false> inline auto ADD(const uint32 source, const uint32 target) -> uint32;
+  template<uint Size> inline auto AND(const uint32 source, const uint32 target) -> uint32;
+  template<uint Size> inline auto ASL(uint32 result, const uint shift) -> uint32;
+  template<uint Size> inline auto ASR(uint32 result, const uint shift) -> uint32;
+  template<uint Size> inline auto CMP(const uint32 source, const uint32 target) -> uint32;
+  template<uint Size> inline auto EOR(const uint32 source, const uint32 target) -> uint32;
+  template<uint Size> inline auto LSL(uint32 result, const uint shift) -> uint32;
+  template<uint Size> inline auto LSR(uint32 result, const uint shift) -> uint32;
+  template<uint Size> inline auto OR(const uint32 source, const uint32 target) -> uint32;
+  template<uint Size> inline auto ROL(uint32 result, const uint shift) -> uint32;
+  template<uint Size> inline auto ROR(uint32 result, const uint shift) -> uint32;
+  template<uint Size> inline auto ROXL(uint32 result, const uint shift) -> uint32;
+  template<uint Size> inline auto ROXR(uint32 result, const uint shift) -> uint32;
+  template<uint Size, bool Extend = false> inline auto SUB(const uint32 source, const uint32 target) -> uint32;
 
   //instructions.cpp
                       auto instructionABCD(EffectiveAddress from, EffectiveAddress with) -> void;
@@ -324,7 +264,10 @@ struct CPU : Thread {
   template<uint Size> auto instructionTST(EffectiveAddress from) -> void;
                       auto instructionUNLK(AddressRegister with) -> void;
 
-//disassembler.cpp
+  //serialization.cpp
+  auto serialize(serializer&) -> void;
+
+  //disassembler.cpp
 #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   auto disassembleInstruction(uint32 pc) -> string;
   auto disassembleContext() -> string;
@@ -490,27 +433,6 @@ private:
 
   uint32 _pc;
   function<string ()> disassembleTable[65536];
-
-private:
-  Memory::Writable<uint16> ram;
-  Memory::Readable<uint16> tmss;
-  uint1 tmssEnable;
-
-  struct IO {
-    boolean version;  //0 = Model 1; 1 = Model 2+
-    boolean romEnable;
-    boolean vdpEnable[2];
-  } io;
-
-  struct Refresh {
-    uint32 ram;
-     uint7 external;
-  } refresh;
-
-  struct State {
-    uint32 interruptLine;
-    uint32 interruptPending;
-  } state;
 };
 
-extern CPU cpu;
+}

@@ -328,6 +328,7 @@ private:
   struct State {
     uint1 nmiLine;
     uint1 intLine;
+    uint1 interruptPending;
   } state;
 
   bool _requested;

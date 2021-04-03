@@ -1,8 +1,3 @@
-auto CPU::instruction() -> void {
-  r.ird = r.ir;
-  return instructionTable[r.ird]();
-}
-
 CPU::CPU() {
 #if defined(NO_EVENTINSTRUCTION_NOTIFY)
   #define bind(id, name, ...) { \

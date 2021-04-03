@@ -212,6 +212,8 @@ auto CPU::instructionBCC(uint4 test, uint8 displacement) -> void {
     prefetch();
   }
   prefetch();
+
+  checkForInterrupts();
 }
 
 template<uint Size> auto CPU::instructionBCHG(DataRegister bit, EffectiveAddress with) -> void {
@@ -269,6 +271,8 @@ auto CPU::instructionBRA(uint8 displacement) -> void {
   r.pc += offset;
   prefetch();
   prefetch();
+
+  checkForInterrupts();
 }
 
 template<uint Size> auto CPU::instructionBSET(DataRegister bit, EffectiveAddress with) -> void {
@@ -303,6 +307,7 @@ auto CPU::instructionBSR(uint8 displacement) -> void {
   r.pc += offset;
   prefetch();
   prefetch();
+  checkForInterrupts();
 }
 
 template<uint Size> auto CPU::instructionBTST(DataRegister bit, EffectiveAddress with) -> void {
@@ -406,6 +411,7 @@ auto CPU::instructionDBCC(uint4 test, DataRegister with) -> void {
     }
   }
   prefetch();
+  checkForInterrupts();
 }
 
 auto CPU::instructionDIVS(EffectiveAddress from, DataRegister with) -> void {
@@ -621,6 +627,7 @@ auto CPU::instructionJMP(EffectiveAddress from) -> void {
   r.pc = prefetched(from);
   prefetch();
   prefetch();
+  checkForInterrupts();
 }
 
 auto CPU::instructionJSR(EffectiveAddress from) -> void {
@@ -630,6 +637,7 @@ auto CPU::instructionJSR(EffectiveAddress from) -> void {
   prefetch();
   push<Long>(pc - 2);
   prefetch();
+  checkForInterrupts();
 }
 
 auto CPU::instructionLEA(EffectiveAddress from, AddressRegister to) -> void {
@@ -1102,6 +1110,8 @@ auto CPU::instructionRTE() -> void {
     prefetch();
   }
   prefetch();
+
+  checkForInterrupts();
 }
 
 auto CPU::instructionRTR() -> void {
@@ -1109,12 +1119,16 @@ auto CPU::instructionRTR() -> void {
   r.pc = pop<Long>();
   prefetch();
   prefetch();
+
+  checkForInterrupts();
 }
 
 auto CPU::instructionRTS() -> void {
   r.pc = pop<Long>();
   prefetch();
   prefetch();
+
+  checkForInterrupts();
 }
 
 auto CPU::instructionSBCD(EffectiveAddress from, EffectiveAddress with) -> void {
