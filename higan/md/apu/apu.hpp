@@ -50,11 +50,11 @@ struct APU : Thread {
   //      if an interrupt fires during "ld a,i" or "ld a,r", PF is cleared
   enum class MOSFET : uint { CMOS, NMOS };
 
-  auto irq(bool maskable, uint16 vector = 0x0000, uint8 extbus = 0xff) -> bool;
-  auto parity(uint8) const -> bool;
+  alwaysinline auto irq() -> bool;
+  alwaysinline auto parity(uint8) const -> bool;
 
   //memory.cpp
-  inline auto yield() -> void {
+  alwaysinline auto yield() -> void {
     // freeze Z80, allow external access until relinquished
     // when using synchro, move this logic to the component's main loop
     // (generally found in the inheriting component, like the Mega Drive APU) 
@@ -67,37 +67,37 @@ struct APU : Thread {
   #endif
   }
 
-  inline auto wait(uint clocks) -> void {
+  alwaysinline auto wait(uint clocks) -> void {
     yield();
     step(clocks);
   }
 
-  inline auto opcode() -> uint8 {
+  alwaysinline auto opcode() -> uint8 {
     yield();
     step(1);
     return read(r.pc++);
   }
 
-  inline auto operand() -> uint8 {
+  alwaysinline auto operand() -> uint8 {
     return read(r.pc++);
   }
 
-  inline auto operands() -> uint16 {
+  alwaysinline auto operands() -> uint16 {
     uint16 data = operand() << 0;
     return data | operand() << 8;
   }
 
-  inline auto push(uint16 x) -> void {
+  alwaysinline auto push(uint16 x) -> void {
     write(--r.sp, x >> 8);
     write(--r.sp, x >> 0);
   }
 
-  inline auto pop() -> uint16 {
+  alwaysinline auto pop() -> uint16 {
     uint16 data = read(r.sp++) << 0;
     return data | read(r.sp++) << 8;
   }
 
-  inline auto displace(uint16& x) -> uint16 {
+  alwaysinline auto displace(uint16& x) -> uint16 {
     if(&x != &r.ix.word && &x != &r.iy.word) return x;
     auto d = operand();
     wait(5);
@@ -106,33 +106,33 @@ struct APU : Thread {
   }
 
   //instruction.cpp
-  auto instruction() -> void;
-  auto instruction(uint8 code) -> void;
-  auto instructionCB(uint8 code) -> void;
-  auto instructionCBd(uint16 addr, uint8 code) -> void;
-  auto instructionED(uint8 code) -> void;
+  alwaysinline auto instruction() -> void;
+  alwaysinline auto instruction(uint8 code) -> void;
+  alwaysinline auto instructionCB(uint8 code) -> void;
+  alwaysinline auto instructionCBd(uint16 addr, uint8 code) -> void;
+  alwaysinline auto instructionED(uint8 code) -> void;
 
   //algorithms.cpp
-  inline auto ADD(uint8, uint8, bool = false) -> uint8;
-  inline auto AND(uint8, uint8) -> uint8;
-  inline auto BIT(uint3, uint8) -> uint8;
-  inline auto CP (uint8, uint8) -> void;
-  inline auto DEC(uint8) -> uint8;
-  inline auto IN (uint8) -> uint8;
-  inline auto INC(uint8) -> uint8;
-  inline auto OR (uint8, uint8) -> uint8;
-  inline auto RES(uint3, uint8) -> uint8;
-  inline auto RL (uint8) -> uint8;
-  inline auto RLC(uint8) -> uint8;
-  inline auto RR (uint8) -> uint8;
-  inline auto RRC(uint8) -> uint8;
-  inline auto SET(uint3, uint8) -> uint8;
-  inline auto SLA(uint8) -> uint8;
-  inline auto SLL(uint8) -> uint8;
-  inline auto SRA(uint8) -> uint8;
-  inline auto SRL(uint8) -> uint8;
-  inline auto SUB(uint8, uint8, bool = false) -> uint8;
-  inline auto XOR(uint8, uint8) -> uint8;
+  alwaysinline auto ADD(uint8, uint8, bool = false) -> uint8;
+  alwaysinline auto AND(uint8, uint8) -> uint8;
+  alwaysinline auto BIT(uint3, uint8) -> uint8;
+  alwaysinline auto CP (uint8, uint8) -> void;
+  alwaysinline auto DEC(uint8) -> uint8;
+  alwaysinline auto IN (uint8) -> uint8;
+  alwaysinline auto INC(uint8) -> uint8;
+  alwaysinline auto OR (uint8, uint8) -> uint8;
+  alwaysinline auto RES(uint3, uint8) -> uint8;
+  alwaysinline auto RL (uint8) -> uint8;
+  alwaysinline auto RLC(uint8) -> uint8;
+  alwaysinline auto RR (uint8) -> uint8;
+  alwaysinline auto RRC(uint8) -> uint8;
+  alwaysinline auto SET(uint3, uint8) -> uint8;
+  alwaysinline auto SLA(uint8) -> uint8;
+  alwaysinline auto SLL(uint8) -> uint8;
+  alwaysinline auto SRA(uint8) -> uint8;
+  alwaysinline auto SRL(uint8) -> uint8;
+  alwaysinline auto SUB(uint8, uint8, bool = false) -> uint8;
+  alwaysinline auto XOR(uint8, uint8) -> uint8;
 
   //instructions.cpp
   auto instructionADC_a_irr(uint16&) -> void;

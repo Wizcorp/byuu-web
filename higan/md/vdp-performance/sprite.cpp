@@ -1,5 +1,4 @@
-auto VDP::Sprite::render() -> void {
-  const bool interlace = vdp.io.interlaceMode == 3;
+template<bool interlace> auto VDP::Sprite::render() -> void {
   uint y = vdp.state.vcounter + 128;
   if(interlace) y = y << 1 | vdp.state.field;
 

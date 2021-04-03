@@ -1,10 +1,8 @@
-auto VDP::Background::renderScreen(const uint from, const uint to) -> void {
-  static const uint mask[] = {0u, 7u, ~7u, ~0u};
-  uint15 scrollAddress = io.horizontalScrollAddress;
-  scrollAddress += (vdp.state.vcounter & mask[io.horizontalScrollMode]) << 1;
+template<bool interlace> auto VDP::Background::renderScreen(const uint from, const uint to) -> void {
+  constexpr uint mask[] = {0u, 7u, ~7u, ~0u};
+  const uint15 scrollAddress = io.horizontalScrollAddress + ((vdp.state.vcounter & mask[io.horizontalScrollMode]) << 1);
   uint x = 0 - vdp.vram.memory[scrollAddress + (id == ID::PlaneB)];
-  const bool interlace = vdp.io.interlaceMode == 3;
-  const const uint tileShift = interlace ? 7 : 6;
+  const uint tileShift = interlace ? 7 : 6;
 
   const auto vsram = &vdp.vsram.memory[id == ID::PlaneB];
   uint y = vdp.state.vcounter;
@@ -57,8 +55,7 @@ auto VDP::Background::renderScreen(const uint from, const uint to) -> void {
   }
 }
 
-auto VDP::Background::renderWindow(const uint from, const uint to) -> void {
-  const bool interlace = vdp.io.interlaceMode == 3;
+template<bool interlace> auto VDP::Background::renderWindow(const uint from, const uint to) -> void {
   const uint tileShift = interlace ? 7 : 6;
 
   uint y = vdp.state.vcounter;

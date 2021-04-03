@@ -15,32 +15,35 @@ APU apu;
 #include "algorithms.cpp"
 #include "instructions.cpp"
 
-auto APU::irq(bool maskable, uint16 pc, uint8 extbus) -> bool {
-  if((maskable && !IFF1) || EI) return false;
+// Simplified: MegaDrive only ever uses IM 0 or IM1
+// MegaDrive hard-codes reset address to 0x38
+// MegaDrive does not use NMI
+auto APU::irq() -> bool {
+  if((!IFF1) || EI) return false;
   uint cycles;
   R.bit(0,6)++;
 
   push(PC);
 
-  switch(maskable ? IM : (uint2)1) {
+  switch(IM) {
 
   case 0: {
     //external data bus ($ff = RST $38)
-    WZ = extbus;
-    cycles = extbus|0x38 == 0xFF ? 6 : 7;
+    WZ = 0xff;
+    cycles = 6;
     break;
   }
 
   case 1: {
     //constant address
-    WZ = pc;
-    cycles = maskable ? 7 : 5;
+    WZ = 0x38;
+    cycles = 7;
     break;
   }
 
   case 2: {
     //vector table with external data bus
-    uint16 addr = I << 8 | extbus;
+    uint16 addr = I << 8 | 0xff;
     WZL = read(addr + 0);
     WZH = read(addr + 1);
     cycles = 7;
@@ -51,7 +54,7 @@ auto APU::irq(bool maskable, uint16 pc, uint8 extbus) -> bool {
 
   PC = WZ;
   IFF1 = 0;
-  if(maskable) IFF2 = 0;
+  IFF2 = 0;
   HALT = 0;
   if(P) PF = 0;
   P = 0;

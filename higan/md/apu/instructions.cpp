@@ -87,7 +87,7 @@ auto APU::instructionCALL_c_nn(bool c) -> void { Q = 0;
   WZ = operands();
   if(!c) {
     if(state.interruptPending) {
-      irq(1, 0x0038, 0xff);
+      irq();
       state.interruptPending = false;
     }
 
@@ -99,7 +99,7 @@ auto APU::instructionCALL_c_nn(bool c) -> void { Q = 0;
   PC = WZ;
 
   if(state.interruptPending) {
-    irq(1, 0x0038, 0xff);
+    irq();
     state.interruptPending = false;
   }
 }
@@ -111,7 +111,7 @@ auto APU::instructionCALL_nn() -> void { Q = 0;
   PC = WZ;
 
   if(state.interruptPending) {
-    irq(1, 0x0038, 0xff);
+    irq();
     state.interruptPending = false;
   }
 }
@@ -348,7 +348,7 @@ auto APU::instructionJP_c_nn(bool c) -> void { Q = 0;
   if(c) PC = WZ;
 
   if(state.interruptPending) {
-    irq(1, 0x0038, 0xff);
+    irq();
     state.interruptPending = false;
   }
 }
@@ -357,7 +357,7 @@ auto APU::instructionJP_rr(uint16& x) -> void { Q = 0;
   PC = x;
 
   if(state.interruptPending) {
-    irq(1, 0x0038, 0xff);
+    irq();
     state.interruptPending = false;
   }  
 }
@@ -366,7 +366,7 @@ auto APU::instructionJR_c_e(bool c) -> void { Q = 0;
   auto displacement = (int8)operand();
   if(!c) {
     if(state.interruptPending) {
-      irq(1, 0x0038, 0xff);
+      irq();
       state.interruptPending = false;
     }
     return;
@@ -376,7 +376,7 @@ auto APU::instructionJR_c_e(bool c) -> void { Q = 0;
   PC = WZ;
 
   if(state.interruptPending) {
-    irq(1, 0x0038, 0xff);
+    irq();
     state.interruptPending = false;
   }
 }
@@ -616,7 +616,7 @@ auto APU::instructionRET() -> void { Q = 0;
   PC = WZ;
 
   if(state.interruptPending) {
-    irq(1, 0x0038, 0xff);
+    irq();
     state.interruptPending = false;
   }
 }
@@ -625,7 +625,7 @@ auto APU::instructionRET_c(bool c) -> void { Q = 0;
   wait(1);
   if(!c) {
     if(state.interruptPending) {
-      irq(1, 0x0038, 0xff);
+      irq();
       state.interruptPending = false;
     }
     return;
@@ -635,7 +635,7 @@ auto APU::instructionRET_c(bool c) -> void { Q = 0;
   PC = WZ;
 
   if(state.interruptPending) {
-    irq(1, 0x0038, 0xff);
+    irq();
     state.interruptPending = false;
   }
 }
@@ -646,7 +646,7 @@ auto APU::instructionRETI() -> void { Q = 0;
   IFF1 = IFF2;
 
   if(state.interruptPending) {
-    irq(1, 0x0038, 0xff);
+    irq();
     state.interruptPending = false;
   }
 }
@@ -657,7 +657,7 @@ auto APU::instructionRETN() -> void { Q = 0;
   IFF1 = IFF2;
 
   if(state.interruptPending) {
-    irq(1, 0x0038, 0xff);
+    irq();
     state.interruptPending = false;
   }
 }

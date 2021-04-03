@@ -454,8 +454,8 @@ private:
     enum class ID : uint { PlaneA, Window, PlaneB } id;
 
     //background.cpp
-    auto renderScreen(const uint from, const uint to) -> void;
-    auto renderWindow(const uint from, const uint to) -> void;
+    template<bool interlace> auto renderScreen(const uint from, const uint to) -> void;
+    template<bool interlace> auto renderWindow(const uint from, const uint to) -> void;
 
     //serialization.cpp
     auto serialize(serializer&) -> void;
@@ -517,7 +517,7 @@ private:
 
   struct Sprite {
     //sprite.cpp
-    auto render() -> void;
+    template<bool interlace> auto render() -> void;
     auto write(uint9 address, uint16 data) -> void;
 
     //serialization.cpp
