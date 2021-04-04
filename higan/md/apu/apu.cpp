@@ -6,6 +6,48 @@ APU apu;
 #include "bus.cpp"
 #include "serialization.cpp"
 
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
+#include "disassembler.cpp"
+#endif
+
+#include "registers.cpp"
+#include "instruction.cpp"
+#include "algorithms.cpp"
+#include "instructions.cpp"
+
+// Simplified: MegaDrive only ever uses IM 0 or IM1
+// MegaDrive hard-codes reset address to 0x38
+// MegaDrive does not use NMI
+auto APU::irq() -> bool {
+  if((!IFF1) || EI) return false;
+  uint cycles;
+  R.bit(0,6)++;
+
+  push(PC);
+
+  // Assumes IM 2 will never be used
+  if (IM) {
+    //constant address
+    WZ = 0x38;
+    cycles = 7;
+  } else {
+    //external data bus ($ff = RST $38)
+    WZ = 0xff;
+    cycles = 6;
+  }
+
+  PC = WZ;
+  IFF1 = 0;
+  IFF2 = 0;
+  HALT = 0;
+  if(P) PF = 0;
+  P = 0;
+  Q = 0;
+
+  wait(cycles);
+  return true;
+}
+
 auto APU::load(Node::Object parent, Node::Object from) -> void {
   node = Node::append<Node::Component>(parent, from, "APU");
   from = Node::scan(parent = node, from);
@@ -25,12 +67,12 @@ auto APU::unload() -> void {
 auto APU::main() -> void {  
 // See: higan/component/processor/z80/memory.cpp
 #if defined(SCHEDULER_SYNCHRO)
-  if(bus->requested() && !synchronizing()) {
-    bus->grant(true);
+  if(requested() && !synchronizing()) {
+    grant(true);
     return step(1);
   }
 
-  bus->grant(false);
+  grant(false);
 #endif
 
   updateBus();
@@ -38,18 +80,13 @@ auto APU::main() -> void {
   if(!running()) {
     return step(1);
   }
-
+ 
+ /* MD doesn't use NMI, so we can skip the check!
   if(state.nmiLine) {
     state.nmiLine = 0;  //edge-sensitive
     if(eventInterrupt->enabled()) eventInterrupt->notify("NMI");
     irq(0, 0x0066, 0xff);
-  }
-
-  if(state.intLine) {
-    //level-sensitive
-    if(eventInterrupt->enabled()) eventInterrupt->notify("IRQ");
-    irq(1, 0x0038, 0xff);
-  }
+  }*/
 
   #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(r.pc)) {
@@ -69,25 +106,6 @@ auto APU::step(uint clocks) -> void {
 #endif
 }
 
-auto APU::setNMI(uint1 value) -> void {
-  state.nmiLine = value;
-}
-
-auto APU::setINT(uint1 value) -> void {
-  state.intLine = value;
-}
-
-auto APU::setRES(uint1 value) -> void {
-  if(!value && arbstate.resetLine) {
-    power(true);
-  }
-  arbstate.resetLine = value;
-}
-
-auto APU::setBREQ(uint1 value) -> void {
-  arbstate.busreqLine = value;
-}
-
 auto APU::updateBus() -> void {
   if(!arbstate.resetLine) return; // Z80 bus switch may be blocked by reset
   if(arbstate.busreqLine && !arbstate.busreqLatch) {
@@ -97,8 +115,16 @@ auto APU::updateBus() -> void {
 }
 
 auto APU::power(bool reset) -> void {
-  Z80::bus = this;
-  Z80::power();
+  mosfet = MOSFET::NMOS;
+
+  prefix = Prefix::hl;
+  r = {};
+  AF = 0xffff;
+  SP = 0xffff;
+  IFF1 = 0;
+  IFF2 = 0;
+  IM = 1;
+
   ym2612.power(reset);
   Thread::create(system.frequency() / 15.0, {&APU::main, this});
   if(!reset) {

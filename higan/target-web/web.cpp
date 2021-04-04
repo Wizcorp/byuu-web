@@ -3,6 +3,8 @@
 WebPlatform *webplatform = new WebPlatform();
 emscripten::val scheduledStateSave = emscripten::val::null();
 
+//#define NO_LIMIT
+
 /* lifecycle */
 bool isStarted() { return webplatform->started; }
 bool isRunning() { return webplatform->running; }
@@ -12,9 +14,11 @@ static uint lastExecution = chrono::millisecond();
 void run() {
     uint currentExecution = chrono::millisecond();
 
+#ifndef NO_LIMIT
     if (currentExecution - lastExecution < 16) {
         return;
     }
+#endif
 
     lastExecution = currentExecution;
 
@@ -47,6 +51,9 @@ bool start() {
     lastExecution = 0;
     webplatform->started = true;
     emscripten_set_main_loop(run, 0, 0);
+#ifdef NO_LIMIT
+    emscripten_set_main_loop_timing(EM_TIMING_SETIMMEDIATE, 0);
+#endif
     return true;
 }
 

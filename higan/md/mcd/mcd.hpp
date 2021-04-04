@@ -1,5 +1,7 @@
 //Mega CD
 
+#if 0
+
 struct MCD : M68K, Thread {
   Node::Component node;
   Node::Instruction eventInstruction;
@@ -426,3 +428,5 @@ struct MCD : M68K, Thread {
 };
 
 extern MCD mcd;
+
+#endif

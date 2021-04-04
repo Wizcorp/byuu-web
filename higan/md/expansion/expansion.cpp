@@ -34,7 +34,7 @@ auto Expansion::connect(Node::Peripheral with) -> void {
   information.name = document["game/label"].text();
   information.regions = document["game/region"].text().split(",").strip();
 
-  mcd.load(node, with);
+  //mcd.load(node, with);
 
   power();
 }
@@ -54,21 +54,25 @@ auto Expansion::power() -> void {
 /* the only existing expansion port device is the Mega CD, which is hard-coded below for now */
 
 auto Expansion::read(uint1 upper, uint1 lower, uint22 address, uint16 data) -> uint16 {
-  return mcd.external_read(upper, lower, address, data);
+  //return mcd.external_read(upper, lower, address, data);
+  return data;
 }
 
 auto Expansion::write(uint1 upper, uint1 lower, uint22 address, uint16 data) -> void {
-  return mcd.external_write(upper, lower, address, data);
+  //return mcd.external_write(upper, lower, address, data);
+  return;
 }
 
 auto Expansion::readIO(uint1 upper, uint1 lower, uint24 address, uint16 data) -> uint16 {
   if(!node) return data;
-  return mcd.external_readIO(upper, lower, address, data);
+  //return mcd.external_readIO(upper, lower, address, data);
+  return data;
 }
 
 auto Expansion::writeIO(uint1 upper, uint1 lower, uint24 address, uint16 data) -> void {
   if(!node) return;
-  return mcd.external_writeIO(upper, lower, address, data);
+  //return mcd.external_writeIO(upper, lower, address, data);
+  return;
 }
 
 }

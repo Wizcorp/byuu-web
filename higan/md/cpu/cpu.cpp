@@ -1,11 +1,37 @@
 #include <md/md.hpp>
 
+// Underclock the CPU by increasing this divisor
+// Default (original clock speed) is 7.0
+// Higher values = slower emulated cpu (worse game performance)
+// but higher emulator frame-rate (less audio stutter, etc)
+// FIXME: Tweak to the best value for target device/game
+// This can be overidden with -DMD_M68K_DIVISOR compiler flag, or changed here
+#ifndef MD_M68K_DIVISOR
+  #define MD_M68K_DIVISOR 14.0
+#endif
+
 namespace higan::MegaDrive {
 
 CPU cpu;
 #include "bus.cpp"
 #include "io.cpp"
 #include "serialization.cpp"
+
+enum : uint { Byte, Word, Long };
+enum : bool { Reverse = 1 };
+
+#include "registers.cpp"
+#include "memory.cpp"
+#include "effective-address.cpp"
+#include "traits.cpp"
+#include "algorithms.cpp"
+#include "instructions.cpp"
+
+#if !defined(NO_EVENTINSTRUCTION_NOTIFY)
+#include "disassembler.cpp"
+#endif
+
+#include "instruction.cpp"
 
 auto CPU::load(Node::Object parent, Node::Object from) -> void {
   node = Node::append<Node::Component>(parent, from, "CPU");
@@ -23,6 +49,40 @@ auto CPU::unload() -> void {
   node = {};
 }
 
+
+auto CPU::supervisor() -> bool {
+  if(r.s) return true;
+
+  r.pc -= 4;
+  exception(Exception::Unprivileged, Vector::Unprivileged);
+  return false;
+}
+
+auto CPU::exception(uint exception, uint vector, uint priority) -> void {
+  idle(10);  //todo: not accurate
+
+  auto pc = r.pc;
+  auto sr = readSR();
+
+  if(exception != Exception::Illegal) {
+    if(!r.s) swap(r.a[7], r.sp);
+    r.i = priority;
+    r.s = 1;
+    r.t = 0;
+  }
+
+  push<Long>(pc - 4);
+  push<Word>(sr);
+
+  r.pc = read<Long>(vector << 2);
+  prefetch();
+  prefetch();
+}
+
+auto CPU::interrupt(uint vector, uint priority) -> void {
+  return exception(Exception::Interrupt, vector, priority);
+}
+
 auto CPU::main() -> void {
 #if defined(SCHEDULER_SYNCHRO)
   if (vdp.hasRendered) {
@@ -32,33 +92,6 @@ auto CPU::main() -> void {
   }
 #endif
 
-  if(state.interruptPending) {
-    if(state.interruptPending.bit((uint)Interrupt::Reset)) {
-      state.interruptPending.bit((uint)Interrupt::Reset) = 0;
-      r.a[7] = read(1, 1, 0) << 16 | read(1, 1, 2) << 0;
-      r.pc   = read(1, 1, 4) << 16 | read(1, 1, 6) << 0;
-      prefetch();
-      prefetch();
-      if(eventInterrupt->enabled()) eventInterrupt->notify("Reset");
-    }
-
-    if(state.interruptPending.bit((uint)Interrupt::HorizontalBlank)) {
-      if(4 > r.i) {
-        state.interruptPending.bit((uint)Interrupt::HorizontalBlank) = 0;
-        if(eventInterrupt->enabled()) eventInterrupt->notify("Hblank");
-        return interrupt(Vector::Level4, 4);
-      }
-    }
-
-    if(state.interruptPending.bit((uint)Interrupt::VerticalBlank)) {
-      if(6 > r.i) {
-        state.interruptPending.bit((uint)Interrupt::VerticalBlank) = 0;
-        if(eventInterrupt->enabled()) eventInterrupt->notify("Vblank");
-        return interrupt(Vector::Level6, 6);
-      }
-    }
-  }
-
   #if !defined(NO_EVENTINSTRUCTION_NOTIFY)
   if(eventInstruction->enabled() && eventInstruction->address(r.pc - 4)) {
     eventInstruction->notify(disassembleInstruction(r.pc - 4), disassembleContext());
@@ -66,17 +99,6 @@ auto CPU::main() -> void {
   #endif
   
   instruction();
-}
-
-auto CPU::step(uint clocks) -> void {
-  refresh.ram += clocks;
-  while(refresh.ram >= 133) refresh.ram -= 133;
-  refresh.external += clocks;
-  Thread::step(clocks);
-}
-
-auto CPU::idle(uint clocks) -> void {
-  step(clocks);
 }
 
 auto CPU::wait(uint clocks) -> void {  
@@ -102,8 +124,32 @@ auto CPU::lower(Interrupt interrupt) -> void {
 }
 
 auto CPU::power(bool reset) -> void {
-  M68K::power();
+  for(auto& dr : r.d) dr = 0;
+  for(auto& ar : r.a) ar = 0;
+  r.sp = 0;
+  r.pc = 0;
+
+  r.c = 0;
+  r.v = 0;
+  r.z = 0;
+  r.n = 0;
+  r.x = 0;
+  r.i = 7;
+  r.s = 1;
+  r.t = 0;
+
+  r.irc = 0x4e71;  //nop
+  r.ir  = 0x4e71;  //nop
+  r.ird = 0x4e71;  //nop
+
+  r.stop  = false;
+  r.reset = false;
+
+#ifdef MD_M68K_DIVISOR
+  Thread::create(system.frequency() / MD_M68K_DIVISOR, {&CPU::main, this});
+#else 
   Thread::create(system.frequency() / 7.0, {&CPU::main, this});
+#endif
 
   ram.allocate(64_KiB >> 1);
 
@@ -127,7 +173,12 @@ auto CPU::power(bool reset) -> void {
   refresh = {};
 
   state = {};
-  state.interruptPending.bit((uint)Interrupt::Reset) = 1;
+  
+  // Start execution by calling the reset vector
+  r.a[7] = read(1, 1, 0) << 16 | read(1, 1, 2) << 0;
+  r.pc   = read(1, 1, 4) << 16 | read(1, 1, 6) << 0;
+  prefetch();
+  prefetch();
 }
 
 }

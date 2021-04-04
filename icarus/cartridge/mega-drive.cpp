@@ -90,7 +90,7 @@ auto MegaDrive::heuristics(vector<uint8_t>& data, string location) -> string {
     s += "      content: Program\n";
     s += "    slot\n";
     s += "      type: Mega Drive\n";
-  } else if(domesticName == "SONIC & KNUCKLES") {
+  } /* else if(domesticName == "SONIC & KNUCKLES") { // Disabled to allow common (combined) roms to work
     s += "    memory\n";
     s += "      type: ROM\n";
     s += "      size: 0x200000\n";
@@ -101,7 +101,7 @@ auto MegaDrive::heuristics(vector<uint8_t>& data, string location) -> string {
     s += "      content: Patch\n";
     s += "    slot\n";
     s += "      type: Mega Drive\n";
-  } else {
+  } */ else {
     s += "    memory\n";
     s += "      type: ROM\n";
     s +={"      size: 0x", hex(data.size()), "\n"};

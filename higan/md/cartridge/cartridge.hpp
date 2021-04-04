@@ -71,8 +71,13 @@ struct Cartridge {
     } codes[5];
   } gameGenie;
 
-  function<uint16 (uint1 upper, uint1 lower, uint22 address, uint16 data)> read;
-  function<void (uint1 upper, uint1 lower, uint22 address, uint16 data)> write;
+  alwaysinline auto read(uint1 upper, uint1 lower, uint22 address, uint16 data) -> uint16 {
+    return data = readLinear(upper, lower, address, data);
+  }
+
+  alwaysinline auto write(uint1 upper, uint1 lower, uint22 address, uint16 data) -> void {
+    return writeLinear(upper, lower, address, data);
+  }
 
   unique_pointer<Cartridge> slot;
   const uint depth = 0;

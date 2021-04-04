@@ -13,7 +13,7 @@ auto VDP::DMA::run() -> bool {
 auto VDP::DMA::load() -> void {
   active = 1;
 
-  auto data = cpu.read(1, 1, io.mode.bit(0) << 23 | io.source << 1);
+  const auto data = cpu.read(1, 1, io.mode.bit(0) << 23 | io.source << 1);
   vdp.writeDataPort(data);
 
   io.source.bit(0,15)++;
@@ -38,7 +38,7 @@ auto VDP::DMA::fill() -> void {
 
 //note: this can only copy to VRAM
 auto VDP::DMA::copy() -> void {
-  auto data = vdp.vram.readByte(io.source);
+  const auto data = vdp.vram.readByte(io.source);
   vdp.vram.writeByte(vdp.io.address, data);
 
   io.source.bit(0,15)++;

@@ -70,7 +70,7 @@ auto System::unload() -> void {
   controllerPort1.unload();
   controllerPort2.unload();
   extensionPort.unload();
-  mcd.unload();
+  //mcd.unload();
   node = {};
 }
 
@@ -120,7 +120,7 @@ auto System::power(bool reset) -> void {
   cpu.power(reset);
   apu.power(reset);
   vdp.power(reset);
-  if(MegaCD()) mcd.power(reset);
+  //if(MegaCD()) mcd.power(reset);
   scheduler.power(cpu);
 
   information.serializeSize[0] = serializeInit(0);

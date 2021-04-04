@@ -4,7 +4,7 @@ namespace higan::MegaDrive {
 
 VDP vdp;
 #include "memory.cpp"
-#include "io.cpp"
+
 #include "dma.cpp"
 #include "background.cpp"
 #include "object.cpp"
@@ -167,7 +167,7 @@ auto VDP::refresh() -> void {
 
 auto VDP::render() -> void {
   auto output = this->output;
-  uint y = state.vcounter;
+  const uint y = state.vcounter;
   if(!latch.interlace) {
     output += y * 320;
   } else {
@@ -175,17 +175,31 @@ auto VDP::render() -> void {
   }
   if(!io.displayEnable) return (void)memory::fill<uint32>(output, screenWidth());
 
-  if(y < window.io.verticalOffset ^ window.io.verticalDirection) {
-    window.renderWindow(0, screenWidth());
-  } else if(!window.io.horizontalDirection) {
-    window.renderWindow(0, window.io.horizontalOffset);
-    planeA.renderScreen(window.io.horizontalOffset, screenWidth());
+  if (vdp.io.interlaceMode == 3) {
+    if(y < window.verticalOffsetXorDirection) {
+      window.renderWindow<true>(0, screenWidth());
+    } else if(!window.io.horizontalDirection) {
+      window.renderWindow<true>(0, window.io.horizontalOffset);
+      planeA.renderScreen<true>(window.io.horizontalOffset, screenWidth());
+    } else {
+      planeA.renderScreen<true>(0, window.io.horizontalOffset);
+      window.renderWindow<true>(window.io.horizontalOffset, screenWidth());
+    }
+    planeB.renderScreen<true>(0, screenWidth());
+    sprite.render<true>();
   } else {
-    planeA.renderScreen(0, window.io.horizontalOffset);
-    window.renderWindow(window.io.horizontalOffset, screenWidth());
-  }
-  planeB.renderScreen(0, screenWidth());
-  sprite.render();
+    if(y < window.verticalOffsetXorDirection) {
+      window.renderWindow<false>(0, screenWidth());
+    } else if(!window.io.horizontalDirection) {
+      window.renderWindow<false>(0, window.io.horizontalOffset);
+      planeA.renderScreen<false>(window.io.horizontalOffset, screenWidth());
+    } else {
+      planeA.renderScreen<false>(0, window.io.horizontalOffset);
+      window.renderWindow<false>(window.io.horizontalOffset, screenWidth());
+    }
+    planeB.renderScreen<false>(0, screenWidth());
+    sprite.render<false>();
+  } 
 
   auto A = &planeA.pixels[0];
   auto B = &planeB.pixels[0];
