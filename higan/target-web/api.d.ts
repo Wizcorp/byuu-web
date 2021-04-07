@@ -88,6 +88,12 @@ export const Settings: SettingsEntries = {
     }
   },
   [Emulator.MegaDrive]: {
+    CPU: {
+      /**
+       * Overclock. When value is greater than 1.0, will overclock the CPU
+       */
+       Overclock: 'cpu/overclock'
+    },
     PPU: {
       /**
        * Skip frame. When enabled, skip the rendering of half the frames, which

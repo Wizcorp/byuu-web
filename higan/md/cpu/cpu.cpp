@@ -103,7 +103,7 @@ auto CPU::lower(Interrupt interrupt) -> void {
 
 auto CPU::power(bool reset) -> void {
   M68K::power();
-  Thread::create(system.frequency() / 7.0, {&CPU::main, this});
+  Thread::create(system.frequency() * cpu.overclock, {&CPU::main, this});
 
   ram.allocate(64_KiB >> 1);
 

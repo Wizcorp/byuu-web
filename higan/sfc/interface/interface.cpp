@@ -4,13 +4,13 @@ namespace higan::SuperFamicom {
 
 Interface* interface = nullptr;
 
-auto SuperFamicomInterface::configure(string name, uint value) -> void {
+auto SuperFamicomInterface::configure(string name, double value) -> void {
   if(name.match("cpu/lockstep")) {
     cpu.lockstep.enabled = (bool) value;
   } else if(name.match("cpu/fastmath")) {
     cpu.fastMath = (bool) value;
   } else if(name.match("cpu/overclock")) {
-    cpu.overclock = (double) value;
+    cpu.overclock = value;
   } else if(name.match("smp/lockstep")) {
     smp.lockstep.enabled = (bool) value;
   } else if(name.match("dsp/enabled")) {

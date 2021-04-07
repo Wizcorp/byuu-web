@@ -18,10 +18,24 @@ struct APU : Z80, Z80::Bus, Thread {
 
   auto running() -> bool { return arbstate.resetLine && busStatus(); }
 
-  auto setNMI(uint1 value) -> void;
-  auto setINT(uint1 value) -> void;
-   auto setRES(uint1 value) -> void;
-  auto setBREQ(uint1 value) -> void;
+  alwaysinline auto setNMI(uint1 value) -> void {
+    state.nmiLine = value;
+  }
+
+  alwaysinline auto setINT(uint1 value) -> void {
+    state.intLine = value;
+  }
+
+  alwaysinline auto setRES(uint1 value) -> void {
+    if(!value && arbstate.resetLine) {
+      power(true);
+    }
+    arbstate.resetLine = value;
+  }
+
+  alwaysinline auto setBREQ(uint1 value) -> void {
+    arbstate.busreqLine = value;
+  }
 
   auto updateBus() -> void;
   auto busStatus() -> uint1 {

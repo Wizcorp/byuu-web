@@ -4,11 +4,14 @@ namespace higan::Famicom {
 
 Interface* interface = nullptr;
 
-auto FamicomInterface::configure(string name, uint value) -> void {
+auto FamicomInterface::configure(string name, double value) -> void {
   if(name.match("cpu/synconce")) {
-    cpu.syncOnce->writeValue((bool) value);
+    cpu.syncOnce->setValue((bool) value);
+  } else if(name.match("cpu/overclock")) {
+    cpu.overclock = value;
+    cpu.setFrequency(system.frequency() * cpu.overclock);
   } else if(name.match("ppu/overscan")) {
-    ppu.overscan->writeValue((bool) value);
+    ppu.overscan->setValue((bool) value);
   } else if(name.match("ppu/skipframe")) {
     ppu.isSkipping = value;
   }

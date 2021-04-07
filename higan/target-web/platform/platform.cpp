@@ -132,7 +132,7 @@ auto WebPlatform::run() -> void {
     }
 }
 
-auto WebPlatform::configure(string name, uint value) -> void {
+auto WebPlatform::configure(string name, double value) -> void {
     if (!emulator) {
         return;
     }

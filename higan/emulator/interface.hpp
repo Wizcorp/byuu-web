@@ -6,7 +6,7 @@ struct Interface {
   virtual ~Interface() = default;
 
   //configuration
-  virtual auto configure(string name, uint value) -> void {}
+  virtual auto configure(string name, double value) -> void {}
   
   //information
   virtual auto name() -> string { return {}; }

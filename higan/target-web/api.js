@@ -38,6 +38,9 @@ export const Settings = {
     }
   },
   [Emulator.MegaDrive]: {
+    CPU: {
+      Overclock: 'cpu/overclock'
+    },
     PPU: {
       Skipframe: 'ppu/skipframe',
       OptimizeSteps: 'vdp/optimizeSteps'

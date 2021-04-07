@@ -86,7 +86,7 @@ bool setEmulatorForFilename(std::string path) { return webplatform->setEmulatorF
 emscripten::val load(std::string rom, emscripten::val files) { return webplatform->load((uint8_t *) rom.c_str(), rom.size(), files); }
 
 /* configuration */
-void configure(std::string name, uint8_t value) { return webplatform->configure(name.c_str(), value); }
+void configure(std::string name, double value) { return webplatform->configure(name.c_str(), value); }
 void onResize(emscripten::val callback) { return webplatform->onResize(callback); }
 void setVolume(uint volume) { webplatform->setVolume(volume); }
 void setMute(bool mute) { webplatform->setMute(mute); }

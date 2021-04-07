@@ -11,6 +11,9 @@ struct CPU : M68K, Thread {
     VerticalBlank,
   };
 
+  // Overclock the CPU
+  double overclock = 1.0/7.0;
+
   //cpu.cpp
   auto load(Node::Object, Node::Object) -> void;
   auto unload() -> void;

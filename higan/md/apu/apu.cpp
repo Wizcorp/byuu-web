@@ -39,7 +39,7 @@ auto APU::main() -> void {
     return step(1);
   }
 
-  if(state.nmiLine) {
+  if(MegaCD() && state.nmiLine) {
     state.nmiLine = 0;  //edge-sensitive
     if(eventInterrupt->enabled()) eventInterrupt->notify("NMI");
     irq(0, 0x0066, 0xff);
@@ -67,25 +67,6 @@ auto APU::step(uint clocks) -> void {
 #else
   Thread::synchronize(cpu, vdp, psg, ym2612);
 #endif
-}
-
-auto APU::setNMI(uint1 value) -> void {
-  state.nmiLine = value;
-}
-
-auto APU::setINT(uint1 value) -> void {
-  state.intLine = value;
-}
-
-auto APU::setRES(uint1 value) -> void {
-  if(!value && arbstate.resetLine) {
-    power(true);
-  }
-  arbstate.resetLine = value;
-}
-
-auto APU::setBREQ(uint1 value) -> void {
-  arbstate.busreqLine = value;
 }
 
 auto APU::updateBus() -> void {

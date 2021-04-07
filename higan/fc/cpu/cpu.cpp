@@ -69,7 +69,7 @@ auto CPU::step(uint clocks) -> void {
 auto CPU::power(bool reset) -> void {
   MOS6502::BCD = 0;
   MOS6502::power();
-  Thread::create(system.frequency(), {&CPU::main, this});
+  Thread::create(system.frequency() * cpu.overclock, {&CPU::main, this});
 
   if(!reset) for(auto& data : ram) data = 0xff;
   ram[0x008] = 0xf7;  //todo: what is this about?

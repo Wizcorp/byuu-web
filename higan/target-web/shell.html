@@ -866,6 +866,15 @@
                   <label for="fc-skipframe">Skip frame</label>
                   <input type="checkbox" name="fc-synconce" id="fc-synconce" checked />
                   <label for="fc-synconce">CPU - Sync once per cycle</label>
+                  <select name="fc-overclock" id="fc-overclock">
+                    <option value="0.25">0.25</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.75">0.75</option>
+                    <option value="1" selected>1</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2">2</option>
+                  </select>
+                  <label for="fc-overclock">Overclock</label>
                 </div>
               </div>
               <div data-console="Super Famicom">
@@ -873,7 +882,14 @@
                 <div class="values">
                   <input type="checkbox" name="sfc-fastmath" id="sfc-fastmath" checked />
                   <label for="sfc-fastmath">Fast math</label>
-                  <input type="checkbox" name="sfc-overclock" id="sfc-overclock">
+                  <select name="sfc-overclock" id="sfc-overclock">
+                    <option value="0.25">0.25</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.75">0.75</option>
+                    <option value="1" selected>1</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2">2</option>
+                  </select>
                   <label for="sfc-overclock">Overclock</label>
                   <input type="checkbox" name="sfc-lockstep" id="sfc-lockstep" checked />
                   <label for="sfc-lockstep">Lockstep</label>
@@ -890,6 +906,15 @@
                   <label for="md-skipframe">Skip frame</label>
                   <input type="checkbox" name="md-optimizeSteps" id="md-optimizeSteps" />
                   <label for="md-optimizeSteps">VDP - Optimize DMA Steps</label>
+                  <select name="md-overclock" id="md-overclock">
+                    <option value="0.25">0.25</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.75">0.75</option>
+                    <option value="1" selected>1</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2">2</option>
+                  </select>
+                  <label for="md-overclock">Overclock</label>
                 </div>
               </div>
             </div>
@@ -1332,6 +1357,7 @@
 
       // Settings 
       function configureEmulatorCore(id, value) {
+        console.log(id, value);
         const [core, name] = id.split('-');
         switch (core) {
           case 'sfc':
@@ -1344,7 +1370,7 @@
                 Module.configure('cpu/fastmath', value);
                 return true;
               case 'overclock':
-                Module.configure('cpu/overclock', value ? 2.0 : 1.0);
+                Module.configure('cpu/overclock', parseFloat(value));
                 return true;
               case 'dsp':
                 Module.configure('dsp/enabled', value);
@@ -1361,6 +1387,9 @@
                   pad.querySelector('.button_Microphone').style.display = value ? 'block' : 'none';
                 });
                 return true;
+              case 'overclock':
+                Module.configure('cpu/overclock', parseFloat(value));
+                return true;
               case 'synconce':
                 Module.configure('cpu/synconce', value);
                 return true;
@@ -1373,6 +1402,9 @@
             }
             case 'md':
             switch (name) {
+              case 'overclock':
+                Module.configure('cpu/overclock', parseFloat(value));
+                return true;
               case 'skipframe':
                 Module.configure('vdp/skipframe', value);
                 return true;
@@ -1427,7 +1459,7 @@
             document.getElementById('fpsWrapper').style.display = checked ? 'block' : 'none';
             break;
           default:
-            if (!configureEmulatorCore(name, checked)) {
+            if (!configureEmulatorCore(name, checked !== undefined ? checked : value)) {
               console.log('received unknown settings change event:', name, value);
             }
         }
@@ -1489,6 +1521,9 @@
           emulator: emulator.name,
           romData
         };
+
+        select.value = filename;
+        selectEmulator(filename);
 
         return new Promise((resolve, reject) => {
           const tx = db.transaction(['roms'], 'readwrite');
@@ -1624,6 +1659,7 @@
           gameFiles.addEventListener('change', ({ target: { files } }) => addROMFiles(files));
           
           // Start, pause, resume...
+          select.addEventListener('change', () => selectEmulator(select.value));
           startButton.addEventListener('click', () => startGame(select.value));
           pauseButton.addEventListener('click', () => pauseOrResumeGame());
 
@@ -1800,6 +1836,7 @@
 
         if (lastGame) {
           select.value = lastGame;
+          selectEmulator(select.value);
         }
       }
 
@@ -2053,10 +2090,7 @@
       window.addEventListener('gamepadconnected', ({ gamepad }) => connectGamepad(gamepad), false);
       window.addEventListener("gamepaddisconnected", ({ gamepad }) => disconnectGamepad(gamepad), false);
       
-      // Load a ROM and start the associated emulator
-      async function startGame(filename) {
-        gameLoadingElement.style.display = 'block';
-
+      async function selectEmulator(filename) {
         if (Module.info.isRunning) {
           await gameSave(Module.info.currentGame);
 
@@ -2070,12 +2104,9 @@
           throw new Error(`No matching emulator for ${select.value}`);
         }
 
-        const { emulator, romData } = await getGame(filename);
-        const save = await gameLoad(filename);
+        const emulator = Module.getEmulatorForFilename(filename);
+        console.log('Selected emulator:', emulator);
 
-        Module.setEmulator(emulator);
-        Module.load(romData, save);
-        
         document.querySelectorAll('#core-specific-settings > div').forEach((panel) => {
           const { dataset, style } = panel;
           
@@ -2085,15 +2116,26 @@
           }
 
           style.display = 'flex';
-          panel.querySelectorAll('input').forEach(({ id, checked }) => configureEmulatorCore(id, checked))
+          panel.querySelectorAll('input').forEach(({ id, value, checked }) => configureEmulatorCore(id, checked !== undefined ? checked : value))
         });
 
-        gameLoadingElement.style.display = 'none';
+        Module.info.currentEmulator = emulator;
         localStorage.setItem(LAST_GAME, select.value);
+      }
+
+
+      // Load a ROM and start the associated emulator
+      async function startGame(filename) {
+        gameLoadingElement.style.display = 'block';
+
+        const { romData, emulator } = await getGame(filename);
+        const save = await gameLoad(filename);
+        Module.load(romData, save);
+        
+        gameLoadingElement.style.display = 'none';
         
         Module.info.isRunning = true;
         Module.info.currentGame = filename;
-        Module.info.currentEmulator = emulator;
 
         if (device.isMobile) {
           displayControllerForEmulator();
