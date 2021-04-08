@@ -4,6 +4,7 @@ struct DSP : Thread {
   Node::Component node;
   Node::Stream stream;
 
+  double overclock = 1.0 / 768.0;
   bool enabled = true;
 
   uint8 apuram[64 * 1024];

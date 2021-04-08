@@ -96,7 +96,7 @@ auto PPU::step(uint clocks) -> void {
 }
 
 auto PPU::power(bool reset) -> void {
-  Thread::create(system.cpuFrequency(), {&PPU::main, this});
+  Thread::create(system.cpuFrequency() * overclock, {&PPU::main, this});
   PPUcounter::reset();
   memory::fill<uint32>(output, 512 * 480);
 

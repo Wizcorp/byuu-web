@@ -14,7 +14,7 @@ auto DSP::load(Node::Object parent, Node::Object from) -> void {
 
   stream = Node::append<Node::Stream>(parent, from, "Stream");
   stream->setChannels(2);
-  stream->setFrequency(system.apuFrequency() / 768.0);
+  stream->setFrequency(system.apuFrequency() * overclock);
 }
 
 auto DSP::unload() -> void {

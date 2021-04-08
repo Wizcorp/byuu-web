@@ -7,6 +7,8 @@ struct DSP : Thread {
   int callcount = 0;
   bool enabled;
   
+  double overclock = 1.0 / 768.0;
+
   Node::Component node;
   Node::Stream stream;
 

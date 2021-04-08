@@ -159,7 +159,7 @@ auto VDP::refresh() -> void {
 }
 
 auto VDP::power(bool reset) -> void {
-  Thread::create(system.frequency() / 2.0, {&VDP::main, this});
+  Thread::create(system.frequency() * overclock, {&VDP::main, this});
 
   output = buffer + 16 * 1280;  //overscan offset
 

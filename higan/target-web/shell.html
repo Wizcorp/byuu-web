@@ -882,7 +882,7 @@
                 <div class="values">
                   <input type="checkbox" name="sfc-fastmath" id="sfc-fastmath" checked />
                   <label for="sfc-fastmath">Fast math</label>
-                  <select name="sfc-overclock" id="sfc-overclock">
+                  <select name="sfc-cpu-overclock" id="sfc-cpu-overclock">
                     <option value="0.25">0.25</option>
                     <option value="0.5">0.5</option>
                     <option value="0.75">0.75</option>
@@ -890,7 +890,25 @@
                     <option value="1.5">1.5</option>
                     <option value="2">2</option>
                   </select>
-                  <label for="sfc-overclock">Overclock</label>
+                  <label for="sfc-cpu-overclock">CPU Overclock</label>
+                  <select name="sfc-ppu-overclock" id="sfc-ppu-overclock">
+                    <option value="0.25">0.25</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.75">0.75</option>
+                    <option value="1" selected>1</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2">2</option>
+                  </select>
+                  <label for="sfc-ppu-overclock">PPU Overclock</label>
+                  <select name="sfc-dsp-overclock" id="sfc-dsp-overclock">
+                    <option value="0.25">0.25</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.75">0.75</option>
+                    <option value="1" selected>1</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2">2</option>
+                  </select>
+                  <label for="sfc-dsp-overclock">DSP Overclock</label>
                   <input type="checkbox" name="sfc-lockstep" id="sfc-lockstep" checked />
                   <label for="sfc-lockstep">Lockstep</label>
                   <input type="checkbox" name="sfc-skipframe" id="sfc-skipframe" />
@@ -906,7 +924,7 @@
                   <label for="md-skipframe">Skip frame</label>
                   <input type="checkbox" name="md-optimizeSteps" id="md-optimizeSteps" />
                   <label for="md-optimizeSteps">VDP - Optimize DMA Steps</label>
-                  <select name="md-overclock" id="md-overclock">
+                  <select name="md-cpu-overclock" id="md-cpu-overclock">
                     <option value="0.25">0.25</option>
                     <option value="0.5">0.5</option>
                     <option value="0.75">0.75</option>
@@ -914,7 +932,25 @@
                     <option value="1.5">1.5</option>
                     <option value="2">2</option>
                   </select>
-                  <label for="md-overclock">Overclock</label>
+                  <label for="md-cpu-overclock">CPU Overclock</label>
+                  <select name="md-apu-overclock" id="md-apu-overclock">
+                    <option value="0.25">0.25</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.75">0.75</option>
+                    <option value="1" selected>1</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2">2</option>
+                  </select>
+                  <label for="md-apu-overclock">APU Overclock</label>
+                  <select name="md-vdp-overclock" id="md-vdp-overclock">
+                    <option value="0.25">0.25</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.75">0.75</option>
+                    <option value="1" selected>1</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2">2</option>
+                  </select>
+                  <label for="md-vdp-overclock">VDP Overclock</label>
                 </div>
               </div>
             </div>
@@ -1357,8 +1393,9 @@
 
       // Settings 
       function configureEmulatorCore(id, value) {
-        console.log(id, value);
-        const [core, name] = id.split('-');
+        const [core, ...rest] = id.split('-');
+        const name = rest.join('-');
+
         switch (core) {
           case 'sfc':
             switch (name) {
@@ -1369,8 +1406,14 @@
               case 'fastmath':
                 Module.configure('cpu/fastmath', value);
                 return true;
-              case 'overclock':
+              case 'cpu-overclock':
                 Module.configure('cpu/overclock', parseFloat(value));
+                return true;
+              case 'dsp-overclock':
+                Module.configure('dsp/overclock', parseFloat(value));
+                return true;
+              case 'ppu-overclock':
+                Module.configure('ppu/overclock', parseFloat(value));
                 return true;
               case 'dsp':
                 Module.configure('dsp/enabled', value);
@@ -1402,8 +1445,14 @@
             }
             case 'md':
             switch (name) {
-              case 'overclock':
+              case 'cpu-overclock':
                 Module.configure('cpu/overclock', parseFloat(value));
+                return true;
+              case 'apu-overclock':
+                Module.configure('apu/overclock', parseFloat(value));
+                return true;
+              case 'vdp-overclock':
+                Module.configure('vdp/overclock', parseFloat(value));
                 return true;
               case 'skipframe':
                 Module.configure('vdp/skipframe', value);
@@ -1522,7 +1571,6 @@
           romData
         };
 
-        select.value = filename;
         selectEmulator(filename);
 
         return new Promise((resolve, reject) => {
@@ -1817,6 +1865,7 @@
         option.innerHTML = `${displayName} (${filename})`;
         option.value = filename;
         select.appendChild(option);
+        select.value = filename;
       }
 
       async function populateSelectGameList() {

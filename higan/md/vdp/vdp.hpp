@@ -8,6 +8,9 @@ struct VDP : Thread {
   Node::Screen screen;
   Node::String region;
 
+  // Overclock the VDP
+  double overclock = 0.5;
+  
   bool hasRendered;
   bool isSkipping;
   bool skip;

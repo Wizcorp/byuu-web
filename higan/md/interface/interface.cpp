@@ -14,6 +14,12 @@ auto MegaDriveInterface::configure(string name, double value) -> void {
   } else if(name.match("cpu/overclock")) {
     cpu.overclock = value / 7.0;
     cpu.setFrequency(system.frequency() * cpu.overclock);
+  } else if(name.match("apu/overclock")) {
+    apu.overclock = value / 15.0;
+    apu.setFrequency(system.frequency() * apu.overclock);
+  } else if(name.match("vdp/overclock")) {
+    vdp.overclock = value / 2.0;
+    vdp.setFrequency(system.frequency() * vdp.overclock);
   }
 }
 

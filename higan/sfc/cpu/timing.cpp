@@ -105,10 +105,8 @@ auto CPU::scanline() -> void {
     overclocking.counter = 0;
     overclocking.target = 0;
     
-    if(overclock > 1.0) {
-      int clocks = (Region::NTSC() ? 262 : 312) * 1364;
-      overclocking.target = clocks * overclock - clocks;
-    }
+    int clocks = (Region::NTSC() ? 262 : 312) * 1364;
+    overclocking.target = clocks * overclock - clocks;
   }
 }
 

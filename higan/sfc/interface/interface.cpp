@@ -11,6 +11,12 @@ auto SuperFamicomInterface::configure(string name, double value) -> void {
     cpu.fastMath = (bool) value;
   } else if(name.match("cpu/overclock")) {
     cpu.overclock = value;
+  } else if(name.match("dsp/overclock")) {
+    dsp.overclock = value / 768.0;
+    dsp.setFrequency(system.apuFrequency() * dsp.overclock);
+  } else if(name.match("ppu/overclock")) {
+    ppu.overclock = value;
+    ppu.setFrequency(system.cpuFrequency() * ppu.overclock);
   } else if(name.match("smp/lockstep")) {
     smp.lockstep.enabled = (bool) value;
   } else if(name.match("dsp/enabled")) {

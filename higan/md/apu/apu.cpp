@@ -81,7 +81,7 @@ auto APU::power(bool reset) -> void {
   Z80::bus = this;
   Z80::power();
   ym2612.power(reset);
-  Thread::create(system.frequency() / 15.0, {&APU::main, this});
+  Thread::create(system.frequency() * overclock, {&APU::main, this});
   if(!reset) {
     ram.allocate(8_KiB);
     arbstate = {};

@@ -11,6 +11,7 @@ struct PPU : Thread, PPUcounter {
   Node::Boolean colorEmulation;
   Node::Boolean colorBleed;
 
+  double overclock = 1.0;
   bool isSkipping;
   bool skip;
   bool hasRendered;

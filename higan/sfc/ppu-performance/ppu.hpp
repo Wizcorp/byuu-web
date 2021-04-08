@@ -4,6 +4,7 @@ struct PPU : Thread, PPUcounter {
   Node::String region;
   Node::Boolean colorEmulation;
 
+  double overclock = 1.0;
   bool hasRendered = false;
   bool isSkipping = false;
   bool skip = false;

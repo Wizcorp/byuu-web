@@ -5,6 +5,9 @@ struct APU : Z80, Z80::Bus, Thread {
   Node::Instruction eventInstruction;
   Node::Notification eventInterrupt;
 
+  // Overclock the APU
+  double overclock = 1.0/15.0;
+
   inline auto synchronizing() const -> bool override { return scheduler.synchronizing(); }
 
   //z80.cpp

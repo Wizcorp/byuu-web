@@ -224,7 +224,7 @@ auto VDP::render() -> void {
 }
 
 auto VDP::power(bool reset) -> void {
-  Thread::create(system.frequency() / 2.0, {&VDP::main, this});
+  Thread::create(system.frequency() * overclock, {&VDP::main, this});
 
   for(auto& pixel : buffer) pixel = 0;
   output = buffer + 16 * 320;  //overscan offset
