@@ -922,8 +922,6 @@
                 <div class="values">
                   <input type="checkbox" name="md-skipframe" id="md-skipframe" />
                   <label for="md-skipframe">Skip frame</label>
-                  <input type="checkbox" name="md-optimizeSteps" id="md-optimizeSteps" />
-                  <label for="md-optimizeSteps">VDP - Optimize DMA Steps</label>
                   <select name="md-cpu-overclock" id="md-cpu-overclock">
                     <option value="0.25">0.25</option>
                     <option value="0.5">0.5</option>
@@ -1456,9 +1454,6 @@
                 return true;
               case 'skipframe':
                 Module.configure('vdp/skipframe', value);
-                return true;
-              case 'optimizeSteps':
-                Module.configure('vdp/optimizeSteps', value);
                 return true;
             }
             return false;

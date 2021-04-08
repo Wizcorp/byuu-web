@@ -5,11 +5,7 @@ namespace higan::MegaDrive {
 Interface* interface = nullptr;
 
 auto MegaDriveInterface::configure(string name, double value) -> void {
-  if(name.match("vdp/optimizeSteps")) {
-#if defined(PROFILE_PERFORMANCE)
-    vdp.optimizeSteps = (bool) value;
-#endif
-  } else if(name.match("vdp/skipframe")) {
+  if(name.match("vdp/skipframe")) {
     vdp.isSkipping = (bool) value;
   } else if(name.match("cpu/overclock")) {
     cpu.overclock = value / 7.0;

@@ -48,6 +48,7 @@ protected:
   uintmax _frequency = 0;
   uintmax _scalar = 0;
   uintmax _clock = 0;
+  bool _active;
 
   friend class Scheduler;
 };

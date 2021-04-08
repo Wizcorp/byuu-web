@@ -8,7 +8,6 @@ struct VDP : Thread {
   double overclock = 0.5;
 
   bool hasRendered = false;
-  bool optimizeSteps = false;
   bool isSkipping = false;
   bool skip;
 
@@ -89,6 +88,7 @@ private:
 
   struct DMA {
     //dma.cpp
+    alwaysinline auto poll() -> void;
     alwaysinline auto run() -> bool;
     alwaysinline auto load() -> void;
     alwaysinline auto fill() -> void;

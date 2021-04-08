@@ -38,19 +38,8 @@ auto VDP::unload() -> void {
 }
 
 static uint counter = 0;
-static uint dmaCounter = 0;
 
 auto VDP::main() -> void {
-#if defined(SCHEDULER_SYNCHRO)
-  if (dmaCounter > 0) {
-    dma.run();
-    Thread::step(1);
-    Thread::synchronize(apu);
-    dmaCounter--;
-    return;
-  }
-#endif
-
   switch(counter++) {
     case 1:
       //H = 0
@@ -126,29 +115,7 @@ auto VDP::main() -> void {
 
 auto VDP::step(uint clocks) -> void {
   state.hcounter += clocks;
-
-  if(optimizeSteps && (!dma.io.enable || dma.io.wait)) {
-    dma.active = 0;
-    Thread::step(clocks);
-#if defined(SCHEDULER_SYNCHRO)
-    Thread::synchronize(apu);
-#else
-    Thread::synchronize(cpu, apu);
-#endif
-  } else {
-#if defined(SCHEDULER_SYNCHRO)
-    dmaCounter = clocks - 1;
-    dma.run();
-    Thread::step(1);
-    Thread::synchronize(apu);
-#else
-    while(clocks--) {
-      dma.run();
-      Thread::step(1);
-      Thread::synchronize(cpu, apu);
-    }
-#endif
-  }
+  Thread::step(clocks);
 }
 
 auto VDP::refresh() -> void {

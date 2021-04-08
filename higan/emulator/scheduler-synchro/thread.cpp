@@ -2,7 +2,7 @@ Thread::~Thread() {
   destroy();
 }
 
-auto Thread::active() const -> bool { return true; } // Todo: what does this mean if threads don't run
+auto Thread::active() const -> bool { return _active; }
 auto Thread::handle() const -> thread_handle_t* { return _handle; }
 auto Thread::frequency() const -> uintmax { return _frequency; }
 auto Thread::scalar() const -> uintmax { return _scalar; }
@@ -69,7 +69,9 @@ auto Thread::synchronize(Thread& thread, P&&... p) -> void {
     //disable synchronization for auxiliary threads during scheduler synchronization.
     //synchronization can begin inside of this while loop.
     if(scheduler.synchronizing()) break;
+    thread._active = true;
     thread.main();
+    thread._active = false;
   }
   thread._handle->parent = _parent;
 
