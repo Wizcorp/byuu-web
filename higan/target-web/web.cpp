@@ -136,7 +136,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
     emscripten::function("setMute", &setMute);
 
     emscripten::function("connectPeripheral", &connectPeripheral);
-    emscripten::function("disconnectconnectPeripheral", &disconnectPeripheral);
+    emscripten::function("disconnectPeripheral", &disconnectPeripheral);
     emscripten::function("setButton", &setButton);
     
     emscripten::function("getROMInfo", &getROMInfo);

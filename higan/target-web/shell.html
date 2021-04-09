@@ -2029,27 +2029,72 @@
       // Todo: map per console
       const gamepadButtonKeymaps = {
         // L/R duplicated for convenience (xinput is for Firefox)
-        'Xbox 360 Controller (XInput STANDARD GAMEPAD)': [
-          'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
-          'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
-        ],
-        'xinput': [
-          'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
-          'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
-        ],
+        'Xbox 360 Controller (XInput STANDARD GAMEPAD)': {
+          'Famicom': [
+            'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ],
+          'Super Famicom': [
+            'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ],
+          'Mega Drive': [
+            'A', 'B', 'X', 'Y', 'C', 'Z', 'C', 'Z',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ]
+        },
+        'xinput': {
+          'Famicom': [
+            'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ],
+          'Super Famicom': [
+            'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ],
+          'Mega Drive': [
+            'A', 'B', 'X', 'Y', 'C', 'Z', 'C', 'Z',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ]
+        },
         // PS4 Controller
         // L/R duplicated for convenience
-        'Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 05c4)': [
-          'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
-          'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
-        ],
+        'Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 05c4)': {
+          'Famicom': [
+            'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ],
+          'Super Famicom': [
+            'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ],
+          'Mega Drive': [
+            'A', 'B', 'X', 'Y', 'C', 'Z', 'C', 'Z',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ]
+        },
         // Switch PRO Controller
         // L/R duplicated for convenience
         // Select/Start duplicated for convenience
-        'Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)': [
-          'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
-          'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right', 'Select', 'Start',
-        ]
+        'Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)': {
+          'Famicom': [
+            'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right', 'Select', 'Start',
+          ],
+          'Super Famicom': [
+            'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right', 'Select', 'Start',
+          ],
+          'Mega Drive': [
+            'A', 'B', 'X', 'Y', 'C', 'Z', 'C', 'Z',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right', 'Select', 'Start',
+          ]
+        }
+      }
+
+      function getVirtualControllerNameForEmulator() {
+        const node = document.querySelector(`#keymaps > div[data-console="${Module.info.currentEmulator}"]`);
+        return node.getAttribute('data-type');
       }
 
       function connectGamepad(gamepad) {
@@ -2063,12 +2108,10 @@
         }
 
         for (const [port, currentGamepad] of Object.entries(gamepadControllers)) {
-          if (!currentGamepad) {
+          if (currentGamepad === null) {
             gamepadControllers[port] = gamepad.index;
-            
-            if (port !== 'Controller Port 1' && Module.info.isRunning) {
-              Module.connectPeripheral(port, 'Gamepad'); // todo: peripheralName according to console 
-            }
+            Module.disconnectPeripheral(port);
+            Module.connectPeripheral(port, getVirtualControllerNameForEmulator()); // todo: peripheralName according to console 
 
             return notify(`
               <h1>🔗 Gamepad connected</h1>
@@ -2101,8 +2144,9 @@
 
       function connectAllGamepadPeripherals() {
         for (const [port, gamepad] of Object.entries(gamepadControllers)) {
-          if (gamepad) {
-            Module.connectPeripheral(port, 'Gamepad'); // todo: peripheralName according to console 
+          if (gamepad && port !== 'Controller Port 1') {
+            Module.disconnectPeripheral(port);
+            Module.connectPeripheral(port, getVirtualControllerNameForEmulator()); // todo: peripheralName according to console 
           }
         }
       }
@@ -2121,12 +2165,13 @@
         const gamepads = pollGamepads();
 
         for (const [port, index] of Object.entries(gamepadControllers)) {
+
           if (index === null) {
             continue;
           }
 
           const { id, buttons } = gamepads[index];
-          const map = gamepadButtonKeymaps[id];
+          const map = gamepadButtonKeymaps[id][Module.info.currentEmulator];
 
           for (const [index, button] of buttons.entries()) {
             if (map[index]) {
@@ -2170,6 +2215,8 @@
 
         Module.info.currentEmulator = emulator;
         localStorage.setItem(LAST_GAME, select.value);
+
+        
       }
 
 
@@ -2180,11 +2227,6 @@
         const { romData, emulator } = await getGame(filename);
         const save = await gameLoad(filename);
         Module.load(romData, save);
-        
-        gameLoadingElement.style.display = 'none';
-        
-        Module.info.isRunning = true;
-        Module.info.currentGame = filename;
 
         if (device.isMobile) {
           displayControllerForEmulator();
@@ -2193,6 +2235,11 @@
         }
 
         connectAllGamepadPeripherals();
+        
+        gameLoadingElement.style.display = 'none';
+        
+        Module.info.isRunning = true;
+        Module.info.currentGame = filename;
 
         // Let everything else finish before properly starting the game
         setTimeout(() => {
