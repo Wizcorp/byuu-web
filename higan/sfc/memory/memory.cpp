@@ -13,6 +13,12 @@ auto Bus::reset() -> void {
     counter[id] = 0;
   }
 
+  if(lookup) delete[] lookup;
+  if(target) delete[] target;
+
+  lookup = new uint8 [16 * 1024 * 1024]();
+  target = new uint32[16 * 1024 * 1024]();
+
   reader[0] = [](uint24, uint8 data) -> uint8 { return data; };
   writer[0] = [](uint24, uint8) -> void {};
 

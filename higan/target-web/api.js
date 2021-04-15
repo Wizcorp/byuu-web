@@ -68,7 +68,7 @@ function getBinaryPath() {
 }
 
 function getModule() {
-  if (!initialized) {
+  if (!compiled) {
     throw new Error('Emulator module was not initialized before use')
   }
 
@@ -145,7 +145,7 @@ byuu.compile = async function () {
     }).then((result) => {
       compiled = true;
       lib = result;
-      resolve();
+      resolve(lib);
     })
   })
 }
