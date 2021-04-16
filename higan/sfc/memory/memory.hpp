@@ -42,8 +42,8 @@ struct Bus {
   auto unmap(const string& address) -> void;
 
 private:
-  uint8* lookup;
-  uint32* target;
+  uint8* lookup = new uint8[16 * 1024 * 1024]();
+  uint32* target = new uint32[16 * 1024 * 1024]();
 
   static const unsigned fast_page_size_bits = 13;//keep at 13 or lower so the RAM mirrors can be on the fast path
   static const unsigned fast_page_size = (1 << fast_page_size_bits);
