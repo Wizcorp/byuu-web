@@ -1,4 +1,4 @@
-const currentVersion = 'edbe1e6';
+const currentVersion = 'e680929';
 
 self.addEventListener('fetch', (event) => {
     event.respondWith(
