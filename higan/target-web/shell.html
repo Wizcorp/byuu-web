@@ -2180,6 +2180,20 @@
             'B', 'A', 'X', 'Y', 'C', 'Z', 'C', 'Z',
             'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
           ]
+        },
+        'DEFAULT': {
+          'Famicom': [
+            'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ],
+          'Super Famicom': [
+            'A', 'B', 'X', 'Y', 'L', 'R', 'L', 'R',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ],
+          'Mega Drive': [
+            'A', 'B', 'X', 'Y', 'C', 'Z', 'C', 'Z',
+            'Select', 'Start', null, null, 'Up', 'Down', 'Left', 'Right'
+          ]
         }
       }
 
@@ -2190,12 +2204,14 @@
 
       function connectGamepad(gamepad) {
         if (!gamepadButtonKeymaps[gamepad.id]) {
-          return notify(`
+          gamepad.id = 'DEFAULT';
+
+          /*return notify(`
               <h1>😲 Cannot connect gamepad</h1>
               <p>
                 Gamepad detected but no button mappings are available for <strong>${gamepad.id}</strong>
               </p>
-            `, 'warning');
+            `, 'warning');*/
         }
 
         for (const [port, currentGamepad] of Object.entries(gamepadControllers)) {
@@ -2262,6 +2278,12 @@
           }
 
           const { id, buttons } = gamepads[index];
+
+          // Check if the mapping exists for the controller and use the default otherwise
+          if (!gamepadButtonKeymaps[id]) {
+            id = 'DEFAULT';
+          }
+
           const map = gamepadButtonKeymaps[id][Module.info.currentEmulator];
 
           for (const [index, button] of buttons.entries()) {
